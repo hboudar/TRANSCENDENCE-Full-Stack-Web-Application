@@ -4,8 +4,9 @@ import cors from '@fastify/cors';
 import sqlite3 from 'sqlite3';
 import { Server } from 'socket.io';
 import { sockethandler } from './socket.js';
+import { rpsHandler } from './rps.js';
 
-import game, { setupGameSocketIO } from './game.js';
+import game from './game.js';
 
 const fastify = Fastify();
 
@@ -171,11 +172,7 @@ const io = new Server(httpServer, {
 });
 
 sockethandler(io, db);
-setupGameSocketIO(io);
-
-// Register Profile routes with access to Socket.IO so they can broadcast updates
-const ProfileRoutesWithIo = (await import('./routes/profileroute.js')).default;
-fastify.register(ProfileRoutesWithIo, { db, io });
+rpsHandler(io, db);
 
 await fastify.ready();
 const PORT = 4000;
