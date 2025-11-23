@@ -3,13 +3,20 @@
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-
+//fix type script error
 export default function GamesCard({
 	setGameType,
 	title,
 	description,
 	GameType,
 	type,
+}
+: {
+	setGameType: React.Dispatch<React.SetStateAction<string>>;
+	title: string;
+	description: string;
+	GameType: string;
+	type: string;
 }) {
 	console.log(GameType);
 	const router = useRouter();

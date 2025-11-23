@@ -12,6 +12,21 @@ import WinAnimation from "@/app/components/WinAnimation";
 import LoseAnimation from "@/app/components/LoseAnimation";
 import LocalGameWinAnimation from "@/app/components/LocalGameWinAnimation";
 
+type SkinType = "table" | "paddle" | "ball";
+type Skin = {
+	skin_id: number;
+	type: SkinType;
+	color: string;
+	img: string;
+	selected?: boolean;
+	player_id: number;
+};
+
+type Selected = {
+	types: Skin[];
+	type: number;
+};
+
 type Score = { p1: number; p2: number };
 type PositionsType = {
 	score?: Score;
@@ -40,7 +55,8 @@ type TournamentPlayers = {
 };
 
 export default function Game() {
-	const { selected, user, setselected } = Homecontext();
+	const { user } = Homecontext();
+	const [selected, setselected] = useState<Selected>({ types: [], type: 0 });
 	const router = useRouter();
 	const [Positions, setPositions] = useState<PositionsType>({});
 	const [tournamentplayers, settournamentplayers] = useState<TournamentPlayers>(
