@@ -8,7 +8,6 @@ import PingPongAchievements from "./cards";
 import GameHistory from "./gamehistory";
 import PingPongPerformanceChart from "./chart";
 import { Coins, Crown, Flame, Trophy, LucideIcon } from "lucide-react";
-import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 
 // Type definition for tier levels
@@ -90,15 +89,11 @@ export default function HomePage() {
     // Type assertion for user to access properties safely
     const typedUser = user as { id: number; username?: string; email?: string } | null;
 
-    // ========================================
-    // Handle Google OAuth Redirect
-    // ========================================
-    // After Google authentication, user gets redirected here with token or error in URL
+    // Handle Google OAuth Errors (if any)
+    // OAuth errors are now passed in URL (token is set as cookie by server)
     useEffect(() => {
-        const token = searchParams.get('token');  // JWT token from server
-        const error = searchParams.get('error');  // Error code if something went wrong
+        const error = searchParams.get('error');
         
-        // If authentication failed, show error message
         if (error) {
             // Map error codes to user-friendly messages
             const errorMessages: { [key: string]: string } = {
@@ -111,23 +106,6 @@ export default function HomePage() {
             alert(errorMessages[error] || 'Authentication failed. Please try again.');
             // Clean up URL (remove error parameter)
             window.history.replaceState({}, '', '/home');
-            return;
-        }
-        
-        // If we got a token, save it and authenticate user
-        if (token) {
-            // Save JWT token to browser cookie (valid for 7 days)
-            Cookies.set("token", token, {
-                expires: 7,                    // Token expires in 7 days
-                secure: false,                 // Set to false for localhost (use true in production with HTTPS)
-                sameSite: "lax",              // Protect against CSRF attacks
-            });
-            
-            // Clean up URL (remove token from address bar)
-            window.history.replaceState({}, '', '/home');
-            
-            // Reload page to fetch user data with new token
-            window.location.reload();
         }
     }, [searchParams]);
 
@@ -159,11 +137,7 @@ export default function HomePage() {
     }, [typedUser]);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full text-white animate-pulse">
-                <Loading />
-            </div>
-        );
+        return <Loading />;
     }
 
     const gameCount = games.length;

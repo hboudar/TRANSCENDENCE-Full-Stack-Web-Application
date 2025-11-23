@@ -25,9 +25,7 @@ export default async function authRoutes(fastify, opts) {
 
     const db = opts.db;
 
-    // ========================================
     // Password Login Endpoint
-    // ========================================
     // Traditional email/password login (NOT for Google OAuth users)
     fastify.post('/login', async (req, reply) => {
         const { email, password } = req.body;
@@ -45,9 +43,9 @@ export default async function authRoutes(fastify, opts) {
                 }
 
                 if (row) {
-                    // ========================================
+            
                     // IMPORTANT: Check if user signed up with Google
-                    // ========================================
+            
                     // Google OAuth users have null password - they can't login with password
                     if (!row.password) {
                         return reply.status(401).send({
@@ -84,10 +82,7 @@ export default async function authRoutes(fastify, opts) {
             });
         });
     });
-
-    // ========================================
     // Token Verification Endpoint
-    // ========================================
     // Used by client to verify JWT token and get user data
     fastify.get('/me', async (request, reply) => {
         // Try to get token from Authorization header first, then from cookies
