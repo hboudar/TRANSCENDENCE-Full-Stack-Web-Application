@@ -47,7 +47,7 @@ export default function RPSSummary({ user, games }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.45 }}
-            className="relative rounded-2xl p-6 bg-gradient-to-r from-[#160c27]/70 to-[#241635]/60 border border-[#6b3be033] shadow-lg text-white flex flex-col md:flex-row items-center gap-6"
+            className="relative rounded-2xl p-6 bg-gradient-to-r from-[#160c27]/70 to-[#241635]/60 border border-[#6b3be033] shadow-lg text-white flex flex-col xl:flex-row items-center gap-6"
         >
             {/* top-right small badge image */}
 
