@@ -64,11 +64,11 @@ export default function SkinContainer({
 	return (
 		<div
 			className="px-4 py-2  md:w-[calc(100vw-125px)] max-md:w-[clac(100vw-40px)]    overflow-y-hidden overflow-x-scroll 
-                flex 
+                flex flex-1 w-full
                [&::-webkit-scrollbar-thumb]:bg-blue-400
                [&::-webkit-scrollbar-thumb]:rounded-full
                [&::-webkit-scrollbar]:h-2">
-			<div className=" flex gap-[5%] px-[5%] items-center mx-auto ">
+			<div className=" flex flex-1 gap-[5%] px-[5%] items-center mx-auto ">
 				{skins.map((skin, index) =>
 					skin.type == skinType ? (
 						<div

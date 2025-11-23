@@ -6,7 +6,7 @@ import { Server } from 'socket.io';
 import { sockethandler } from './socket.js';
 import { rpsHandler } from './rps.js';
 
-import game from './game.js';
+import game, { setupGameSocketIO } from './game.js';
 
 const fastify = Fastify();
 
@@ -171,6 +171,7 @@ const io = new Server(httpServer, {
 });
 
 sockethandler(io, db);
+setupGameSocketIO(io);
 rpsHandler(io, db);
 
 // Register profile routes after Socket.IO is created so routes can access `io`

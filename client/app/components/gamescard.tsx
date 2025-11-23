@@ -15,7 +15,7 @@ export default function GamesCard({
 	const router = useRouter();
 
 	return (
-		<div className="h-full group ">
+		<div className="h-full w-fit group ">
 			<div
 				onClick={() => {
 					// if (type == "tournament") router.push("/games/tournament");

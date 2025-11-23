@@ -24,7 +24,7 @@ export default function Games() {
            [&::-webkit-scrollbar-thumb]:bg-blue-400
            [&::-webkit-scrollbar-thumb]:rounded-full
            [&::-webkit-scrollbar]:h-2">
-				<div className=" flex gap-[2%] px-[2%] mx-auto ">
+				<div className=" flex flex-row flex-1 gap-[2%] px-[2%] mx-auto ">
 					<GamesCard
 						type={"localvsbot"}
 						title={"Play vs Bot"}
@@ -105,7 +105,7 @@ export default function Games() {
 							} bottom-0 rounded-full bg-blue-500`}></div>
 					</div>
 				</div>
-				<div className="flex-1 flex min-h-56 ">
+				<div className="flex-1  flex min-h-56 ">
 					<SkinContainer
 						skinType={skinType}
 						skins={skins}
