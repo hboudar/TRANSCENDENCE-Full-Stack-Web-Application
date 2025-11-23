@@ -146,7 +146,6 @@ fastify.register(shopRoute, { db });
 
 const gameApiRoute = (await import('./routes/gameapiroute.js')).default;
 fastify.register(gameApiRoute, { db });
-// Profile routes will be registered after Socket.IO is created so routes can access `io`.
 
 const notificationRoute = (await import('./routes/notificationroute.js')).default;
 fastify.register(notificationRoute, { db });
@@ -173,6 +172,10 @@ const io = new Server(httpServer, {
 
 sockethandler(io, db);
 rpsHandler(io, db);
+
+// Register profile routes after Socket.IO is created so routes can access `io`
+const profileRoute = (await import('./routes/profileroute.js')).default;
+await fastify.register(profileRoute, { db, io });
 
 await fastify.ready();
 const PORT = 4000;
