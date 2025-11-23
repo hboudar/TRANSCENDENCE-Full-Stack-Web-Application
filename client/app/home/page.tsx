@@ -26,8 +26,8 @@ interface AchievementCardProps {
 const AchievementCard = ({ icon: Icon, name, progress, total, completed = false, tier = "bronze" }: AchievementCardProps) => {
     const progressPercentage = total ? (progress / total) * 100 : 100;
     let displayTier: TierType = tier;
+    console.log("AchievementCard - completed:",name, completed, "tier:", tier);
     if (completed) displayTier = "gold";
-
     const tierStyles: Record<TierType, string> = {
         gold: "border-yellow-400/50 shadow-lg shadow-yellow-400/30 bg-gradient-to-br from-yellow-600/20 to-purple-600/20",
         silver: "border-blue-400/40 shadow-lg shadow-blue-400/20 bg-gradient-to-br from-purple-500/20 to-blue-500/20",
@@ -76,7 +76,7 @@ const AchievementCard = ({ icon: Icon, name, progress, total, completed = false,
                     </div>
                 </div>
             ) : (
-                <p className="text-green-400 font-bold text-xs uppercase">Mastered!</p>
+                <p className="text-green-400 font-bold text-xs uppercase">{completed ? "Achievement Unlocked!" : "No progress required"}</p>
             )}
         </div>
     );
@@ -175,7 +175,7 @@ export default function HomePage() {
                         <AchievementCard icon={Trophy} name="First Victory" progress={gameCount} total={1} completed={gameCount > 0} />
                         <AchievementCard icon={Flame} name="Streak Master" progress={streak} total={10} completed={streak >= 10} />
                         <AchievementCard icon={Coins} name="Gold Master" progress={totalGold} total={1000} completed={totalGold >= 1000} />
-                        <AchievementCard icon={Crown} name="Champion" progress={0} total={0} completed />
+                        <AchievementCard icon={Crown} name="Champion" progress={0} total={0} completed={user?.tounaments_won == 1} tier={`${user?.tounaments_won == 1 ? "gold" : "bronze"}` as TierType} />
                     </div>
                 </div>
                 <GameHistory user={user} games={games} />

@@ -117,6 +117,7 @@ export default async function authRoutes(fastify, opts) {
                             rps_wins: row.rps_wins,
                             rps_losses: row.rps_losses,
                             rps_draws: row.rps_draws,
+                            tounaments_won: row.tounaments_won
                         });
                         resolve(row);
                     } else {
