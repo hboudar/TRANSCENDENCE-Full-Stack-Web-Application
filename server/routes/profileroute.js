@@ -1,9 +1,32 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export default async function ProfileRoutes(fastify, opts) {
     const db = opts.db;
+    const io = opts.io;
     fastify.post('/profile', async (request, reply) => {
         const { userid, name, email, language, picture, currentPassword, newPassword } = request.body;
+
+        // Authorize: verify JWT and ensure the requester matches the userid being updated
+        let token = request.headers.authorization?.split(' ')[1];
+        if (!token && request.cookies) token = request.cookies.token;
+        if (!token) {
+            return reply.status(401).send({ error: 'Unauthorized' });
+        }
+        let decoded;
+        try {
+            decoded = jwt.verify(token, SECRET);
+        } catch (err) {
+            console.error('JWT verification failed for profile update:', err);
+            return reply.status(401).send({ error: 'Unauthorized' });
+        }
+        if (!decoded || String(decoded.userId || decoded.id) !== String(userid)) {
+            console.warn('Forbidden profile update attempt', { tokenUser: decoded, targetUser: userid });
+            return reply.status(403).send({ error: 'Forbidden' });
+        }
+
         console.log("📥 Received profile update request:", { userid, name, email, language, picture, hasPassword: !!newPassword });
 
         return new Promise((resolve, reject) => {
@@ -86,7 +109,28 @@ export default async function ProfileRoutes(fastify, opts) {
                         return reject(err);
                     }
                     console.log("✅ Profile updated successfully. Rows affected:", this.changes);
-                    resolve({ message: "Profile updated successfully" });
+                    // After update, fetch the updated user row and return it
+                    db.get('SELECT id, name, email, picture, gold FROM users WHERE id = ?', [userid], (err2, row) => {
+                        if (err2) {
+                            console.error('❌ Error fetching updated user:', err2.message);
+                            reply.status(500).send({ error: 'Database error', details: err2.message });
+                            return reject(err2);
+                        }
+                            // Broadcast update via Socket.IO (server-side) so all clients receive authoritative update
+                            try {
+                                if (io && row && row.id) {
+                                    const payload = { userId: row.id, name: row.name, picture: row.picture };
+                                    io.emit('user_profile_updated', payload);
+                                    io.to(`user:${row.id}`).emit('user_profile_updated', payload);
+                                    fastify.log && fastify.log.info && fastify.log.info('📣 Broadcasted user_profile_updated', payload);
+                                }
+                            } catch (e) {
+                                console.error('Error broadcasting profile update:', e);
+                            }
+
+                            // Reply with the updated user object
+                            resolve(row);
+                    });
                 });
             }
         });

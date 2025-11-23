@@ -22,9 +22,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const pathname = request.nextUrl.pathname;
 
-
   // Protect Routes - Require Authentication
-
   if (protectedRoutes.includes(pathname)) {
     // If no token in cookie, redirect to login
     if (!token) {

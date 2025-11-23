@@ -24,7 +24,7 @@ export default async function googleAuth(fastify, opts) {
   fastify.get('/auth/google', async (request, reply) => {
     // Google's OAuth authorization endpoint
     const googleAuthUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
-    
+
     // Build URL parameters for Google
     const params = new URLSearchParams({
       client_id: GOOGLE_CLIENT_ID,           // Tell Google who we are
@@ -97,13 +97,12 @@ export default async function googleAuth(fastify, opts) {
           }
 
           if (user) {
-            
             // User Already Exists - Update & Login
             // Update profile picture if it changed on Google
             if (picture && user.picture !== picture) {
               db.run('UPDATE users SET picture = ? WHERE id = ?', [picture, user.id]);
             }
-            
+
             // Create JWT token for this user (valid for 7 days)
             const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
             
@@ -142,6 +141,14 @@ export default async function googleAuth(fastify, opts) {
                   sameSite: 'lax', // CSRF protection
                   secure: false // Set to true in production with HTTPS
                 });
+                
+                // Add default skins for new player
+                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 1, 1]);
+                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 2, 1]);
+                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 3, 1]);
+                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 4, 0]);
+                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 5, 0]);
+                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 6, 0]);
                 
                 // Redirect to home page (token already in cookie)
                 reply.redirect(`${CLIENT_URL}/home`);
