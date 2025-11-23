@@ -532,7 +532,10 @@ export default function Tournament({
 		if (tournamentWinnerEntry && players.length > 1) {
 			setTournamentWinner(tournamentWinnerEntry.name);
 			setShowWinnerAnimation(true);
-
+			
+			fetch(`http://localhost:4000/api/tournament_win/${user.id}`, {
+				method: "POST",
+			});
 			// Auto-close after 5 seconds
 			setTimeout(() => {
 				setShowWinnerAnimation(false);
