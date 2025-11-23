@@ -8,6 +8,7 @@ import PingPongAchievements from "./cards";
 import GameHistory from "./gamehistory";
 import PingPongPerformanceChart from "./chart";
 import { Coins, Crown, Flame, Trophy, LucideIcon } from "lucide-react";
+import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 
 // Type definition for tier levels
@@ -90,7 +91,6 @@ export default function HomePage() {
     const typedUser = user as { id: number; username?: string; email?: string } | null;
 
     // Handle Google OAuth Errors (if any)
-    // OAuth errors are now passed in URL (token is set as cookie by server)
     useEffect(() => {
         const error = searchParams.get('error');
         
@@ -108,6 +108,13 @@ export default function HomePage() {
             window.history.replaceState({}, '', '/home');
         }
     }, [searchParams]);
+
+    // Redirect to login if no user after loading completes
+    useEffect(() => {
+        if (!loading && !user) {
+            window.location.href = '/login';
+        }
+    }, [loading, user]);
 
     useEffect(() => {
         const fetch_user = async () => {
@@ -137,7 +144,11 @@ export default function HomePage() {
     }, [typedUser]);
 
     if (loading) {
-        return <Loading />;
+        return (
+            <div className="flex items-center justify-center h-full text-white animate-pulse">
+                <Loading />
+            </div>
+        );
     }
 
     const gameCount = games.length;

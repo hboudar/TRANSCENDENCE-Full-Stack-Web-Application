@@ -52,10 +52,7 @@ export default function LoginForm() {
                     secure: false, // Set to false for localhost (use true in production with HTTPS)
                     sameSite: "lax",
                 });
-
-                // router.push("/chat");
                 window.location.href = "/home"; // Redirect to chat page
-
 
             } else {
                 const error = await response.json();

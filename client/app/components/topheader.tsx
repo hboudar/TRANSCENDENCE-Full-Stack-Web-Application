@@ -35,7 +35,6 @@ export default function Topheader() {
     fectusers();
   }, [value]);
 
-  console.log("User in Topheader:", user);
   // Close notification dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -64,6 +63,12 @@ export default function Topheader() {
     deleteNotification(notificationId);
     // Link will navigate to the game
   };
+
+  // Don't render if user is not loaded yet
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="flex w-full justify-between items-center p-4 shadow-md rounded-lg">
 
@@ -84,7 +89,7 @@ export default function Topheader() {
         />
         {value &&
           (searchResults.length > 0 ? (
-            <NavSearch searchResults={searchResults} me={user.id} value={value} setValue={setValue} />
+            <NavSearch searchResults={searchResults} me={(user as any).id} value={value} setValue={setValue} />
           ) :
             <div className="absolute top-full left-0 w-full bg-[#1a1a1a] rounded-lg shadow-lg mt-2">
               <p className="p-4 text-gray-500">No results found</p>
@@ -191,11 +196,11 @@ export default function Topheader() {
           )}
         </div>
 
-        <button className="flex items-center ml-4 cursor-pointer"
+        <button 
+          className="flex items-center ml-4 cursor-pointer"
           onClick={() => {
-            window.location.href = `/profile/${user.id}`;
-          }
-          }
+            window.location.href = `/profile/${(user as any).id}`;
+          }}
         >
           <div className="flex flex-col ml-6">
             {!user ? (
@@ -205,8 +210,8 @@ export default function Topheader() {
               </>
             ) : (
               <>
-                <h1 className="text-lg font-semibold text-white">{user.name}</h1>
-                <p className="text-sm text-purple-400">{user.gold} $</p>
+                <h1 className="text-lg font-semibold text-white">{(user as any).name}</h1>
+                <p className="text-sm text-purple-400">{(user as any).gold} $</p>
               </>
             )}
           </div>
@@ -217,7 +222,7 @@ export default function Topheader() {
             <div className="ml-6">
               <div className="relative w-12 h-12">
                 <img
-                  src={user?.picture || "/profile.png"}
+                  src={(user as any).picture || "/profile.png"}
                   alt="User"
                   className="w-12 h-12 rounded-full border border-purple-600 shadow-lg object-cover bg-center"
                   width={48}

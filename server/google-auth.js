@@ -17,9 +17,7 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !JWT_SECRET) {
 export default async function googleAuth(fastify, opts) {
   const db = opts.db;
 
-  
   // STEP 1: Start Google OAuth Flow
-  
   // When user clicks "Sign in with Google", redirect them to Google's login page
   fastify.get('/auth/google', async (request, reply) => {
     // Google's OAuth authorization endpoint
@@ -51,6 +49,7 @@ export default async function googleAuth(fastify, opts) {
     }
 
     try {
+  
       // STEP 3: Exchange Code for Access Token
       // Trade the authorization code for an access token
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
@@ -72,6 +71,7 @@ export default async function googleAuth(fastify, opts) {
         return reply.redirect(`${CLIENT_URL}/login?error=no_access_token`);
       }
 
+  
       // STEP 4: Get User Information from Google
       // Use the access token to fetch user's profile data
       const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -85,6 +85,7 @@ export default async function googleAuth(fastify, opts) {
       const name = profile.name || 'Google User';
       const picture = profile.picture || null;
 
+  
       // STEP 5: Create or Update User in Database
       // Check if user already exists or create new account
       return new Promise((resolve, reject) => {
@@ -97,6 +98,7 @@ export default async function googleAuth(fastify, opts) {
           }
 
           if (user) {
+        
             // User Already Exists - Update & Login
             // Update profile picture if it changed on Google
             if (picture && user.picture !== picture) {
@@ -105,7 +107,7 @@ export default async function googleAuth(fastify, opts) {
 
             // Create JWT token for this user (valid for 7 days)
             const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
-            
+
             // Set token as HTTP cookie (more secure - not in URL)
             reply.setCookie('token', token, {
               path: '/',
@@ -114,12 +116,14 @@ export default async function googleAuth(fastify, opts) {
               sameSite: 'lax', // CSRF protection
               secure: false // Set to true in production with HTTPS
             });
-            
+
             // Redirect to home page (token already in cookie)
             reply.redirect(`${CLIENT_URL}/home`);
             resolve(user);
           } else {
+        
             // New User - Create Account
+        
             db.run(
               'INSERT INTO users (name, email, picture, password, gold) VALUES (?, ?, ?, ?, ?)',
               [name, email, picture, null, 1000],  // password is null (OAuth user), give 1000 gold
@@ -132,7 +136,7 @@ export default async function googleAuth(fastify, opts) {
 
                 // Create JWT token for new user (valid for 7 days)
                 const token = jwt.sign({ userId: this.lastID }, JWT_SECRET, { expiresIn: '7d' });
-                
+
                 // Set token as HTTP cookie (more secure - not in URL)
                 reply.setCookie('token', token, {
                   path: '/',
@@ -141,7 +145,7 @@ export default async function googleAuth(fastify, opts) {
                   sameSite: 'lax', // CSRF protection
                   secure: false // Set to true in production with HTTPS
                 });
-                
+
                 // Add default skins for new player
                 db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 1, 1]);
                 db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 2, 1]);
@@ -149,7 +153,7 @@ export default async function googleAuth(fastify, opts) {
                 db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 4, 0]);
                 db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 5, 0]);
                 db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 6, 0]);
-                
+
                 // Redirect to home page (token already in cookie)
                 reply.redirect(`${CLIENT_URL}/home`);
                 resolve({ id: this.lastID, name, email, picture });
