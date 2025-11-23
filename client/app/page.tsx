@@ -2,8 +2,10 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { useUser } from "./Context/UserContext"
 
 export default function LandingPage() {
+  const { user, loading } = useUser();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -97,9 +99,9 @@ export default function LandingPage() {
           <motion.div variants={buttonVariants}>
             <Link
               className="bg-[#fffdfd] text-[#0e066e] text-center px-6 py-3 rounded-[15px] font-extrabold hover:bg-[#0e066e] hover:text-white transition-colors duration-300 text-lg shadow-lg"
-              href="/home"
+              href={!loading && user ? "/home" : "/login"}
             >
-              Get Started
+              {loading ? "Loading..." : user ? "Go to Dashboard" : "Get Started"}
             </Link>
           </motion.div>
         </div>

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import cookie from '@fastify/cookie';
 import sqlite3 from 'sqlite3';
 import { Server } from 'socket.io';
 import { sockethandler } from './socket.js';
@@ -14,6 +15,9 @@ await fastify.register(cors, {
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 });
+
+// Register cookie plugin for OAuth cookie handling
+await fastify.register(cookie);
 
 
 // Connect SQLite DB
