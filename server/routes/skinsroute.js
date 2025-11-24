@@ -1,27 +1,27 @@
 /** @format */
 
-export default  function skinsRoutes(fastify, opts) {
+export default function skinsRoutes(fastify, opts) {
 	const db = opts.db;
-	// await db.run(`DROP TABLE skins;`)
-	 db.run(`
+	// db.run(`DROP TABLE skins;`)
+	db.run(`
     INSERT OR IGNORE INTO skins (name, type, price, color, img) VALUES
-    ('Pastel Blue', 'ball'   , 0, '#ff7300', '#ff7300'),
-    ('Pastel Blue', 'table'  , 0, '#ff7380', '/table1.png'),
-    ('Pastel Blue', 'paddle' , 0, '#388E3C', '#388E3C'),
-    ('Pastel Blue', 'table'  , 0, '#d181b0', '#d181b0'),
-    ('Pastel Blue', 'paddle' , 0, '#a73276', '#a73276'),
-    ('Pastel Blue', 'ball'   , 0, '#ff0095', '#ff0095'),
-    ('Pastel Blue', 'paddle' , 0, '#7c7c7c', '#7c7c7c'),
-    ('Pastel Blue', 'ball'   , 0, '#5e5e5e', '#5e5e5e'),
-    ('Pastel Blue', 'table'  , 0, '#a7c7cb', '#a7c7cb'),
-    ('Pastel Blue', 'paddle' , 0, '#658b91', '#658b91'),
-    ('Pastel Blue', 'ball'   , 0, '#0093a7', '#0093a7'),
-    ('Pastel Blue', 'table'  , 0, '#74c578', '#74c578'),
-    ('Pastel Blue', 'ball'   , 0, '#007406', '#007406'),
-    ('Pastel Blue', 'table'  , 0, '#252525', '#252525'),
-    ('Pastel Blue', 'paddle' , 0, '#ffffff', '#ffffff')
+    ('Solar Flare', 'ball'   , 0, '#FFD54F', '#FFD54F'),
+    ('Ruby Velvet', 'table'  , 0, '#E53935', '/table1.png'),
+    ('Sapphire Wave', 'paddle' , 0, '#1E88E5', '#1E88E5'),
+    ('Amethyst Dream', 'table'  , 0, '#9C27B0', '#9C27B0'),
+    ('Jade Forest', 'paddle' , 0, '#66BB6A', '#66BB6A'),
+    ('Fuchsia Blast', 'ball'   , 0, '#EC407A', '#EC407A'),
+    ('Amber Glow', 'paddle' , 0, '#FFB300', '#FFB300'),
+    ('Obsidian Core', 'ball'   , 0, '#283593', '#283593'),
+    ('Aqua Marine', 'table'  , 0, '#26C6DA', '#26C6DA'),
+    ('Scarlet Fire', 'paddle' , 0, '#D32F2F', '#D32F2F'),
+    ('Arctic Cyan', 'ball'   , 0, '#00E5FF', '#00E5FF'),
+    ('Mint Paradise', 'table'  , 0, '#26A69A', '#26A69A'),
+    ('Tangerine Burst', 'ball'   , 0, '#FF7043', '#FF7043'),
+    ('Graphite Steel', 'table'  , 0, '#37474F', '#37474F'),
+    ('Pearl White', 'paddle' , 0, '#FFFFFF', '#FFFFFF')
     `);
-	 
+
 	fastify.get("/player_skins", async (request, reply) => {
 		return new Promise((resolve, reject) => {
 			const { player_id } = request.query;
@@ -40,7 +40,7 @@ export default  function skinsRoutes(fastify, opts) {
 						return reject(err);
 					}
 					console.log(rows);
-					
+
 					resolve(rows);
 				}
 			);

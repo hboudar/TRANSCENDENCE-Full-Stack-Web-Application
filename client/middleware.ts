@@ -13,6 +13,7 @@ const protectedRoutes = [
   "/orders",
   "/rps",
   "/games",
+  "/profile/*",
 ];
 
 export function middleware(request: NextRequest) {
@@ -20,7 +21,8 @@ export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // If accessing protected route without token → redirect to login
-  if (protectedRoutes.includes(pathname) && !token) {
+  if ((protectedRoutes.includes(pathname) || pathname.startsWith("/profile/"))
+   && !token) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

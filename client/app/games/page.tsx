@@ -19,14 +19,14 @@ export default function Games() {
                w-full
                 p-4  gap-4  ">
 			<div
-				className=" flex-1 min-h-80 py-2 px-4  md:w-[calc(100vw-125px)] max-md:w-[clac(100vw-40px)]  overflow-x-scroll  
+				className="flex-1 min-h-80 py-2 px-4 md:w-[calc(100vw-125px)] max-md:w-[calc(100vw-40px)] overflow-x-scroll  
             flex 
            [&::-webkit-scrollbar-thumb]:bg-blue-400
            [&::-webkit-scrollbar-thumb]:rounded-full
            [&::-webkit-scrollbar]:h-2">
-				<div className=" flex flex-row flex-1 gap-[2%] px-[2%] mx-auto ">
+				<div className="flex flex-row gap-[2%] px-[2%] mx-auto">
 					<GamesCard
-						type={"localvsbot"}
+						type={"bot"}
 						title={"Play vs Bot"}
 						description={"Practice against the computer"}
 						setGameType={setGameType}
@@ -47,6 +47,12 @@ export default function Games() {
 						type={"tournament"}
 						title={"tournament"}
 						description={"Battle players in knockout challenges"}
+						setGameType={setGameType}
+						GameType={GameType}></GamesCard>
+					<GamesCard
+						type={"rps"}
+						title={"Rock Paper Scissors"}
+						description={"Play the classic game of Rock Paper Scissors against others"}
 						setGameType={setGameType}
 						GameType={GameType}></GamesCard>
 				</div>

@@ -22,11 +22,13 @@ export default function GamesCard({
 	const router = useRouter();
 
 	return (
-		<div className="h-full w-fit group ">
+		<div className="h-full w-fit group flex-shrink-0">
 			<div
 				onClick={() => {
 					// if (type == "tournament") router.push("/games/tournament");
-					router.push("/games/game?gametype=" + type);
+					if (type == "rps") router.push("/rps");
+					else
+						router.push("/games/game?gametype=" + type);
 					setGameType(type);
 				}}
 				className={`relative   overflow-hidden  cursor-pointer flex  h-full

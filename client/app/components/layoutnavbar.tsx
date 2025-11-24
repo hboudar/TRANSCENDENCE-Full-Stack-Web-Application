@@ -21,7 +21,7 @@ export const LayoutComp = ({ children }: { children: React.ReactNode }) => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const shouldShowLayout = path !== '/' && path !== '/login' && path !== '/register';
+    const shouldShowLayout = path === "/games" || path.startsWith("/profile/") || path === "/rps" || path === "/home" || path === "/chat" || path === "/friends" || path === "/shop";
 
     return (
         <div className="min-h-screen bg-[#00000070] relative">
