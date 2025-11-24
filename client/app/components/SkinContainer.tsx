@@ -90,11 +90,11 @@ export default function SkinContainer({
 	return (
 		<div
 			className="px-4 py-2 md:w-[calc(100vw-125px)] max-md:w-[calc(100vw-40px)] overflow-y-hidden overflow-x-scroll 
-                flex w-full
+                flex flex-1 w-full
                [&::-webkit-scrollbar-thumb]:bg-blue-400
                [&::-webkit-scrollbar-thumb]:rounded-full
                [&::-webkit-scrollbar]:h-2">
-			<div className="flex gap-[5%] px-[5%] items-center mx-auto">
+			<div className="flex gap-[5%] px-[5%] items-center justify-center min-w-full">
 				{skins.map((skin, index) =>
 					skin.type == skinType ? (
 						<div
@@ -108,7 +108,7 @@ export default function SkinContainer({
 								}`,
 							}}
 							className={`relative group cursor-pointer flex  
-                  h-4/5 aspect-[9/5] flex-shrink-0   
+                  h-4/5 aspect-[9/5]    
                   shadow-md
                   transition hover:scale-105 
                   `}>
