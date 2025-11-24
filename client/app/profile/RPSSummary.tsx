@@ -9,10 +9,10 @@ type Props = {
 };
 
 export default function RPSSummary({ user, games }: Props) {
-    const uid = user?.id ?? null;
-    const rpsWins = uid ? games.filter((g: any) => g.winner_id === uid).length : 0;
-    const rpsDraws = uid ? games.filter((g: any) => g.winner_id === 0).length : 0;
-    const rpsLosses = Math.max(0, games.length - rpsWins - rpsDraws);
+    // Use database-backed stats from user object, fallback to calculating from games if not available
+    const rpsWins = user?.rps_wins ?? 0;
+    const rpsLosses = user?.rps_losses ?? 0;
+    const rpsDraws = user?.rps_draws ?? 0;
 
     const active = rpsWins + rpsLosses; // exclude draws for win %
     const winPct = active > 0 ? Math.round((rpsWins / active) * 100) : 0;

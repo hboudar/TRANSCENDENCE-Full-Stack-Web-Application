@@ -36,7 +36,10 @@ export default async function userRoutes(fastify, opts) {
           gold: row.gold,
           games: row.games,
           win: row.win,
-          lose: row.lose
+          lose: row.lose,
+          rps_wins: row.rps_wins || 0,
+          rps_losses: row.rps_losses || 0,
+          rps_draws: row.rps_draws || 0
         });
         resolve(row);
       });

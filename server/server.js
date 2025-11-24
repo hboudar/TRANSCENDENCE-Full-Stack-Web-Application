@@ -42,6 +42,9 @@ db.serialize(() => {
         win INTEGER DEFAULT 0,
         lose INTEGER DEFAULT 0,
 		gold INTEGER DEFAULT 0,
+		rps_wins INTEGER DEFAULT 0,
+		rps_losses INTEGER DEFAULT 0,
+		rps_draws INTEGER DEFAULT 0,
 		tounaments_won INTEGER DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	  );
