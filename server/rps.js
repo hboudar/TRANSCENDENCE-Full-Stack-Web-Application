@@ -79,14 +79,24 @@ const rpsHandler = (io, db) => {
                     room_id: msg.roomId,
                     half_choice: NO_CHOICE,
                     half_socketId: null,
-                    half_userId: null
+                    half_userId: userId
                 })
             }
-            else if (room && room.half_socketId && room.half_socketId !== socket.id)
+            else if (room && room.half_userId === userId)
             {
-                // Room is full
-                socket.emit('rps_error', 'Room is full!')
+                // Cannot join own room
+                socket.emit('rps_error', 'Cannot play with yourself!')
                 return
+            }
+            else if (room)
+            {
+                // Check how many sockets are already in the room
+                const roomSockets = io.sockets.adapter.rooms.get(msg.roomId)
+                if (roomSockets && roomSockets.size >= 2)
+                {
+                    socket.emit('rps_error', 'Room is full!')
+                    return
+                }
             }
 
             // Join the Socket.IO room
