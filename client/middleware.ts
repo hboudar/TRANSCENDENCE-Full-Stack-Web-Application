@@ -13,7 +13,7 @@ const protectedRoutes = [
   "/orders",
   "/rps",
   "/games",
-  "/profile/*",
+  "/friends",
 ];
 
 export function middleware(request: NextRequest) {
