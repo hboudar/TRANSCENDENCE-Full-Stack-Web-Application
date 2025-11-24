@@ -12,7 +12,7 @@ const StatusCard = ({ icon, label, count, delay }: { icon: string; label: string
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ delay, duration: 0.45, type: "spring" }}
             whileHover={{ scale: 1.03, boxShadow: "0 10px 30px rgba(0,0,0,0.35)" }}
-            className="w-full sm:w-36 md:w-40 lg:w-46 p-4 rounded-2xl shadow-lg border border-[#7b5ddf44] text-white flex flex-col items-start overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#2a2340aa] to-[#1a142ccc] group transition-all duration-300"
+            className="w-full sm:w-36 md:w-40 lg:w-36 p-4 rounded-2xl shadow-lg border border-[#7b5ddf44] text-white flex flex-col items-start overflow-hidden backdrop-blur-md bg-gradient-to-b from-[#2a2340aa] to-[#1a142ccc] group transition-all duration-300"
         >
             <div className="flex items-center w-full">
                 <div className="flex-shrink-0">

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../Context/UserContext";
 import Loading from "../components/loading";
 import socket from "@/app/socket";
+import { useRouter } from "next/navigation";
 
 export async function CancelFriendRequest(userId: number, friendId: number) {
   try {
@@ -56,10 +57,10 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
   const [incomingRequestIds, setIncomingRequestIds] = useState<number[]>([]);
   const [friendsIds, setFriendsIds] = useState<number[]>([]);
   const { user, loading } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
-
     socket.emit("join", user.id);
 
     let isMounted = true;
@@ -156,19 +157,20 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 rounded-2xl w-full max-w-sm p-6"
+        className="bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1e] rounded-xl w-full max-w-sm p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-white text-xl font-bold mb-4">Add Friends</h2>
+
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search users..."
-          className="w-full mb-4 px-3 py-2 rounded-lg bg-gray-800 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-purple-600"
+          className="w-full mb-4 px-3 py-2 rounded-xl bg-gray-800 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-purple-600"
         />
 
-        <div className="max-h-64 overflow-y-auto space-y-3">
+        <div className="max-h-64 overflow-y-auto space-y-2">
           {loadingUsers ? (
             <Loading />
           ) : filteredUsers.length > 0 ? (
@@ -177,17 +179,20 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
               return (
                 <div
                   key={u.id}
-                  className="flex items-center justify-between p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                  className="flex items-center justify-between px-3 py-2 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors shadow-md"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
+                  <div
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => router.push(`/profile/${u.id}`)}
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-600">
                       <img
                         src={u.picture}
                         alt={u.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <span className="text-white">{u.name}</span>
+                    <span className="text-white font-medium">{u.name}</span>
                   </div>
 
                   <button
@@ -196,25 +201,27 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
                         ? handleCancelRequest(u.id)
                         : handleAddFriend(u.id)
                     }
-                    className={`px-3 py-1 rounded-lg text-sm text-white transition-colors ${
+                    className={`px-3 py-1 rounded-lg text-sm font-semibold text-white transition-all ${
                       isRequested
-                        ? "bg-gray-600 hover:bg-gray-700"
-                        : "bg-green-500 hover:bg-green-600"
+                        ? "bg-gray-700 hover:bg-gray-600"
+                        : "bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                     }`}
                   >
-                    {isRequested ? "Request sent" : "Add"}
+                    {isRequested ? "Request Sent" : "Add"}
                   </button>
                 </div>
               );
             })
           ) : (
-            <p className="text-gray-400 text-center">No users found</p>
+            <p className="text-gray-400 text-center py-4">
+              No users found
+            </p>
           )}
         </div>
 
         <button
           onClick={onClose}
-          className="mt-4 w-full bg-purple-700 hover:bg-purple-600 text-white font-semibold py-2 rounded-lg transition-colors"
+          className="mt-4 w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-2 rounded-xl transition-all"
         >
           Close
         </button>

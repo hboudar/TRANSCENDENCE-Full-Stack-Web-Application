@@ -11,15 +11,15 @@ export default  function skinsRoutes(fastify, opts) {
     ('Pastel Blue', 'table'  , 0, '#d181b0', '#d181b0'),
     ('Pastel Blue', 'paddle' , 0, '#a73276', '#a73276'),
     ('Pastel Blue', 'ball'   , 0, '#ff0095', '#ff0095'),
-    ('Pastel Blue', 'paddle' , 0, '#7c7c7c', '#7c7c7c'),
-    ('Pastel Blue', 'ball'   , 0, '#5e5e5e', '#5e5e5e'),
-    ('Pastel Blue', 'table'  , 0, '#a7c7cb', '#a7c7cb'),
-    ('Pastel Blue', 'paddle' , 0, '#658b91', '#658b91'),
-    ('Pastel Blue', 'ball'   , 0, '#0093a7', '#0093a7'),
-    ('Pastel Blue', 'table'  , 0, '#74c578', '#74c578'),
-    ('Pastel Blue', 'ball'   , 0, '#007406', '#007406'),
-    ('Pastel Blue', 'table'  , 0, '#252525', '#252525'),
-    ('Pastel Blue', 'paddle' , 0, '#ffffff', '#ffffff')
+    ('Pastel Blue', 'paddle' , 50, '#7c7c7c', '#7c7c7c'),
+    ('Pastel Blue', 'ball'   , 50, '#5e5e5e', '#5e5e5e'),
+    ('Pastel Blue', 'table'  , 50, '#a7c7cb', '#a7c7cb'),
+    ('Pastel Blue', 'paddle' , 50, '#658b91', '#658b91'),
+    ('Pastel Blue', 'ball'   , 50, '#0093a7', '#0093a7'),
+    ('Pastel Blue', 'table'  , 50, '#74c578', '#74c578'),
+    ('Pastel Blue', 'ball'   , 50, '#007406', '#007406'),
+    ('Pastel Blue', 'table'  , 50, '#252525', '#252525'),
+    ('Pastel Blue', 'paddle' , 50, '#ffffff', '#ffffff')
     `);
 	 
 	fastify.get("/player_skins", async (request, reply) => {

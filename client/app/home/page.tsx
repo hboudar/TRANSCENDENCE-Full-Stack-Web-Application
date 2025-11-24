@@ -8,7 +8,6 @@ import PingPongAchievements from "./cards";
 import GameHistory from "./gamehistory";
 import PingPongPerformanceChart from "./chart";
 import { Coins, Crown, Flame, Trophy, LucideIcon } from "lucide-react";
-import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 
 // Type definition for tier levels
@@ -27,8 +26,8 @@ interface AchievementCardProps {
 const AchievementCard = ({ icon: Icon, name, progress, total, completed = false, tier = "bronze" }: AchievementCardProps) => {
     const progressPercentage = total ? (progress / total) * 100 : 100;
     let displayTier: TierType = tier;
+    console.log("AchievementCard - completed:",name, completed, "tier:", tier);
     if (completed) displayTier = "gold";
-
     const tierStyles: Record<TierType, string> = {
         gold: "border-yellow-400/50 shadow-lg shadow-yellow-400/30 bg-gradient-to-br from-yellow-600/20 to-purple-600/20",
         silver: "border-blue-400/40 shadow-lg shadow-blue-400/20 bg-gradient-to-br from-purple-500/20 to-blue-500/20",
@@ -77,7 +76,7 @@ const AchievementCard = ({ icon: Icon, name, progress, total, completed = false,
                     </div>
                 </div>
             ) : (
-                <p className="text-green-400 font-bold text-xs uppercase">Mastered!</p>
+                <p className="text-green-400 font-bold text-xs uppercase">{completed ? "Achievement Unlocked!" : "No progress required"}</p>
             )}
         </div>
     );
@@ -90,15 +89,11 @@ export default function HomePage() {
     // Type assertion for user to access properties safely
     const typedUser = user as { id: number; username?: string; email?: string } | null;
 
-    // ========================================
-    // Handle Google OAuth Redirect
-    // ========================================
-    // After Google authentication, user gets redirected here with token or error in URL
+    // Handle Google OAuth Errors (if any)
+    // OAuth errors are now passed in URL (token is set as cookie by server)
     useEffect(() => {
-        const token = searchParams.get('token');  // JWT token from server
-        const error = searchParams.get('error');  // Error code if something went wrong
+        const error = searchParams.get('error');
         
-        // If authentication failed, show error message
         if (error) {
             // Map error codes to user-friendly messages
             const errorMessages: { [key: string]: string } = {
@@ -111,23 +106,6 @@ export default function HomePage() {
             alert(errorMessages[error] || 'Authentication failed. Please try again.');
             // Clean up URL (remove error parameter)
             window.history.replaceState({}, '', '/home');
-            return;
-        }
-        
-        // If we got a token, save it and authenticate user
-        if (token) {
-            // Save JWT token to browser cookie (valid for 7 days)
-            Cookies.set("token", token, {
-                expires: 7,                    // Token expires in 7 days
-                secure: false,                 // Set to false for localhost (use true in production with HTTPS)
-                sameSite: "lax",              // Protect against CSRF attacks
-            });
-            
-            // Clean up URL (remove token from address bar)
-            window.history.replaceState({}, '', '/home');
-            
-            // Reload page to fetch user data with new token
-            window.location.reload();
         }
     }, [searchParams]);
 
@@ -159,11 +137,7 @@ export default function HomePage() {
     }, [typedUser]);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full text-white animate-pulse">
-                <Loading />
-            </div>
-        );
+        return <Loading />;
     }
 
     const gameCount = games.length;
@@ -201,7 +175,7 @@ export default function HomePage() {
                         <AchievementCard icon={Trophy} name="First Victory" progress={gameCount} total={1} completed={gameCount > 0} />
                         <AchievementCard icon={Flame} name="Streak Master" progress={streak} total={10} completed={streak >= 10} />
                         <AchievementCard icon={Coins} name="Gold Master" progress={totalGold} total={1000} completed={totalGold >= 1000} />
-                        <AchievementCard icon={Crown} name="Champion" progress={0} total={0} completed />
+                        <AchievementCard icon={Crown} name="Champion" progress={0} total={0} completed={user?.tournaments_won == 1} tier={`${user?.tournaments_won == 1 ? "gold" : "bronze"}` as TierType} />
                     </div>
                 </div>
                 <GameHistory user={user} games={games} />

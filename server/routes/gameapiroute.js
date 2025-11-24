@@ -2,6 +2,7 @@
 
 // Import the GameAPI and gameResults from your existing game module
 // import { log } from "console";
+import fastify from "fastify";
 import { sessionsmap } from "../game.js";
 import { randomUUID } from "crypto";
 
@@ -44,6 +45,7 @@ const gameApiRoute = async (fastify, options) => {
 			if (ingame) {
 				return reply.status(409).send({
 					success: false,
+					alreadyInGame: true,
 					error: "player already exists in an active game",
 				});
 			}
@@ -190,7 +192,35 @@ const gameApiRoute = async (fastify, options) => {
 			});
 		}
 	});
-
+	fastify.post("/api/tournament_win/:userId", async (request, reply) => {
+		const { userId } = request.params;
+		try {
+			
+			db.run(
+				`UPDATE users SET tournaments_won =  ? WHERE id = ?`,
+				[1, userId],
+				function (err) {
+					if (err) {
+						console.error("Error updating tournaments won:", err);
+						return reply.status(500).send({
+							success: false,
+							error: "Failed to update tournaments won",
+						});
+					}
+					return reply.send({
+						success: true,
+						message: "Tournaments won updated successfully",
+					});
+				}
+			);
+		} catch (error) {
+			console.error("Error updating tournaments won:", error);
+			return reply.status(500).send({
+				success: false,
+				error: "Failed to update tournaments won",
+			});
+		}
+	});
 	// End a game session
 	fastify.post("/api/games/:sessionId/end", async (request, reply) => {
 		try {

@@ -121,7 +121,7 @@ export default function Profile() {
             <ProfileHeader user={user} games={games} setEditMode={setEditMode} />
             {/* ////////////////////////////////////////////////////////// */}
             <div className="flex flex-col gap-4 max-h-[40%] p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <PingPongPerformanceChart user={user} games={games} />
                     <RPSSummary
                     user={user}

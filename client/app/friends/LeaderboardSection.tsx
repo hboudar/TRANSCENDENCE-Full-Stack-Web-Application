@@ -20,7 +20,7 @@ const LeaderboardSection = () => {
         `http://localhost:4000/friends/accepted?userId=${user.id}`
       );
       const data = await res.json();
-      setFriends(data.data); // 🔥 favorite removed
+      setFriends(data.data || []); // ensure array even if empty
     } catch (err) {
       console.error("Failed to fetch friends:", err);
     }
@@ -45,7 +45,16 @@ const LeaderboardSection = () => {
   return (
     <div className="w-full max-w-[100rem] p-2 relative flex flex-col h-screen max-h-screen">
       <BottomButtons onRefreshFriends={() => setRefreshToggle((prev) => !prev)} />
-      <UsersCard friends={friends} setUsers={setFriends} />
+
+      {friends.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center">
+          <span className="text-gray-400 text-lg font-semibold">
+            You have no friends now
+          </span>
+        </div>
+      ) : (
+        <UsersCard friends={friends} setUsers={setFriends} />
+      )}
     </div>
   );
 };

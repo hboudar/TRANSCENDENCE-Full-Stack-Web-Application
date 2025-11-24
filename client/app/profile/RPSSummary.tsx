@@ -24,7 +24,7 @@ export default function RPSSummary({ user, games }: Props) {
     const circumference = 2 * Math.PI * radius;
     const winOffset = circumference - (winPct / 100) * circumference;
 
-    const statClass = "flex flex-col items-center justify-center w-24 p-3 rounded-lg bg-white/4 border border-white/8 transition-transform duration-300";
+    const statClass = "flex flex-col items-center justify-center min-w-[56px] sm:min-w-[72px] w-20 sm:w-24 p-3 rounded-lg bg-white/4 border border-white/8 transition-transform duration-300";
 
     return (
         <motion.div
@@ -32,10 +32,9 @@ export default function RPSSummary({ user, games }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.45 }}
-            className="relative rounded-2xl p-6 bg-gradient-to-r from-[#160c27]/70 to-[#241635]/60 border border-[#6b3be033] shadow-lg text-white flex items-center gap-6"
+            className="flex flex-col gap-4 relative rounded-2xl p-4 bg-gradient-to-r from-[#160c27]/70 to-[#241635]/60 border border-[#6b3be033] shadow-lg text-white"
         >
-            {/* top-right small badge image */}
-            <div className="absolute top-6 left-6 " >
+            <div className=" " >
                 <h3 className="flex items-center gap-2 text-xl font-bold text-white mb-2">
                     <img src="/rps.png" alt="rps" className=" w-10 h-10 opacity-95 rounded-full  p-1 object-cover" />
 
@@ -43,6 +42,14 @@ export default function RPSSummary({ user, games }: Props) {
                 </h3>
                 <p className="text-gray-400 text-sm">A quick overview for Rock-Paper-Scissors</p>
             </div>
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.45 }}
+            className="relative rounded-2xl p-6 bg-gradient-to-r from-[#160c27]/70 to-[#241635]/60 border border-[#6b3be033] shadow-lg text-white flex flex-col xl:flex-row items-center gap-6"
+        >
+            {/* top-right small badge image */}
 
             {/* Header (match chart style) */}
             <div className="flex-1">
@@ -130,5 +137,6 @@ export default function RPSSummary({ user, games }: Props) {
                 </div>
             </div>
         </motion.div>
+        </motion.div >
     );
 }

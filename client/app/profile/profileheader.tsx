@@ -30,10 +30,10 @@ export default function ProfileHeader({ user, games, setEditMode }: { user: any,
             />
 
             {/* Main container */}
-            <div className="relative z-10 w-[90%] flex flex-col md:flex-row justify-between items-center rounded-2xl p-2  bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20  border border-purple-500/30 shadow-2xl backdrop-blur-md gap-6">
+            <div className="relative z-10 w-[90%] flex flex-col lg:flex-row justify-between items-center rounded-2xl p-2  bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20  border border-purple-500/30 shadow-2xl backdrop-blur-md gap-6">
 
                 {/* LEFT SIDE : Profile Info */}
-                <div className="flex items-center gap-4 w-full md:w-1/2">
+                <div className="flex items-center gap-4 w-full lg:w-1/2">
                     <div className={`relative inline-block overflow-visible `}>
                         <img
                             src={user.picture || '/profile.png'}
@@ -76,7 +76,7 @@ export default function ProfileHeader({ user, games, setEditMode }: { user: any,
                         </div>
                     </div>
                 </div>
-                <div className="w-full md:w-1/2 flex justify-end">
+                <div className="w-full lg:w-1/2 flex justify-end">
                     <Games_status userId={user.id} />
                 </div>
             </div>

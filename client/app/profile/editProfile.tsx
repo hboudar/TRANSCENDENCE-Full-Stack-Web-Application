@@ -14,8 +14,6 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
 
     const [formData, setFormData] = useState({
         name: user.name || '',
-        email: user.email || '',
-        
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -23,11 +21,13 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
 
     const [errors, setErrors] = useState({
         name: '',
-        email: '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     })
+
+    // Check if user has a password (e.g., not a Google OAuth user)
+    const hasPassword = user.password !== null && user.password !== undefined && user.password !== ''
     const [submitError, setSubmitError] = useState('')
     const [submitSuccess, setSubmitSuccess] = useState('')
 
@@ -61,25 +61,17 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
     }
 
     const validatePassword = () => {
-        const errs: any = { name: '', email: '', currentPassword: '', newPassword: '', confirmPassword: '' }
+        const errs: any = { name: '', currentPassword: '', newPassword: '', confirmPassword: '' }
 
         // name validation
         if (!formData.name || formData.name.trim().length < 2) {
             errs.name = 'Name must be at least 2 characters.'
         }
 
-        // email validation (required and must be valid format)
-        const email = (formData.email || '').trim()
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!email) {
-            errs.email = 'Email is required.'
-        } else if (!emailRegex.test(email)) {
-            errs.email = 'Enter a valid email address.'
-        }
-
         // password validation only if changing
         if (formData.newPassword) {
-            if (!formData.currentPassword) {
+            // Only require current password if user has a password
+            if (hasPassword && !formData.currentPassword) {
                 errs.currentPassword = 'Current password is required to change password.'
             }
             const strong = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/
@@ -99,12 +91,23 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
         e.preventDefault()
         if (!validatePassword()) return
         
+        // Check if anything changed
+        const nameChanged = formData.name !== user.name
+        const pictureChanged = uploadedImageUrl !== null
+        const passwordChanged = formData.newPassword.trim() !== ''
+
+        // If nothing changed, just close the modal with success
+        if (!nameChanged && !pictureChanged && !passwordChanged) {
+            setSubmitSuccess('No changes to save')
+            setTimeout(() => setEditMode(false), 400)
+            return
+        }
+
         try {
             // Prepare data to send
             const updateData = {
                 userid: user.id,
                 name: formData.name,
-                email: (formData.email || '').trim(),
                 picture: uploadedImageUrl || user.picture, // Use uploaded image or keep current
                 currentPassword: formData.currentPassword,
                 newPassword: formData.newPassword
@@ -244,135 +247,122 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
                 </div>
 
                 {/* Two-column layout */}
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                <form onSubmit={handleSubmit} className="space-y-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                        {/* LEFT COLUMN */}
+                        <div className="space-y-6">
 
-                    {/* LEFT COLUMN */}
-                    <div className="space-y-6">
+                            {/* Name */}
+                            <div className="space-y-2">
+                                <label className="text-gray-300 font-medium">Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => handleInputChange('name', e.target.value)}
+                                    className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
+                                    placeholder="Enter your name"
+                                />
+                                {errors.name && (
+                                    <div className="text-sm text-red-500 mt-1">{errors.name}</div>
+                                )}
+                            </div>
 
-                        {/* Name */}
-                        <div className="space-y-2">
-                            <label className="text-gray-300 font-medium">Name</label>
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => handleInputChange('name', e.target.value)}
-                                className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
-                                placeholder="Enter your name"
-                            />
-                            {/* inline validation message for name */}
-                            {errors.name && (
-                                <div className="text-xs text-red-400 mt-1">{errors.name}</div>
-                            )}
+                        
                         </div>
 
-                        {/* Email */}
-                        <div className="space-y-2">
-                            <label className="text-gray-300 font-medium">Email</label>
-                            <input
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
-                                placeholder="Enter your email"
-                            />
-                            {errors.email && (
-                                <div className="text-xs text-red-400 mt-1">{errors.email}</div>
+                        {/* RIGHT COLUMN - Password Section */}
+                        <div className="space-y-6">
+                            {/* Current Password - only show if user has a password */}
+                            {hasPassword && (
+                            <div className="space-y-2">
+                                <label className="text-gray-300 font-medium flex items-center gap-2">
+                                    <Lock size={18} /> Current Password
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPasswords.current ? "text" : "password"}
+                                        value={formData.currentPassword}
+                                        onChange={(e) => handleInputChange('currentPassword', e.target.value)}
+                                        className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
+                                        placeholder="Enter current password"
+                                    />
+                                    <button type="button" onClick={() => togglePasswordVisibility('current')} className="absolute right-3 top-3 text-gray-400">
+                                        {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {errors.currentPassword && (
+                                    <div className="text-sm text-red-500 mt-1">{errors.currentPassword}</div>
+                                )}
+                            </div>
                             )}
-                        </div>
 
-                       
+                            {/* New Password */}
+                            <div className="space-y-2">
+                                <label className="text-gray-300 font-medium flex items-center gap-2">
+                                    <Lock size={18} /> New Password
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPasswords.new ? "text" : "password"}
+                                        value={formData.newPassword}
+                                        onChange={(e) => handleInputChange('newPassword', e.target.value)}
+                                        className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
+                                        placeholder="Enter new password"
+                                    />
+                                    <button type="button" onClick={() => togglePasswordVisibility('new')} className="absolute right-3 top-3 text-gray-400">
+                                        {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {errors.newPassword && (
+                                    <div className="text-sm text-red-500 mt-1">{errors.newPassword}</div>
+                                )}
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="space-y-2">
+                                <label className="text-gray-300 font-medium flex items-center gap-2">
+                                    <Lock size={18} /> Confirm Password
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPasswords.confirm ? "text" : "password"}
+                                        value={formData.confirmPassword}
+                                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                                        className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
+                                        placeholder="Confirm new password"
+                                    />
+                                    <button type="button" onClick={() => togglePasswordVisibility('confirm')} className="absolute right-3 top-3 text-gray-400">
+                                        {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                {errors.confirmPassword && (
+                                    <div className="text-sm text-red-500 mt-1">{errors.confirmPassword}</div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
-                    {/* RIGHT COLUMN - Password Section */}
-                    <div className="space-y-6">
-                        {/* Current Password */}
-                        <div className="space-y-2">
-                            <label className="text-gray-300 font-medium flex items-center gap-2">
-                                <Lock size={18} /> Current Password
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showPasswords.current ? "text" : "password"}
-                                    value={formData.currentPassword}
-                                    onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                                    className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
-                                    placeholder="Enter current password"
-                                />
-                                <button type="button" onClick={() => togglePasswordVisibility('current')} className="absolute right-3 top-3 text-gray-400">
-                                    {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                            {errors.currentPassword && (
-                                <div className="text-xs text-red-400 mt-1">{errors.currentPassword}</div>
-                            )}
-                        </div>
-
-                        {/* New Password */}
-                        <div className="space-y-2">
-                            <label className="text-gray-300 font-medium flex items-center gap-2">
-                                <Lock size={18} /> New Password
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showPasswords.new ? "text" : "password"}
-                                    value={formData.newPassword}
-                                    onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                                    className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
-                                    placeholder="Enter new password"
-                                />
-                                <button type="button" onClick={() => togglePasswordVisibility('new')} className="absolute right-3 top-3 text-gray-400">
-                                    {showPasswords.new ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                            {errors.newPassword && (
-                                <div className="text-xs text-red-400 mt-1">{errors.newPassword}</div>
-                            )}
-                        </div>
-
-                        {/* Confirm Password */}
-                        <div className="space-y-2">
-                            <label className="text-gray-300 font-medium flex items-center gap-2">
-                                <Lock size={18} /> Confirm Password
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showPasswords.confirm ? "text" : "password"}
-                                    value={formData.confirmPassword}
-                                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                                    className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
-                                    placeholder="Confirm new password"
-                                />
-                                <button type="button" onClick={() => togglePasswordVisibility('confirm')} className="absolute right-3 top-3 text-gray-400">
-                                    {showPasswords.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                            {errors.confirmPassword && (
-                                <div className="text-xs text-red-400 mt-1">{errors.confirmPassword}</div>
-                            )}
-                        </div>
+                    {/* Footer Messages and Buttons inside form */}
+                    <div className="p-4">
+                        {submitError && <div className="text-sm text-red-500 mb-3">{submitError}</div>}
+                        {submitSuccess && <div className="text-sm text-green-400 mb-3">{submitSuccess}</div>}
+                    </div>
+                    <div className="flex gap-3 p-6 border-t border-purple-500/20">
+                        <button
+                            type="button"
+                            onClick={() => setEditMode(false)}
+                            className="flex-1 px-4 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition-all duration-200 font-medium"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                        >
+                            Save Changes
+                        </button>
                     </div>
                 </form>
-                {/* Footer Buttons */}
-                <div className="p-4">
-                    {/* submit messages */}
-                    {submitError && <div className="text-sm text-red-400 mb-3">{submitError}</div>}
-                    {submitSuccess && <div className="text-sm text-green-400 mb-3">{submitSuccess}</div>}
-                </div>
-                <div className="flex gap-3 p-6 border-t border-purple-500/20">
-                    <button
-                        type="button"
-                        onClick={() => setEditMode(false)}
-                        className="flex-1 px-4 py-3 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition-all duration-200 font-medium"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-                    >
-                        Save Changes
-                    </button>
-                </div>
             </div>
         </div>
     )
