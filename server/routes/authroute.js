@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 // Use same JWT secret as Google OAuth (IMPORTANT: must match!)
 const SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-// Helper function to create JWT token for a user
+// Helper function to create JWT token for a user (valid for 7 days)
 function sign(id) {
     return jwt.sign({ userId: id }, SECRET, { expiresIn: '7d' });
 }
@@ -25,8 +25,7 @@ export default async function authRoutes(fastify, opts) {
 
     const db = opts.db;
 
-    // Password Login Endpoint
-    // Traditional email/password login (NOT for Google OAuth users)
+    // Traditional email/password login Endpoint (NOT for Google OAuth users)
     fastify.post('/login', async (req, reply) => {
         const { email, password } = req.body;
 
@@ -43,9 +42,7 @@ export default async function authRoutes(fastify, opts) {
                 }
 
                 if (row) {
-            
                     // IMPORTANT: Check if user signed up with Google
-            
                     // Google OAuth users have null password - they can't login with password
                     if (!row.password) {
                         return reply.status(401).send({
@@ -61,7 +58,6 @@ export default async function authRoutes(fastify, opts) {
 
                     // Password correct - generate JWT token (valid for 7 days)
                     const token = sign(row.id.toString());
-                    // console.log('Generated token:', token);
 
                     // Send token and user data back to client
                     reply.send({
@@ -82,21 +78,22 @@ export default async function authRoutes(fastify, opts) {
             });
         });
     });
-    // Token Verification Endpoint
-    // Used by client to verify JWT token and get user data
+
+    // Token Verification Endpoint (/me)
+    // Used by UserContext to verify JWT token and get user data
+    // Checks both Authorization header and cookies for token
     fastify.get('/me', async (request, reply) => {
         // Try to get token from Authorization header first, then from cookies
         let token = request.headers.authorization?.split(' ')[1];
         if (!token && request.cookies) {
             token = request.cookies.token;
         }
-        // console.log('JWT token received in /me:', token);
 
         // No token found - user not authenticated
         if (!token) return reply.status(401).send({ error: 'Unauthorized' });
 
         try {
-            // Verify token is valid and not expired
+            // Verify token signature and check if not expired
             const decoded = jwt.verify(token, SECRET);
 
             return new Promise((resolve, reject) => {
@@ -108,7 +105,7 @@ export default async function authRoutes(fastify, opts) {
                     }
 
                     if (row) {
-                        // Send user data back to client
+                        // User found - send data back to client
                         reply.send({
                             id: row.id,
                             name: row.name,
@@ -121,26 +118,30 @@ export default async function authRoutes(fastify, opts) {
                         });
                         resolve(row);
                     } else {
-                        // User ID in token doesn't exist in database
+                        // User ID in token doesn't exist in database (orphaned token)
                         reply.status(404).send({ error: 'User not found' });
                     }
                 });
             });
         } catch (err) {
-            // Token is invalid or expired
+            // Token signature invalid or token expired
             console.error('JWT verification error:', err);
             reply.status(401).send({ error: 'Unauthorized' });
         }
     });
 
+    // User Registration Endpoint
+    // Creates new user account with email/password (NOT for Google OAuth)
     fastify.post("/users", SchemaRegister, async (req, reply) => {
         const { name, email, password } = req.body;
         if (!name || !email || !password)
             return reply.status(400).send({ error: " Name, email and password are required" });
+
+        // Hash password before storing (never store plain text passwords!)
         const hashedPassword = await bcrypt.hash(password, 8);
 
-        // console.log("Request body:", req.body);
         return new Promise((resolve, reject) => {
+            // Create new user in database with 1000 starting gold
             db.run(
                 `INSERT OR IGNORE INTO users (name, email, password, gold) VALUES (?, ?, ?, ?)`,
                 [name, email, hashedPassword, 1000],
@@ -150,6 +151,7 @@ export default async function authRoutes(fastify, opts) {
                         reply.status(500).send({ error: "Database error" });
                         return reject(err);
                     }
+                    // Give new user default skins (3 selected, 3 locked)
                     db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 1, 1]);
                     db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 2, 1]);
                     db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 3, 1]);

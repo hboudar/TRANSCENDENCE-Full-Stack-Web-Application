@@ -1,9 +1,7 @@
-// Middleware - Route Protection
-// This runs before every page load to check if user is authenticated
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// List of pages that require authentication
+// List of routes that require authentication
 const protectedRoutes = [
   "/home",
   "/dashboard",
@@ -18,36 +16,20 @@ const protectedRoutes = [
 ];
 
 export function middleware(request: NextRequest) {
-  // Get JWT token from cookie (stored after login or OAuth)
   const token = request.cookies.get("token")?.value;
   const pathname = request.nextUrl.pathname;
 
-  // Protect Routes - Require Authentication
-  if (protectedRoutes.includes(pathname)) {
-    // If no token in cookie, redirect to login
-    if (!token) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      return NextResponse.redirect(url);
-    }
-  }
-
-
-  // Prevent Double Login
-
-  // If user is already logged in, don't show login page
-  if (pathname === "/login" && token) {
+  // If accessing protected route without token → redirect to login
+  if (protectedRoutes.includes(pathname) && !token) {
     const url = request.nextUrl.clone();
-    url.pathname = "/home";
+    url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Allow request to continue
+  // Token exists or route not protected → allow access
   return NextResponse.next();
 }
 
-// Middleware Configuration
-// Tell Next.js which routes to apply middleware to
 export const config = {
   matcher: [
     /*

@@ -17,7 +17,6 @@ await fastify.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 });
 
-// Register cookie plugin for OAuth cookie handling
 await fastify.register(cookie);
 
 
