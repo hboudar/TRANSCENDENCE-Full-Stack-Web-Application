@@ -60,6 +60,8 @@ export default function Chat() {
     const me = user.id;
 
     const handleSendGameInvite = () => {
+        if (!socket) return;
+        
         const recipient = users.find(user => user.id === selected);
         if (!recipient) return;
         rout.push(`/games/game?gametype=online&oppid=${selected}`);

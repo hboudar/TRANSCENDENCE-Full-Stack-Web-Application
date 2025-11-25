@@ -13,28 +13,32 @@ export default function Room({
     selected: number;
     me: number;
     messages: any[];
-    setMessages: (messages: any[]) => void;
+    setMessages: React.Dispatch<React.SetStateAction<any[]>>;
 }) {
     useEffect(() => {
+        if (!socket) return;
+        
         // Join personal room for this user
         socket.emit("join", me); // This ensures the user is in their own room
 
         const handleIncomingMessage = (msg: any) => {
-            // Only refresh messages if it’s relevant
+            // Only refresh messages if it's relevant
             if (
                 (msg.sender_id === selected && msg.receiver_id === me) ||
                 (msg.sender_id === me && msg.receiver_id === selected)
             ) {
                 console.log("📥 Received live message:", msg);
                 // insert the new message at the end of the messages array
-                setMessages((prevMessages) => [...prevMessages, msg]);
+                setMessages((prevMessages: any) => [...prevMessages, msg]);
             }
         };
 
         socket.on("new message", handleIncomingMessage);
 
         return () => {
-            socket.off("new message", handleIncomingMessage);
+            if (socket) {
+                socket.off("new message", handleIncomingMessage);
+            }
         };
     }, [selected, me]);
 

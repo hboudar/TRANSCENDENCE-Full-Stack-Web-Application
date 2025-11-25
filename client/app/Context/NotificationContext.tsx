@@ -80,7 +80,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !socket) return;
 
     // Fetch initial notifications
     fetchNotifications();
@@ -110,7 +110,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
     return () => {
       console.log("🔇 Cleaning up notification listener");
-      socket.off("new_notification", handleNewNotification);
+      if (socket) {
+        socket.off("new_notification", handleNewNotification);
+      }
     };
   }, [user?.id]);
 

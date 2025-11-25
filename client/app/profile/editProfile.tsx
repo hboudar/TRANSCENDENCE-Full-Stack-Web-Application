@@ -179,7 +179,7 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
         formData.append("file", file);
 
         try {
-            const res = await fetch("/api2/upload", {
+            const res = await fetch("/api/upload", {
                 method: "POST",
                 body: formData,
             });

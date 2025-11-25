@@ -4,8 +4,8 @@ WORKDIR /usr/src/app
 
 COPY ./server/package*.json ./
 
-RUN npm install
+RUN npm install --only=production   # safer than npm ci for lockfile mismatch
 
-COPY ./server .
+COPY ./server ./
 
 CMD ["npm", "start"]

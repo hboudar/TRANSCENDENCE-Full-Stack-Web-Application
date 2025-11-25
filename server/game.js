@@ -11,7 +11,7 @@ async function postresult(p1_score, p2_score, p1_id, p2_id, winer) {
 
 	try {
 		const response = await fetch(
-			`/api2/games/${p1_id}/${p2_id}`,
+			`http://localhost:4000/games/${p1_id}/${p2_id}`,
 			{
 				method: "POST",
 				headers: {
@@ -27,7 +27,7 @@ async function postresult(p1_score, p2_score, p1_id, p2_id, winer) {
 			}
 		);
 		const res = await response.json();
-		// console.log("Game result posted:", res);
+		console.log("Game result posted:", res);
 	} catch (error) {
 		console.error("Error posting game result:", error);
 	}
@@ -358,7 +358,7 @@ export function setupGameSocketIO(io) {
 			p2: 50,
 			host: 0,
 			ballx: 50,
-			score: { p1: 10, p2: 10 },
+			score: { p1: 0, p2: 0 },
 			bally: 50,
 			angle: 0,
 			direction: 1,

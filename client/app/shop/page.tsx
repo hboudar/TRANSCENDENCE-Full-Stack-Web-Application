@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState} from "react";
 import { useUser } from "../Context/UserContext";
 import Tables from "./Tables";
 import Balls from "./Balls";
@@ -26,7 +26,7 @@ export default function Shop() {
   return (
     <div className="flex gap-4 flex-col flex-1 md:space-y-4">
       <div className="flex justify-center flex-none w-3/5 self-center relative">
-        {["table", "ball", "paddle"].map((type, idx) => (
+        {["table", "ball", "paddle"].map((type) => (
           <button
             key={type}
             onClick={() => setCategory(type as "table" | "ball" | "paddle")}

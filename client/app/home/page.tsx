@@ -1,4 +1,6 @@
 
+
+
 "use client"
 
 import { useEffect, useState } from "react";
@@ -10,6 +12,7 @@ import PingPongPerformanceChart from "./chart";
 import { Coins, Crown, Flame, Trophy, LucideIcon } from "lucide-react";
 import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from "react";
 
 // Type definition for tier levels
 type TierType = "gold" | "silver" | "bronze";
@@ -82,12 +85,11 @@ const AchievementCard = ({ icon: Icon, name, progress, total, completed = false,
         </div>
     );
 };
-export default function HomePage() {
+
+function HomeContent() {
     const { user, loading } = useUser();
     const [games, setGames] = useState([]);
-    const searchParams = useSearchParams();
-    
-    // Type assertion for user to access properties safely
+    const searchParams = useSearchParams();    // Type assertion for user to access properties safely
     const typedUser = user as { id: number; username?: string; email?: string } | null;
 
     // Handle Google OAuth Errors (if any)
@@ -193,6 +195,18 @@ export default function HomePage() {
             </div>
         </div>
 
+    );
+}
+
+export default function HomePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <Loading />
+            </div>
+        }>
+            <HomeContent />
+        </Suspense>
     );
 }
 

@@ -8,50 +8,55 @@ import {
   TrendingDown,
 } from "lucide-react";
 import socket from "@/app/socket";
+import { useRouter } from "next/navigation";
+
 
 export default function UserInfo({ user, currentUser, setUsers }) {
   const removeFriend = async () => {
     if (!currentUser) return;
-
+    
     const userId = currentUser.id;
     const friendId = user.id;
-
+    
     const res = await fetch(`/api/friends/remove`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, friendId }),
     });
-
+    
     if (res.ok) {
-      socket.emit("friends:update", { userA: userId, userB: friendId });
+      if (socket) {
+        socket.emit("friends:update", { userA: userId, userB: friendId });
+      }
       setUsers((prev) => prev.filter((u) => u.id !== friendId));
     }
   };
-
+  
+  const router = useRouter();
   return (
     <div className="bg-purple-700/40 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between hover:bg-purple-700/50 transition-all">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-gray-700 overflow-hidden flex-shrink-0">
-          <img
-            src={user.picture}
-            alt={user.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
+        {/* ONLY this div is clickable */}
+        <div
+          className="flex items-center gap-4 cursor-pointer"
+          onClick={() => router.push(`/profile/${user.id}`)}
+        >
+          <div className="w-12 h-12 rounded-full bg-gray-700 overflow-hidden flex-shrink-0">
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-        <div className="flex flex-col">
-          <h3 className="text-white font-semibold text-lg">
-            {user.name}{" "}
-            <span className="text-orange-400 text-sm">
-              lvl {user.level || 0}
-            </span>
-          </h3>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button>
-            <MessageCircle className="w-5 h-5 text-white" />
-          </button>
+          <div className="flex flex-col">
+            <h3 className="text-white font-semibold text-lg">
+              {user.name}{" "}
+              <span className="text-orange-400 text-sm">
+                lvl {user.level || 0}
+              </span>
+            </h3>
+          </div>
         </div>
       </div>
 

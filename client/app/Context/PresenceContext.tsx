@@ -13,6 +13,8 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
   const [onlineUsers, setOnlineUsers] = useState<Set<number>>(new Set());
 
   useEffect(() => {
+    if (!socket) return;
+
     // Request current online users
     socket.emit('request_online_users');
 
@@ -33,8 +35,10 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
     socket.on('user_presence', handleUserPresence);
 
     return () => {
-      socket.off('online_users', handleOnlineUsers);
-      socket.off('user_presence', handleUserPresence);
+      if (socket) {
+        socket.off('online_users', handleOnlineUsers);
+        socket.off('user_presence', handleUserPresence);
+      }
     };
   }, []);
 

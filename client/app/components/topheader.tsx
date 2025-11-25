@@ -52,10 +52,11 @@ export default function Topheader() {
     };
   }, [user, socket]);
 
+  // Search users
   useEffect(() => {
     const fectusers = async () => {
       try {
-        const res = await fetch('/api/search?search=' + value);
+        const res = await fetch('http://localhost:4000/search?search=' + value);
         const data = await res.json();
         setSearchResults(data);
       } catch (error) {
@@ -226,6 +227,7 @@ export default function Topheader() {
           )}
         </div>
 
+        {/* Friends Button with red dot */}
         <button
           onClick={() => {
             setFriendNotification(false); // reset on click
@@ -241,7 +243,6 @@ export default function Topheader() {
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
           )}
         </button>
-
         <button 
           className="flex items-center ml-4 cursor-pointer"
           onClick={() => {

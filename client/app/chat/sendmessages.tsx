@@ -22,6 +22,8 @@ export default function SendMessage({
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    if (!socket) return;
+
     socket.on("connect", () => {
       console.log("✅ Socket connected");
       socket.emit("join", me);
@@ -31,13 +33,15 @@ export default function SendMessage({
     });
 
     return () => {
-      socket.off("connect");
-      socket.off("disconnect");
+      if (socket) {
+        socket.off("connect");
+        socket.off("disconnect");
+      }
     };
   }, [me]);
 
   const sendMessage = () => {
-    if (!message.trim()) return;
+    if (!message.trim() || !socket) return;
     const isSocketReady = socket.connected && navigator.onLine;
     const payload = {
       id: Date.now(), // Use timestamp as a simple unique ID

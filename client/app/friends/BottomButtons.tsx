@@ -25,7 +25,7 @@ export default function BottomButtons({ onRefreshFriends }) {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !socket) return;
 
     fetchRequestsCount();
 
@@ -36,8 +36,10 @@ export default function BottomButtons({ onRefreshFriends }) {
     socket.on("friends:updated", fetchRequestsCount);
 
     return () => {
-      socket.off("friends:request:incoming", fetchRequestsCount);
-      socket.off("friends:updated", fetchRequestsCount);
+      if (socket) {
+        socket.off("friends:request:incoming", fetchRequestsCount);
+        socket.off("friends:updated", fetchRequestsCount);
+      }
     };
   }, [user]);
 

@@ -44,6 +44,7 @@ fastify.addHook("onResponse", (req, reply, done) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 await fastify.register(cors, {
+	origin: 'https://localhost',
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],

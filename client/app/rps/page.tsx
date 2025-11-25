@@ -67,12 +67,28 @@ export default function rps(  ) {
         if (!user?.id) return // Don't connect until user is loaded
 
         // connect to rps socket using Socket.IO
-        const newSocket = io('/api/rps', {
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: 5
-        })
+        // const newSocket = io('/api/rps', {
+        //     reconnection: true,
+        //     reconnectionDelay: 1000,
+        //     reconnectionDelayMax: 5000,
+        //     reconnectionAttempts: 5
+        // })
+
+        let newSocket: Socket | null = null;
+
+        if (typeof window !== "undefined") {
+            newSocket = io(window.location.origin, {
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                reconnectionAttempts: 5,
+                path: "/socket.io",
+                transports: ["websocket", "polling"],
+                autoConnect: true,
+            });
+        }
+        
+        if (!newSocket) return;
 
         newSocket.on('connect', () => {
             console.log("connected to rps socket")

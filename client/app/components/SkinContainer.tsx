@@ -113,7 +113,7 @@ export default function SkinContainer({
                   transition hover:scale-105 
                   `}>
 							{/* {skinType == "table" && skin.img[0] != "#" ? (
-								<Image
+								<img
 									fill
 									className=" object-cover object-center"
 									src={skin.img}
@@ -122,7 +122,7 @@ export default function SkinContainer({
 								<></>
 							)}
 							{skinType != "table" && selected.types[0].img[0] != "#" ? (
-								<Image
+								<img
 									fill
 									className=" object-cover object-center"
 									src={selected.types[0].img}
@@ -141,7 +141,7 @@ export default function SkinContainer({
 								className={`h-1/3 top-1/4 -translate-y-1/2  aspect-[1/6] rounded-full 
                     absolute left-1`}>
 								{/* {skinType == "paddle" && skin.img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={skin.img}
@@ -150,7 +150,7 @@ export default function SkinContainer({
 									<></>
 								)}
 								{skinType != "paddle" && selected.types[1].img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={selected.types[1].img}
@@ -169,7 +169,7 @@ export default function SkinContainer({
 								className={`h-1/3 top-1/2 -translate-y-1/2 aspect-[1/6]
                      rounded-full absolute right-1`}>
 								{/* {skinType == "paddle" && skin.img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={skin.img}
@@ -178,7 +178,7 @@ export default function SkinContainer({
 									<></>
 								)}
 								{skinType != "paddle" && selected.types[1].img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={selected.types[1].img}
@@ -198,7 +198,7 @@ export default function SkinContainer({
                     ${skinType == "ball" ? skin.color : selected.types[2].color}
                     -translate-1/2 aspect-square   rounded-full absolute`}>
 								{/* {skinType == "ball" && skin.img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={skin.img}
@@ -207,7 +207,7 @@ export default function SkinContainer({
 									<></>
 								)}
 								{skinType != "ball" && selected.types[2].img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={selected.types[2].img}

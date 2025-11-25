@@ -4,8 +4,9 @@ import { Mail, Lock } from "lucide-react";
 import Link from "next/link";
 import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from "react";
 
-export default function LoginForm() {
+function LoginContent() {
     // Store email and password from form
     const [formData, setFormData] = useState({
         email: "",
@@ -164,5 +165,17 @@ export default function LoginForm() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function LoginForm() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-white">Loading...</div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }

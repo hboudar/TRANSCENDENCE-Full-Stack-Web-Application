@@ -1,36 +1,31 @@
-
 services:
   client:
     build:
       context: .
       dockerfile: ./client/dockerfile
     container_name: client
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    env_file:
-      - .env
+    environment:
+      - NODE_ENV=production
     networks:
       - transcendence
     restart: unless-stopped
     ports:
-      - "3000:3000"  
+      - "3000:3000"   # Nginx proxies internally
 
   server:
     build:
       context: .
       dockerfile: ./server/dockerfile
     container_name: server
-    working_dir: /usr/src/app
-    volumes:
-      - ./server:/usr/src/app
-      - node_modules_server:/usr/src/app/node_modules
-      - server_logs:/var/log/transcendence      # 🔥 Shared log volume
-    ports:
-      - "4000:4000"
+    environment:
+      - NODE_ENV=production
     networks:
       - transcendence
     restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - server_logs:/var/log/transcendence   # logs only
 
   nginx:
     build:
@@ -40,176 +35,166 @@ services:
     ports:
       - "443:443"
     depends_on:
+      - client
       - server
     networks:
       - transcendence
     restart: unless-stopped
 
-  prometheus:
-    build:
-      context: ./prometheus
-      dockerfile: dockerfile
-    container_name: prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--web.external-url=https://localhost/prometheus'
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    expose:
-      - "9090"
-    networks:
-      - transcendence
-    restart: unless-stopped
 
-  grafana:
-    build:
-      context: ./grafana
-      dockerfile: dockerfile
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_SERVER_ROOT_URL=https://localhost/grafana
-      - GF_SERVER_SERVE_FROM_SUB_PATH=true
-    depends_on:
-      - prometheus
-    volumes:
-      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - grafana_data:/var/lib/grafana
-    expose:
-      - "3000"
-    networks:
-      - transcendence
-    restart: unless-stopped
+  # prometheus:
+  #   build:
+  #     context: ./prometheus
+  #     dockerfile: dockerfile
+  #   container_name: prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #   volumes:
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus_data:/prometheus
+  #   expose:
+  #     - "9090"
+  #   networks:
+  #     - transcendence
+  #   restart: unless-stopped
 
-  node_exporter:
-    build:
-      context: ./node_exporter
-      dockerfile: dockerfile
-    container_name: node_exporter
-    expose:
-      - "9100"
-    networks:
-      - transcendence
-    restart: unless-stopped
+  # grafana:
+  #   build:
+  #     context: ./grafana
+  #     dockerfile: dockerfile
+  #   container_name: grafana
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   depends_on:
+  #     - prometheus
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #     - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+  #     - ./grafana/datasources:/etc/grafana/provisioning/datasources
+  #     - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+  #   expose:
+  #     - "3000"
+  #   networks:
+  #     - transcendence
+  #   restart: unless-stopped
 
-  es_certs:
-    build:
-      context: ./elk/certs
-    container_name: es_certs
-    user: "0"
-    volumes:
-      - transcendence_certs:/usr/share/elasticsearch/config/certs
-    networks:
-      - transcendence
-    restart: "no"
+  # node_exporter:
+  #   build:
+  #     context: ./node_exporter
+  #     dockerfile: dockerfile
+  #   container_name: node_exporter
+  #   expose:
+  #     - "9100"
+  #   networks:
+  #     - transcendence
+  #   restart: unless-stopped
 
-  elasticsearch:
-    build:
-      context: ./elk/elasticsearch
-      dockerfile: Dockerfile
-    container_name: elasticsearch
-    environment:
-      - ES_JAVA_OPTS=-Xms1g -Xmx2g
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-    volumes:
-      - elastic_data:/usr/share/elasticsearch/data
-      - transcendence_certs:/usr/share/elasticsearch/config/certs
-    expose:
-      - "9200"
-    networks:
-      - transcendence
-    depends_on:
-      - es_certs
-    healthcheck:
-      test: ["CMD", "curl", "-k", "-u", "elastic:${ELASTIC_PASSWORD}", "https://localhost:9200/_cluster/health"]
-      interval: 20s
-      timeout: 10s
-      retries: 10
-    restart: unless-stopped
-    mem_limit: 4g
+  # es_certs:
+  #   build:
+  #     context: ./elk/certs
+  #   container_name: es_certs
+  #   user: "0"
+  #   volumes:
+  #     - transcendence_certs:/usr/share/elasticsearch/config/certs
+  #   networks:
+  #     - transcendence
+  #   restart: "no"
 
-  es_setup:
-    build:
-      context: ./elk/es_setup
-    container_name: es_setup
-    environment:
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
-      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
-      - BEATS_SYSTEM_PASSWORD=${BEATS_SYSTEM_PASSWORD}
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - transcendence
-    restart: "no"
+  # elasticsearch:
+  #   build:
+  #     context: ./elk/elasticsearch
+  #     dockerfile: Dockerfile
+  #   container_name: elasticsearch
+  #   environment:
+  #     - ES_JAVA_OPTS=-Xms1g -Xmx2g
+  #     - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+  #   volumes:
+  #     - elastic_data:/usr/share/elasticsearch/data
+  #     - transcendence_certs:/usr/share/elasticsearch/config/certs
+  #   expose:
+  #     - "9200"
+  #   networks:
+  #     - transcendence
+  #   depends_on:
+  #     - es_certs
+  #   restart: unless-stopped
 
-  kibana:
-    build:
-      context: ./elk/kibana
-      dockerfile: Dockerfile
-    container_name: kibana
-    environment:
-      - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
-      - KIBANA_ENCRYPTION_KEY=${KIBANA_ENCRYPTION_KEY}
-    volumes:
-      - transcendence_certs:/usr/share/kibana/config/certs:ro
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      es_setup:
-        condition: service_completed_successfully
-    expose:
-      - "5601"
-    ports:
-      - "5601:5601"
-    networks:
-      - transcendence
-    restart: unless-stopped
+  # es_setup:
+  #   build:
+  #     context: ./elk/es_setup
+  #   container_name: es_setup
+  #   environment:
+  #     - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+  #     - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+  #     - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
+  #     - BEATS_SYSTEM_PASSWORD=${BEATS_SYSTEM_PASSWORD}
+  #   depends_on:
+  #     elasticsearch:
+  #       condition: service_healthy
+  #   networks:
+  #     - transcendence
+  #   restart: "no"
 
-  logstash:
-    build:
-      context: ./elk/logstash
-      dockerfile: Dockerfile
-    container_name: logstash
-    environment:
-      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
-    volumes:
-      - transcendence_certs:/usr/share/logstash/config/certs:ro
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-      es_setup:
-        condition: service_completed_successfully
-    expose:
-      - "5044"
-    networks:
-      - transcendence
-    restart: unless-stopped
+  # kibana:
+  #   build:
+  #     context: ./elk/kibana
+  #     dockerfile: Dockerfile
+  #   container_name: kibana
+  #   environment:
+  #     - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+  #     - KIBANA_ENCRYPTION_KEY=${KIBANA_ENCRYPTION_KEY}
+  #   volumes:
+  #     - transcendence_certs:/usr/share/kibana/config/certs:ro
+  #   depends_on:
+  #     elasticsearch:
+  #       condition: service_healthy
+  #     es_setup:
+  #       condition: service_completed_successfully
+  #   ports:
+  #     - "5601:5601"
+  #   networks:
+  #     - transcendence
+  #   restart: unless-stopped
 
-  filebeat:
-    build:
-      context: ./elk/filebeat
-      dockerfile: Dockerfile
-    container_name: filebeat
-    user: root
-    volumes:
-      - server_logs:/var/log/transcendence:ro    # 🔥 Filebeat reads from here
-      - transcendence_certs:/data:ro
-    depends_on:
-      logstash:
-        condition: service_started
-      es_setup:
-        condition: service_completed_successfully
-    networks:
-      - transcendence
-    restart: unless-stopped
+  # logstash:
+  #   build:
+  #     context: ./elk/logstash
+  #     dockerfile: Dockerfile
+  #   container_name: logstash
+  #   environment:
+  #     - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
+  #   volumes:
+  #     - transcendence_certs:/usr/share/logstash/config/certs:ro
+  #   depends_on:
+  #     elasticsearch:
+  #       condition: service_healthy
+  #     es_setup:
+  #       condition: service_completed_successfully
+  #   expose:
+  #     - "5044"
+  #   networks:
+  #     - transcendence
+  #   restart: unless-stopped
+
+  # filebeat:
+  #   build:
+  #     context: ./elk/filebeat
+  #     dockerfile: Dockerfile
+  #   container_name: filebeat
+  #   user: root
+  #   volumes:
+  #     - server_logs:/var/log/transcendence:ro
+  #     - transcendence_certs:/data:ro
+  #   depends_on:
+  #     logstash:
+  #       condition: service_started
+  #     es_setup:
+  #       condition: service_completed_successfully
+  #   networks:
+  #     - transcendence
+  #   restart: unless-stopped
 
 networks:
   transcendence:
@@ -217,8 +202,7 @@ networks:
 
 volumes:
   grafana_data:
-  node_modules_server:
   elastic_data:
+  prometheus_data:
   transcendence_certs:
-    name: transcendence_certs
-  server_logs:           # 🔥 For logs between Server ↔ Filebeat
+  server_logs:

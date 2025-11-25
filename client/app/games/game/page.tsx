@@ -12,6 +12,7 @@ import Tournament from "@/app/components/Tournament";
 import WinAnimation from "@/app/components/WinAnimation";
 import LoseAnimation from "@/app/components/LoseAnimation";
 import LocalGameWinAnimation from "@/app/components/LocalGameWinAnimation";
+import { Suspense } from "react";
 
 type SkinType = "table" | "paddle" | "ball";
 type Skin = {
@@ -42,8 +43,10 @@ type PositionsType = {
 type PlayersData = {
 	p1_name: string;
 	p1_img: string;
+	p1_id?: string | number;
 	p2_name: string;
 	p2_img: string;
+	p2_id?: string | number;
 };
 
 type TournamentPlayers = {
@@ -55,7 +58,7 @@ type TournamentPlayers = {
 	gamestatus?: number;
 };
 
-export default function Game() {
+function GameContent() {
 	const { user } = Homecontext();
 	const [selected, setselected] = useState<Selected>({ types: [], type: 0 });
 	const router = useRouter();
@@ -81,6 +84,7 @@ export default function Game() {
 	const [winnerData, setWinnerData] = useState<{
 		name: string;
 		img: string;
+		id?: string | number;
 	} | null>(null);
 	const [alreadyInGame, setAlreadyInGame] = useState(false);
 	const isInitializing = useRef(false);
@@ -116,7 +120,7 @@ export default function Game() {
 
 			try {
 				const sessionid = crypto.randomUUID();
-				const response = await fetch("/api/api2/games/start", {
+				const response = await fetch("/api/games/start", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -152,15 +156,6 @@ export default function Game() {
 				if (response.ok) {
 					sessionStorage.setItem("gameSessionId", sessionid);
 
-					// Ensure no existing socket connection
-					// const socket = io("http://localhost:4000/game", {
-					// 	auth: {
-					// 		sessionId: res.sessionId,
-					// 		playerId: user!.id,
-					// 	},
-					// 	forceNew: true,
-					// });
-
 					let socket: Socket | null = null;
 
 					if (typeof window !== "undefined") {
@@ -174,6 +169,8 @@ export default function Game() {
 							forceNew: true,
 						});
 					}
+
+					if (!socket) return;
 
 					socket.on("gameState", (data) => {
 						setplayersdata(data.players_info as PlayersData);
@@ -427,10 +424,12 @@ export default function Game() {
 					? {
 							name: playersdata.p1_name,
 							img: playersdata.p1_img,
+							id: playersdata.p1_id,
 					  }
 					: {
 							name: playersdata.p2_name,
 							img: playersdata.p2_img,
+							id: playersdata.p2_id,
 					  };
 
 			if (gametype === "local") {
@@ -547,7 +546,7 @@ export default function Game() {
 				<div className="flex items-center justify-between px-2 md:px-5 mb-4">
 					<div className="flex items-center gap-2 md:gap-5">
 						<div className="rounded-full w-10 h-10 md:w-14 md:h-14 overflow-hidden border">
-							{/* <Image
+							{/* <img
 								className="w-full h-full object-cover object-center"
 								src={
 									"/" +
@@ -588,7 +587,7 @@ export default function Game() {
 								: playersdata.p1_name}
 						</p>
 						<div className="rounded-full w-10 h-10 md:w-14 md:h-14 overflow-hidden border">
-							{/* <Image
+							{/* <img
 								className="w-full h-full object-cover object-center"
 								src={
 									"/" +
@@ -698,5 +697,17 @@ export default function Game() {
 				</div>
 			</div>
 		</div>
+	);
+}
+
+export default function Game() {
+	return (
+		<Suspense fallback={
+			<div className="bg-gray-400/30 backdrop-blur-sm flex flex-col justify-center items-center z-50  absolute top-0 bottom-0 left-0 right-0   ">
+				<Loading />
+			</div>
+		}>
+			<GameContent />
+		</Suspense>
 	);
 }

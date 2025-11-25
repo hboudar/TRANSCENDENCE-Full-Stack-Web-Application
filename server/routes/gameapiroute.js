@@ -12,7 +12,7 @@ const gameApiRoute = async (fastify, options) => {
 	// === GAME INITIALIZATION ===
 
 	// Start a new game session
-	fastify.post("/api2/games/start", async (request, reply) => {
+	fastify.post("/games/start", async (request, reply) => {
 		try {
 			const {
 				player_id,
@@ -119,7 +119,7 @@ const gameApiRoute = async (fastify, options) => {
 			});
 		}
 	});
-	fastify.get("/api2/games/active", async (request, reply) => {
+	fastify.get("/games/active", async (request, reply) => {
 		try {
 			const activeSessions = Array.from(sessionsmap.entries()).map(
 				([sessionId, session]) => ({
@@ -159,7 +159,7 @@ const gameApiRoute = async (fastify, options) => {
 	});
 
 	// Get specific game session details
-	fastify.get("/api2/games/:sessionId", async (request, reply) => {
+	fastify.get("/games/session/:sessionId", async (request, reply) => {
 		try {
 			const { sessionId } = request.params;
 			const session = sessionsmap.get(sessionId);
@@ -192,7 +192,7 @@ const gameApiRoute = async (fastify, options) => {
 			});
 		}
 	});
-	fastify.post("/api2/tournament_win/:userId", async (request, reply) => {
+	fastify.post("/tournament_win/:userId", async (request, reply) => {
 		const { userId } = request.params;
 		try {
 			
@@ -222,7 +222,7 @@ const gameApiRoute = async (fastify, options) => {
 		}
 	});
 	// End a game session
-	fastify.post("/api2/games/:sessionId/end", async (request, reply) => {
+	fastify.post("/games/session/:sessionId/end", async (request, reply) => {
 		try {
 			const { sessionId } = request.params;
 			const session = sessionsmap.get(sessionId);

@@ -73,7 +73,7 @@ function Tournamentbracket({
 }) {
 	const router = useRouter();
 	const [play, setplay] = useState(true);
-	const items = [];
+	const items: React.ReactNode[] = [];
 	let box = playerbox;
 	let index = player.index;
 	let length = size;
@@ -154,7 +154,7 @@ function Tournamentbracket({
 		const p = finals.find(
 			(p) => p.id == count + "" + Math.floor((box + 1) / 2)
 		);
-		items.push(
+		const divElement = (
 			<div
 				key={index}
 				className={`absolute   border   translate-y-px ${
@@ -244,6 +244,7 @@ function Tournamentbracket({
 				</div>
 			</div>
 		);
+		items.push(divElement);
 	}
 
 	return <>{items}</>;
@@ -533,7 +534,7 @@ export default function Tournament({
 			setTournamentWinner(tournamentWinnerEntry.name);
 			setShowWinnerAnimation(true);
 			
-			fetch(`/api/api2/tournament_win/${user.id}`, {
+			fetch(`/api/tournament_win/${user.id}`, {
 				method: "POST",
 			});
 			// Auto-close after 5 seconds

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../Context/UserContext";
 import socket from "@/app/socket";
+import { useRouter } from "next/navigation";
+
 
 type UserType = {
   id: number;
@@ -14,6 +16,7 @@ export default function Requests({ onClose, onFriendAccepted }) {
   const [requests, setRequests] = useState<UserType[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const { user, loading } = useUser();
+  const router = useRouter();
 
   const fetchRequests = async () => {
     if (!user) return;
@@ -32,7 +35,7 @@ export default function Requests({ onClose, onFriendAccepted }) {
   };
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !socket) return;
 
     socket.emit("join", user.id);
 
@@ -42,8 +45,10 @@ export default function Requests({ onClose, onFriendAccepted }) {
     socket.on("friends:updated", fetchRequests);
 
     return () => {
-      socket.off("friends:request:incoming", fetchRequests);
-      socket.off("friends:updated", fetchRequests);
+      if (socket) {
+        socket.off("friends:request:incoming", fetchRequests);
+        socket.off("friends:updated", fetchRequests);
+      }
     };
   }, [user]);
 
@@ -86,47 +91,50 @@ export default function Requests({ onClose, onFriendAccepted }) {
 
   if (loading) return <p>Loading...</p>;
 
-  return (
+    return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 rounded-2xl w-full max-w-sm p-6"
+        className="bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1e] rounded-xl w-full max-w-sm p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-white text-xl font-bold mb-4">Friend Requests</h2>
 
-        <div className="max-h-64 overflow-y-auto space-y-3">
+        <div className="max-h-64 overflow-y-auto space-y-2">
           {loadingRequests ? (
-            <p className="text-gray-400 text-center">Loading requests...</p>
+            <p className="text-gray-400 text-center py-4">Loading requests...</p>
           ) : requests.length > 0 ? (
             requests.map((request) => (
               <div
                 key={request.id}
-                className="flex items-center justify-between p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center justify-between px-3 py-2 bg-gray-900 rounded-xl hover:bg-gray-800 transition-colors shadow-md"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
+                <div
+                  className="flex items-center gap-3 cursor-pointer"
+                  onClick={() => router.push(`/profile/${request.id}`)}
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-purple-600">
                     <img
                       src={request.picture}
                       alt={request.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <span className="text-white">{request.name}</span>
+                  <span className="text-white font-medium">{request.name}</span>
                 </div>
 
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAccept(request.id)}
-                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm"
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
                   >
                     Accept
                   </button>
                   <button
                     onClick={() => handleDecline(request.id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm"
+                    className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-all"
                   >
                     Decline
                   </button>
@@ -134,13 +142,13 @@ export default function Requests({ onClose, onFriendAccepted }) {
               </div>
             ))
           ) : (
-            <p className="text-gray-400 text-center">No requests</p>
+            <p className="text-gray-400 text-center py-4">No requests</p>
           )}
         </div>
 
         <button
           onClick={onClose}
-          className="mt-4 w-full bg-purple-700 hover:bg-purple-600 text-white font-semibold py-2 rounded-lg transition-colors"
+          className="mt-4 w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-2 rounded-xl transition-all"
         >
           Close
         </button>

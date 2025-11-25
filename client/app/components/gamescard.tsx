@@ -10,8 +10,7 @@ export default function GamesCard({
 	description,
 	GameType,
 	type,
-}
-: {
+}: {
 	setGameType: React.Dispatch<React.SetStateAction<string>>;
 	title: string;
 	description: string;

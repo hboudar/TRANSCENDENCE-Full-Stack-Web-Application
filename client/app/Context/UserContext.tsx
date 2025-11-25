@@ -51,7 +51,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(data);
         
         // Join socket room for real-time chat/notifications
-        if (data?.id) {
+        if (data?.id && socket) {
           socket.emit("join", data.id);
         }
       } catch (error) {
@@ -68,6 +68,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   // Real-time Profile Updates
   // Listen for profile updates from other clients and sync user data
   useEffect(() => {
+    if (!socket) return;
+
     const handler = (payload: any) => {
       try {
         if (!payload || !payload.userId) return;
@@ -85,7 +87,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     socket.on('user_profile_updated', handler);
-    return () => { socket.off('user_profile_updated', handler); };
+    return () => {
+      if (socket) {
+        socket.off('user_profile_updated', handler);
+      }
+    };
   }, []);
 
   // Make user data available to all child components
