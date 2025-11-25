@@ -2,64 +2,64 @@
 
 import React, { useState, useEffect } from "react";
 import { useUser } from "../Context/UserContext";
+import socket from "@/app/socket";
 
 type UserType = {
   id: number;
   name: string;
   picture?: string;
-  level?: number;
 };
 
-export default function Requests({
-  onClose,
-  onFriendAccepted,
-}: {
-  onClose: () => void;
-  onFriendAccepted?: () => void;
-}) {
-  const [requests, setRequests] = React.useState<UserType[]>([]);
-  const [loadingRequests, setLoadingRequests] = React.useState(true);
+export default function Requests({ onClose, onFriendAccepted }) {
+  const [requests, setRequests] = useState<UserType[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(true);
   const { user, loading } = useUser();
+
+  const fetchRequests = async () => {
+    if (!user) return;
+
+    try {
+      const res = await fetch(
+        `/api/friends/myrequests?userId=${user.id}`
+      );
+      const data = await res.json();
+      setRequests(data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch requests:", err);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
 
-    let isMounted = true;
-
-    const fetchRequests = async () => {
-      try {
-        const res = await fetch(`/api/friends/myrequests?userId=${user.id}`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
-        if (isMounted) {
-          setRequests(data.data || []);
-        }
-      } catch (err) {
-        console.error("Failed to fetch requests:", err);
-        if (isMounted) setRequests([]);
-      } finally {
-        if (isMounted) setLoadingRequests(false);
-      }
-    };
+    socket.emit("join", user.id);
 
     fetchRequests();
 
+    socket.on("friends:request:incoming", fetchRequests);
+    socket.on("friends:updated", fetchRequests);
+
     return () => {
-      isMounted = false;
+      socket.off("friends:request:incoming", fetchRequests);
+      socket.off("friends:updated", fetchRequests);
     };
   }, [user]);
 
   const handleAccept = async (friendId: number) => {
     if (!user) return;
+
     try {
       const res = await fetch(`/api/friends/accept`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, friendId }),
       });
+
       if (res.ok) {
         setRequests((prev) => prev.filter((r) => r.id !== friendId));
-        onFriendAccepted?.(); // 🔄 notify parent to re-fetch friends
+        onFriendAccepted?.();
       }
     } catch (err) {
       console.error(err);
@@ -68,12 +68,14 @@ export default function Requests({
 
   const handleDecline = async (friendId: number) => {
     if (!user) return;
+
     try {
       const res = await fetch(`/api/friends/remove`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, friendId }),
       });
+
       if (res.ok) {
         setRequests((prev) => prev.filter((r) => r.id !== friendId));
       }
@@ -107,16 +109,14 @@ export default function Requests({
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
                     <img
-                      src={
-                        request.picture ||
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${request.name}`
-                      }
+                      src={request.picture}
                       alt={request.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <span className="text-white">{request.name}</span>
                 </div>
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAccept(request.id)}

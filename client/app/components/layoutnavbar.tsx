@@ -21,12 +21,12 @@ export const LayoutComp = ({ children }: { children: React.ReactNode }) => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const shouldShowLayout = path !== '/' && path !== '/login';
+    const shouldShowLayout = path === "/games" || path.startsWith("/profile/") || path === "/rps" || path === "/home" || path === "/chat" || path === "/friends" || path === "/shop";
 
     return (
-        <div className="h-screen bg-[#00000070] relative">
+        <div className="min-h-screen bg-[#00000070] relative">
             {shouldShowLayout ? (
-                <div className="flex h-full">
+                <div className="flex h-screen overflow-hidden">
                     {isMobile ? (
                         <>
                             <button
@@ -58,7 +58,7 @@ export const LayoutComp = ({ children }: { children: React.ReactNode }) => {
                     </div>
                 </div>
             ) : (
-                <div>{children}</div>
+                <div className="min-h-screen bg-[#00000070]">{children}</div>
             )}
         </div>
     );

@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../Context/UserContext";
 import Loading from "../components/loading";
+import socket from "@/app/socket";
 
-// Cancel friend request function
 export async function CancelFriendRequest(userId: number, friendId: number) {
   try {
     const res = await fetch(`/api/friends/remove`, {
@@ -19,7 +19,6 @@ export async function CancelFriendRequest(userId: number, friendId: number) {
   }
 }
 
-// Send a friend request
 export async function AddFriendRequest(userId: number, friendId: number) {
   try {
     const res = await fetch(`/api/friends`, {
@@ -27,6 +26,14 @@ export async function AddFriendRequest(userId: number, friendId: number) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, friendId }),
     });
+
+    if (res.ok) {
+      socket.emit("friends:request:send", {
+        fromUserId: userId,
+        toUserId: friendId,
+      });
+    }
+
     return res.ok;
   } catch (err) {
     console.error(err);
@@ -45,20 +52,21 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<UserType[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
-  const [requestedIds, setRequestedIds] = useState<number[]>([]); // requests I sent
-  const [incomingRequestIds, setIncomingRequestIds] = useState<number[]>([]); // requests sent to me
+  const [requestedIds, setRequestedIds] = useState<number[]>([]);
+  const [incomingRequestIds, setIncomingRequestIds] = useState<number[]>([]);
   const [friendsIds, setFriendsIds] = useState<number[]>([]);
   const { user, loading } = useUser();
 
   useEffect(() => {
     if (!user) return;
 
+    socket.emit("join", user.id);
+
     let isMounted = true;
 
     const fetchUsers = async () => {
       try {
         const res = await fetch("/api/users");
-        if (!res.ok) throw new Error(`Failed to fetch users: ${res.status}`);
         const data: UserType[] = await res.json();
         if (isMounted) setUsers(data);
       } catch (err) {
@@ -70,10 +78,11 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
 
     const fetchOutgoingRequests = async () => {
       try {
-        const res = await fetch(`/api/friends/request?userId=${user.id}`);
+        const res = await fetch(
+          `/api/friends/request?userId=${user.id}`
+        );
         const data = await res.json();
-        const ids = data.data.map((r: { friend_id: number }) => r.friend_id);
-        setRequestedIds(ids);
+        setRequestedIds(data.data.map((r) => r.friend_id));
       } catch (err) {
         console.error(err);
       }
@@ -81,10 +90,11 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
 
     const fetchIncomingRequests = async () => {
       try {
-        const res = await fetch(`/api/friends/myrequests?userId=${user.id}`);
+        const res = await fetch(
+          `/api/friends/myrequests?userId=${user.id}`
+        );
         const data = await res.json();
-        const ids = data.data.map((r: { user_id: number }) => r.user_id);
-        setIncomingRequestIds(ids);
+        setIncomingRequestIds(data.data.map((r) => r.user_id));
       } catch (err) {
         console.error(err);
       }
@@ -92,10 +102,11 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
 
     const fetchFriends = async () => {
       try {
-        const res = await fetch(`/api/friends/accepted?userId=${user.id}`);
+        const res = await fetch(
+          `/api/friends/accepted?userId=${user.id}`
+        );
         const data = await res.json();
-        const ids = data.data.map((f: { id: number }) => f.id);
-        setFriendsIds(ids);
+        setFriendsIds(data.data.map((f) => f.id));
       } catch (err) {
         console.error(err);
       }
@@ -106,8 +117,13 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
     fetchIncomingRequests();
     fetchFriends();
 
+    socket.on("friends:request:incoming", fetchIncomingRequests);
+    socket.on("friends:updated", fetchFriends);
+
     return () => {
       isMounted = false;
+      socket.off("friends:request:incoming", fetchIncomingRequests);
+      socket.off("friends:updated", fetchFriends);
     };
   }, [user]);
 
@@ -121,15 +137,11 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
 
   const handleCancelRequest = async (friendId: number) => {
     if (!user) return;
-
     const success = await CancelFriendRequest(user.id, friendId);
-    if (success) setRequestedIds((prev) => prev.filter((id) => id !== friendId));
+    if (success)
+      setRequestedIds((prev) => prev.filter((id) => id !== friendId));
   };
 
-  // Filter users:
-  // - Remove self
-  // - Remove already friends
-  // - Remove users who sent me a request
   const filteredUsers = users
     .filter((u) => u.id !== user?.id)
     .filter((u) => !friendsIds.includes(u.id))
@@ -148,7 +160,6 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-white text-xl font-bold mb-4">Add Friends</h2>
-
         <input
           type="text"
           value={search}
@@ -171,16 +182,14 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-700 overflow-hidden">
                       <img
-                        src={
-                          u.picture ||
-                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`
-                        }
+                        src={u.picture}
                         alt={u.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <span className="text-white">{u.name}</span>
                   </div>
+
                   <button
                     onClick={() =>
                       isRequested
