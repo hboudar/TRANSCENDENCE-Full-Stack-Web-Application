@@ -87,7 +87,11 @@ function GameContent() {
 		id?: string | number;
 	} | null>(null);
 	const [alreadyInGame, setAlreadyInGame] = useState(false);
+	const [sessionNotFound, setSessionNotFound] = useState(false);
+	const [isWaitingForPlayer, setIsWaitingForPlayer] = useState(false);
+	const [canExit, setCanExit] = useState(false);
 	const isInitializing = useRef(false);
+	const socketRef = useRef<Socket | null>(null);
 	const tournamentTransitionScheduled = useRef(false);
 	const isTournamentTransitioning = useRef(false);
 
@@ -99,6 +103,15 @@ function GameContent() {
 	const invited_player = serchParams.get("invited_player");
 	if (!oppid) oppid = 0;
 
+	// Validate game type on mount
+	useEffect(() => {
+		const validGameTypes = ["localvsbot", "local", "online", "tournament", "localvsbot"];
+		if (gametype && !validGameTypes.includes(gametype)) {
+			console.error("Invalid game type:", gametype);
+			router.push("/games");
+		}
+	}, [gametype, router]);
+
 	useEffect(() => {
 		// console.log(gametype, Positions, tournamentplayers);
 
@@ -109,6 +122,23 @@ function GameContent() {
 			return;
 		}
 		if (!user || gametype == "tournament") return;
+		
+		// Check if this is a private game reload (host reloading while waiting)
+		// Use sessionStorage flag to distinguish fresh invite from reload
+		if (gametype === "online" && oppid && oppid !== 0 && !invited_player) {
+			const isIntentionalInvite = sessionStorage.getItem('creatingPrivateGame');
+			
+			if (!isIntentionalInvite) {
+				// This is a reload, not a fresh invite - redirect to chat
+				console.log("Private game reload detected - redirecting to chat");
+				router.push("/chat");
+				return;
+			}
+			
+			// Clear the flag after checking - it's only valid for initial load
+			sessionStorage.removeItem('creatingPrivateGame');
+		}
+		
 		async function newgame() {
 			// Prevent duplicate initialization in React Strict Mode (dev mode)
 			if (isInitializing.current) {
@@ -119,7 +149,8 @@ function GameContent() {
 			isInitializing.current = true;
 
 			try {
-				const sessionid = crypto.randomUUID();
+				let sessionid = crypto.randomUUID();
+
 				const response = await fetch("/api/games/start", {
 					method: "POST",
 					headers: {
@@ -143,6 +174,16 @@ function GameContent() {
 				const res = await response.json();
 				console.log(res);
 
+				if (res.sessionNotFound == true) {
+					console.log("No game session found for invited player");
+					setSessionNotFound(true);
+					setTimeout(() => {
+						router.push("/games");
+					}, 5000);
+					isInitializing.current = false;
+					return;
+				}
+
 				if (res.alreadyInGame == true) {
 					console.log("Player is already in an active game");
 					isInitializing.current = false;
@@ -154,8 +195,6 @@ function GameContent() {
 					return;
 				}
 				if (response.ok) {
-					sessionStorage.setItem("gameSessionId", sessionid);
-
 					let socket: Socket | null = null;
 
 					if (typeof window !== "undefined") {
@@ -166,11 +205,11 @@ function GameContent() {
 								sessionId: res.sessionId,
 								playerId: user!.id,
 							},
-							forceNew: true,
 						});
 					}
 
 					if (!socket) return;
+					socketRef.current = socket;
 
 					socket.on("gameState", (data) => {
 						setplayersdata(data.players_info as PlayersData);
@@ -178,6 +217,15 @@ function GameContent() {
 							...data.positions,
 							Curentplayer: data.Curentplayer,
 						} as PositionsType);
+
+						// Check if waiting for player 2
+						if (gametype === "online" && data.players_info.p2_id === 0) {
+							setIsWaitingForPlayer(true);
+							setCanExit(true);
+						} else {
+							setIsWaitingForPlayer(false);
+							setCanExit(false);
+						}
 
 						// Handle game end with animation
 						if (data.positions.win !== 0) {
@@ -255,33 +303,27 @@ function GameContent() {
 						}
 					}
 
-					// Store socket and emitKey function globally for button access
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					(window as any).gameSocket = socket;
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 					(window as any).emitKey = emitKey;
 
-					// Handle navigation away from game (back button, route change, etc.)
-					const handleBeforeUnload = () => {
-						sessionStorage.removeItem("gameSessionId");
-						isInitializing.current = false;
-						socket.disconnect();
-					};
-
+					// Handle intentional navigation away (back button, route change)
 					const handleRouteChange = () => {
-						sessionStorage.removeItem("gameSessionId");
 						isInitializing.current = false;
-						socket.disconnect();
+						if (socket) {
+							socket.disconnect();
+						}
 					};
 
-					window.addEventListener("beforeunload", handleBeforeUnload);
+					// Don't remove session on page reload (beforeunload)
+					// Session will be kept for reconnection
 					window.addEventListener("popstate", handleRouteChange);
 
 					document.addEventListener("keydown", handleKeyDown);
 					document.addEventListener("keyup", handleKeyUp);
 
 					return () => {
-						window.removeEventListener("beforeunload", handleBeforeUnload);
 						window.removeEventListener("popstate", handleRouteChange);
 						document.removeEventListener("keydown", handleKeyDown);
 						document.removeEventListener("keyup", handleKeyUp);
@@ -289,9 +331,10 @@ function GameContent() {
 						delete (window as any).gameSocket;
 						// eslint-disable-next-line @typescript-eslint/no-explicit-any
 						delete (window as any).emitKey;
-						sessionStorage.removeItem("gameSessionId");
+						
+						// Cleanup on unmount
 						isInitializing.current = false;
-						socket.disconnect();
+						if (socket) socket.disconnect();
 					};
 				} else {
 					console.log(res.error);
@@ -342,6 +385,60 @@ function GameContent() {
 		});
 	}
 
+	const handleExitWaiting = () => {
+		if (socketRef.current) {
+			// Notify server to clean up session and notifications
+			socketRef.current.emit("exit_waiting");
+			// Give server time to process before disconnecting
+			setTimeout(() => {
+				if (socketRef.current) {
+					socketRef.current.disconnect();
+					socketRef.current = null;
+				}
+				// If it's a private game (has oppid), go back to chat, otherwise go to games
+				if (oppid && oppid !== 0) {
+					router.push("/chat");
+				} else {
+					router.push("/games");
+				}
+			}, 100);
+		} else {
+			// If it's a private game (has oppid), go back to chat, otherwise go to games
+			if (oppid && oppid !== 0) {
+				router.push("/chat");
+			} else {
+				router.push("/games");
+			}
+		}
+	};
+
+	// Show session not found message
+	if (sessionNotFound) {
+		return (
+			<div className="bg-gray-400/30 backdrop-blur-sm flex flex-col justify-center items-center z-50 absolute top-0 bottom-0 left-0 right-0">
+				<div className="bg-gradient-to-b from-gray-800 to-gray-900 p-8 rounded-2xl text-center max-w-md border-2 border-red-500/50 shadow-2xl">
+					<div className="text-7xl mb-6 animate-bounce">❌</div>
+					<h2 className="text-3xl font-bold mb-4 text-red-400">
+						Session Expired
+					</h2>
+					<p className="text-lg mb-4 text-gray-300">
+						The game session no longer exists.
+					</p>
+					<p className="text-sm mb-6 text-gray-400">
+						The host may have disconnected or the invitation expired.
+					</p>
+					<div className="flex items-center justify-center gap-2 text-blue-400">
+						<svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+							<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+							<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+						<span className="text-sm">Redirecting to games...</span>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
 	// Show already in game message
 	if (alreadyInGame) {
 		return (
@@ -380,6 +477,17 @@ function GameContent() {
 		return (
 			<div className="bg-gray-400/30 backdrop-blur-sm flex flex-col justify-center items-center z-50  absolute top-0 bottom-0 left-0 right-0   ">
 				<Loading />
+				{isWaitingForPlayer && canExit && (
+					<div className="mt-8 flex flex-col items-center gap-4">
+						<p className="text-white text-lg animate-pulse">Waiting for opponent to join...</p>
+						<button
+							onClick={handleExitWaiting}
+							className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95"
+						>
+							Exit Waiting
+						</button>
+					</div>
+				)}
 			</div>
 		);
 	}

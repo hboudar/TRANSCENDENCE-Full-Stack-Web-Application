@@ -100,8 +100,25 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // Listen for expired game invitations
+    const handleGameInviteExpired = (data: { senderId: number }) => {
+      console.log("⏰ Game invite expired from sender:", data.senderId);
+      // Remove all game invites from that sender
+      setNotifications((prev) => 
+        prev.filter((n) => !(n.type === 'game_invite' && n.sender_id === data.senderId))
+      );
+      // Recalculate unread count
+      setUnreadCount((prev) => {
+        const expiredUnread = notifications.filter(
+          (n) => n.type === 'game_invite' && n.sender_id === data.senderId && !n.is_read
+        ).length;
+        return Math.max(0, prev - expiredUnread);
+      });
+    };
+
     console.log("🎧 Setting up notification listener for user:", user.id);
     socket.on("new_notification", handleNewNotification);
+    socket.on("game_invite_expired", handleGameInviteExpired);
 
     // Request notification permission if not granted
     if ('Notification' in window && Notification.permission === 'default') {
@@ -112,9 +129,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       console.log("🔇 Cleaning up notification listener");
       if (socket) {
         socket.off("new_notification", handleNewNotification);
+        socket.off("game_invite_expired", handleGameInviteExpired);
       }
     };
-  }, [user?.id]);
+  }, [user?.id, notifications]);
 
   return (
     <NotificationContext.Provider

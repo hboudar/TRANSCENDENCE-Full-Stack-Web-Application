@@ -3,16 +3,32 @@ import { createContext, useContext, useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import socket from "../socket";
 
+// User interface with proper typing
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  picture?: string;
+  [key: string]: any;
+}
+
+// Context type definition
+interface UserContextType {
+  user: User | null;
+  loading: boolean;
+  setUser: (u: User | null) => void;
+}
+
 // Create context for sharing user data across components
-export const UserContext = createContext({
+export const UserContext = createContext<UserContextType>({
   user: null,
   loading: true,
   // expose a setter so components can update user immediately after mutations
-  setUser: (u: any) => {},
+  setUser: (u: User | null) => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState(null);      // Store user data (name, email, picture, etc)
+  const [user, setUser] = useState<User | null>(null);      // Store user data (name, email, picture, etc)
   const [loading, setLoading] = useState(true); // Track if we're still fetching user data
 
   // Fetch User Data on App Load

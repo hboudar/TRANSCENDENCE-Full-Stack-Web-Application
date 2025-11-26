@@ -24,26 +24,55 @@ const sockethandler = (io, db) => {
       }
 
       console.log("📩 Received message:", msg);
-      db.run(
-        `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
-        [sender_id, receiver_id, content],
-        function (err) {
+
+      // Check if sender is blocked by receiver OR receiver is blocked by sender
+      db.get(
+        `SELECT * FROM blocks WHERE 
+         (blocker_id = ? AND blocked_id = ?) OR 
+         (blocker_id = ? AND blocked_id = ?)`,
+        [receiver_id, sender_id, sender_id, receiver_id],
+        (err, block) => {
           if (err) {
-            console.error("❌ Error inserting message:", err.message);
+            console.error("❌ Error checking blocks:", err.message);
             return;
           }
 
-          const messageData = {
-            id: this.lastID,
-            content,
-            sender_id,
-            receiver_id,
-            status: true,
-            created_at: new Date().toISOString(),
-          };
-         
-          io.to(`user:${sender_id}`).emit("new message", messageData);
-          io.to(`user:${receiver_id}`).emit("new message", messageData);
+          if (block) {
+            console.log("🚫 Message blocked between users", sender_id, receiver_id);
+            // Notify sender that message was blocked
+            socket.emit("message_blocked", {
+              sender_id,
+              receiver_id,
+              message: block.blocker_id === sender_id 
+                ? "You have blocked this user. Unblock to send messages." 
+                : "This user has blocked you. You cannot send messages."
+            });
+            return;
+          }
+
+          // Insert message if not blocked
+          db.run(
+            `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
+            [sender_id, receiver_id, content],
+            function (err) {
+              if (err) {
+                console.error("❌ Error inserting message:", err.message);
+                return;
+              }
+
+              const messageData = {
+                id: this.lastID,
+                content,
+                sender_id,
+                receiver_id,
+                status: true,
+                created_at: new Date().toISOString(),
+              };
+             
+              io.to(`user:${sender_id}`).emit("new message", messageData);
+              io.to(`user:${receiver_id}`).emit("new message", messageData);
+            }
+          );
         }
       );
     });
@@ -156,6 +185,24 @@ const sockethandler = (io, db) => {
       console.log(`🔄 Friends updated between ${userA} & ${userB}`);
       io.to(`user:${userA}`).emit("friends:updated");
       io.to(`user:${userB}`).emit("friends:updated");
+    });
+
+    // Handle block event and broadcast to both users
+    socket.on('user_blocked', (data) => {
+      const { blocker_id, blocked_id } = data;
+      console.log(`🚫 User ${blocker_id} blocked user ${blocked_id}`);
+      // Notify both users
+      io.to(`user:${blocker_id}`).emit('user_blocked', data);
+      io.to(`user:${blocked_id}`).emit('user_blocked', data);
+    });
+
+    // Handle unblock event and broadcast to both users
+    socket.on('user_unblocked', (data) => {
+      const { blocker_id, blocked_id } = data;
+      console.log(`✅ User ${blocker_id} unblocked user ${blocked_id}`);
+      // Notify both users
+      io.to(`user:${blocker_id}`).emit('user_unblocked', data);
+      io.to(`user:${blocked_id}`).emit('user_unblocked', data);
     });
 
   });

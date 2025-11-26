@@ -8,13 +8,18 @@ export default function Room({
     selected,
     me,
     messages,
-    setMessages
+    setMessages,
+    isBlocked,
+    blockMessage
 }: {
     selected: number;
     me: number;
     messages: any[];
     setMessages: React.Dispatch<React.SetStateAction<any[]>>;
+    isBlocked?: boolean;
+    blockMessage?: string;
 }) {
+    const [errorMessage, setErrorMessage] = useState("");
     useEffect(() => {
         if (!socket) return;
         
@@ -33,19 +38,38 @@ export default function Room({
             }
         };
 
+        const handleMessageBlocked = (data: any) => {
+            console.log("🚫 Message blocked:", data);
+            setErrorMessage(data.message);
+            setTimeout(() => setErrorMessage(""), 3000);
+        };
+
         socket.on("new message", handleIncomingMessage);
+        socket.on("message_blocked", handleMessageBlocked);
 
         return () => {
             if (socket) {
                 socket.off("new message", handleIncomingMessage);
+                socket.off("message_blocked", handleMessageBlocked);
             }
         };
     }, [selected, me]);
 
     return (
         <div className="flex flex-col h-full justify-between relative">
-            <FetchMessages selected={selected} me={me} messages={messages} setMessages={setMessages} />
-            <SendMessage me={me} selected={selected} setMessages={setMessages}/>
+            {(isBlocked || errorMessage) ? (
+                <div className="flex-1 flex items-center justify-center p-8">
+                    <div className="text-center max-w-md">
+                        <div className="mb-4 text-5xl">🚫</div>
+                        <p className="text-gray-400 text-lg">
+                            {errorMessage || blockMessage}
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <FetchMessages selected={selected} me={me} messages={messages} setMessages={setMessages} />
+            )}
+            <SendMessage me={me} selected={selected} setMessages={setMessages} isBlocked={isBlocked} />
         </div>
     );
 }

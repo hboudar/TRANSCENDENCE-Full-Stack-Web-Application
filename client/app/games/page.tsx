@@ -26,7 +26,7 @@ export default function Games() {
            [&::-webkit-scrollbar]:h-2">
 				<div className="flex flex-row gap-[2%] px-[2%] mx-auto">
 					<GamesCard
-						type={"bot"}
+						type={"localvsbot"}
 						title={"Play vs Bot"}
 						description={"Practice against the computer"}
 						setGameType={setGameType}

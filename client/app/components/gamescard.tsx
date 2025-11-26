@@ -26,9 +26,12 @@ export default function GamesCard({
 				onClick={() => {
 					// if (type == "tournament") router.push("/games/tournament");
 					if (type == "rps") router.push("/rps");
-					else
-						router.push("/games/game?gametype=" + type);
-					setGameType(type);
+					else {
+						// Map "bot" to "localvsbot" for game type
+						const gameType = type === "bot" ? "localvsbot" : type;
+						router.push("/games/game?gametype=" + gameType);
+						setGameType(gameType);
+					}
 				}}
 				className={`relative   overflow-hidden  cursor-pointer flex  h-full
                                     aspect-[3/4] bg-white border 

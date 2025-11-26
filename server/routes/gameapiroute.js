@@ -37,6 +37,7 @@ const gameApiRoute = async (fastify, options) => {
 					error: "missing data",
 				});
 			}
+
 			const ingame = Array.from(sessionsmap.values()).some(
 				(player) =>
 					(player.players_info.p1_id == player_id && player.p1_ready) ||
@@ -55,6 +56,14 @@ const gameApiRoute = async (fastify, options) => {
 						session.gametype == "online" &&
 						session.players_info.p1_id == player2_id
 				);
+				if (!invitedSession) {
+					// Session not found - host may have disconnected
+					return reply.status(404).send({
+						success: false,
+						sessionNotFound: true,
+						error: "Game session no longer exists. Host may have disconnected.",
+					});
+				}
 				if (invitedSession) {
 					const [sessionId, session] = invitedSession;
 					session.players_info.p2_id = player_id;

@@ -167,6 +167,18 @@ db.serialize(() => {
 		is_request BOOLEAN DEFAULT 0
 		);
 		`);
+
+	db.run(`
+	  CREATE TABLE IF NOT EXISTS blocks (
+	    id INTEGER PRIMARY KEY AUTOINCREMENT,
+	    blocker_id INTEGER NOT NULL,
+	    blocked_id INTEGER NOT NULL,
+	    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	    UNIQUE(blocker_id, blocked_id),
+	    FOREIGN KEY (blocker_id) REFERENCES users(id),
+	    FOREIGN KEY (blocked_id) REFERENCES users(id)
+	  )
+	`);
 		
 		
 	});
@@ -221,7 +233,7 @@ const io = new Server(httpServer, {
 });
 
 sockethandler(io, db);
-setupGameSocketIO(io);
+setupGameSocketIO(io, db);
 rpsHandler(io, db);
 
 // Register profile routes after Socket.IO is created so routes can access `io`
@@ -230,6 +242,9 @@ await fastify.register(profileRoute, { db, io });
 
 const friendsRoute = (await import('./routes/friendsroute.js')).default;
 fastify.register(friendsRoute, { db, io });
+
+const blockRoute = (await import('./routes/blockroute.js')).default;
+fastify.register(blockRoute, { db });
 
 
 ///////////////////////////////////////////// devops /////////////////////////////////////////////

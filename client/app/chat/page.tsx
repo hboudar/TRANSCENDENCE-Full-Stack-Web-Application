@@ -1,6 +1,6 @@
 "use client";
 
-import { FaArrowRight } from "react-icons/fa";
+import { FaArrowRight, FaBan, FaUnlock } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import Room from "./room";
 import AvatarWithPresence from "../components/AvatarWithPresence";
@@ -20,11 +20,15 @@ type User = {
 };
 
 export default function Chat() {
-    const rout =  useRouter();
+    const rout = useRouter();
     const [users, setUsers] = useState<User[]>([]);
     const [selected, setSelected] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
     const [messages, setMessages] = useState<any[]>([]); // Initialize messages as an empty array
+    const [isBlocked, setIsBlocked] = useState(false);
+    const [isBlocker, setIsBlocker] = useState(false);
+    const [blockLoading, setBlockLoading] = useState(false);
+    const [blockMessage, setBlockMessage] = useState("");
 
 
     useEffect(() => {
@@ -50,6 +54,65 @@ export default function Chat() {
     }, []);
 
     const { user, loading } = useUser();
+
+    // Listen for real-time block/unblock events globally
+    useEffect(() => {
+        const handleUserBlocked = (data: any) => {
+            console.log('Block event received:', data);
+            if ((data.blocker_id === selected && data.blocked_id === user?.id) ||
+                (data.blocker_id === user?.id && data.blocked_id === selected)) {
+                checkBlockStatus();
+            }
+        };
+
+        const handleUserUnblocked = (data: any) => {
+            console.log('Unblock event received:', data);
+            if ((data.blocker_id === selected && data.blocked_id === user?.id) ||
+                (data.blocker_id === user?.id && data.blocked_id === selected)) {
+                checkBlockStatus();
+            }
+        };
+
+        socket.on('user_blocked', handleUserBlocked);
+        socket.on('user_unblocked', handleUserUnblocked);
+
+        return () => {
+            socket.off('user_blocked', handleUserBlocked);
+            socket.off('user_unblocked', handleUserUnblocked);
+        };
+    }, [selected, user]);
+
+    // Fetch block status when user is selected
+    useEffect(() => {
+        if (selected && user?.id) {
+            checkBlockStatus();
+        }
+    }, [selected, user?.id]);
+
+    const checkBlockStatus = async () => {
+        if (!selected || !user?.id) return;
+
+        try {
+            const res = await fetch(`http://localhost:4000/blocks/check/${user.id}/${selected}`);
+            const data = await res.json();
+
+            if (data.blocked) {
+                setIsBlocked(true);
+                setIsBlocker(data.is_blocker);
+                if (data.is_blocker) {
+                    setBlockMessage("You have blocked this user. Unblock to send messages.");
+                } else {
+                    setBlockMessage("This user has blocked you. You cannot send messages.");
+                }
+            } else {
+                setIsBlocked(false);
+                setIsBlocker(false);
+                setBlockMessage("");
+            }
+        } catch (error) {
+            console.error("Error checking block status:", error);
+        }
+    };
     if (loading) {
         return <Loading />;
     }
@@ -59,14 +122,72 @@ export default function Chat() {
     }
     const me = user.id;
 
+    const handleBlockToggle = async () => {
+        if (!user?.id || !selected || blockLoading) return;
+
+        // Only the blocker can unblock
+        if (isBlocked && !isBlocker) {
+            return;
+        }
+
+        setBlockLoading(true);
+        try {
+            if (isBlocked && isBlocker) {
+                // Unblock (only if you are the blocker)
+                const res = await fetch('http://localhost:4000/blocks', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        blocker_id: user.id,
+                        blocked_id: selected
+                    })
+                });
+
+                if (res.ok) {
+                    setIsBlocked(false);
+                    setIsBlocker(false);
+                    setBlockMessage("");
+                    // Emit unblock event via socket
+                    console.log('Emitting user_unblocked event:', { blocker_id: user.id, blocked_id: selected });
+                    socket.emit('user_unblocked', { blocker_id: user.id, blocked_id: selected });
+                }
+            } else if (!isBlocked) {
+                // Block
+                const res = await fetch('http://localhost:4000/blocks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        blocker_id: user.id,
+                        blocked_id: selected
+                    })
+                });
+
+                if (res.ok) {
+                    setIsBlocked(true);
+                    setIsBlocker(true);
+                    setBlockMessage("You have blocked this user. Unblock to send messages.");
+                    // Emit block event via socket
+                    console.log('Emitting user_blocked event:', { blocker_id: user.id, blocked_id: selected });
+                    socket.emit('user_blocked', { blocker_id: user.id, blocked_id: selected });
+                }
+            }
+        } catch (error) {
+            console.error("Error toggling block:", error);
+        } finally {
+            setBlockLoading(false);
+        }
+    };
+
     const handleSendGameInvite = () => {
         if (!socket) return;
-        
+
         const recipient = users.find(user => user.id === selected);
         if (!recipient) return;
+        // Set flag to indicate this is an intentional private game creation
+        sessionStorage.setItem('creatingPrivateGame', 'true');
         rout.push(`/games/game?gametype=online&oppid=${selected}`);
         console.log(selected, user.id);
-        
+
         // Emit Socket.io event to send game invite
         socket.emit("send_game_invite", {
             recipientId: selected,
@@ -126,18 +247,38 @@ export default function Chat() {
                                             {users.find(user => user.id === selected)?.name}
                                         </h2>
                                     </button>
-                                                                        <button
-                                        className="ml-4 flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white shadow-lg bg-gradient-to-r from-blue-700 via-purple-700 to-black border border-blue-900 hover:from-blue-500 hover:via-purple-600 hover:to-black hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                        onClick={handleSendGameInvite}
-                                    >
-                                        <span className="flex items-center justify-center text-xl">
-                                            <FaTableTennisPaddleBall />
-                                        </span>
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            className={`flex items-center gap-2 px-2 py-1 rounded-xl font-semibold shadow-lg transition-all duration-200 ${isBlocker
+                                                    ? "bg-gradient-to-r from-[#0080002f] to-emerald-300   text-white  "
+                                                    : isBlocked
+                                                        ? "bg-gray-600 cursor-not-allowed opacity-60"
+                                                        : "bg-gradient-to-r from-[#ff000036] to-rose-300   text-white "
+                                                } ${!isBlocked || isBlocker ? 'hover:scale-105 active:scale-95' : ''}`}
+                                            onClick={handleBlockToggle}
+                                            title={isBlocked ? (isBlocker ? "Unblock user" : "You are blocked by this user") : "Block user"}
+                                            disabled={blockLoading || (isBlocked && !isBlocker)}
+                                        >
+                                            <span className="flex items-center justify-center text-xl">
+                                                {blockLoading ? "..." : (isBlocker ? <FaUnlock /> : <FaBan />)}
+                                            </span>
+                                            <span className="hidden sm:inline">
+                                                {blockLoading ? "Loading" : (isBlocker ? "Unblock" : isBlocked ? "Blocked" : "Block")}
+                                            </span>
+                                        </button>
+                                        <button
+                                            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white shadow-lg bg-gradient-to-r from-blue-700 via-purple-700 to-black border border-blue-900 hover:from-blue-500 hover:via-purple-600 hover:to-black hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                            onClick={handleSendGameInvite}
+                                        >
+                                            <span className="flex items-center justify-center text-xl">
+                                                <FaTableTennisPaddleBall />
+                                            </span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto">
-                                <Room selected={selected} me={me} messages={messages} setMessages={setMessages} />
+                                <Room selected={selected} me={me} messages={messages} setMessages={setMessages} isBlocked={isBlocked} blockMessage={blockMessage} />
                             </div>
                         </>
                     )}
