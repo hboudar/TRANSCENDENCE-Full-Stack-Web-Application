@@ -141,10 +141,10 @@ export default async function authRoutes(fastify, opts) {
         const hashedPassword = await bcrypt.hash(password, 8);
 
         return new Promise((resolve, reject) => {
-            // Create new user in database with 1000 starting gold
+            // Create new user in database with 100 starting gold
             db.run(
                 `INSERT OR IGNORE INTO users (name, email, password, gold) VALUES (?, ?, ?, ?)`,
-                [name, email, hashedPassword, 1000],
+                [name, email, hashedPassword, 100],
                 function (err) {
                     if (err) {
                         console.error("Insert user error:", err.message);

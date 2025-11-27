@@ -1,53 +1,27 @@
 "use client";
 
-import { Snippet } from "next/font/google";
-import { Suspense, useEffect, useState } from "react";
 import AvatarWithPresence from "../components/AvatarWithPresence";
+import { usePresence } from "../Context/PresenceContext";
 
 export default function UserInfo({
   user,
   setSelected,
-  selected,
-  me,
-  messages
+  selected
 }: {
   user: {
     id: number;
     name: string;
-    picture: string;
-    me: number;
-    messages: any[];
+    picture?: string;
   };
   selected: number;
   setSelected: (id: number) => void;
 }) {
-  const [lastmessage, setLastMessage] = useState("");
+  const { isOnline } = usePresence();
+  const online = isOnline(user.id);
 
   const selectedhandler = () => {
     setSelected(user.id);
   };
-
-  
-  useEffect(() => {  
-    const fetchLastMessage = async () => {
-      try {
-        const res = await fetch(`/api/lastmessage/${me}/${user.id}`);
-        if (!res.ok) throw new Error("Response not ok");
-
-        const data = await res.json();
-        if (data && data.content) {
-          setLastMessage(data.content);
-        } else {
-          setLastMessage(""); // Clear if no message
-          console.log("No message data received");
-        }
-      } catch (error) {
-        console.error("Error fetching last message:", error);
-        setLastMessage("");
-      }
-    };
-    fetchLastMessage();
-  }, [me, user?.id, messages]);
 
 
   return (
@@ -61,7 +35,7 @@ export default function UserInfo({
       </div>
       <div className="flex flex-col">
         <h3 className="text-white font-semibold">{user.name}</h3>
-        <p className="text-gray-400 text-sm">{lastmessage || "No messages yet"}</p>
+        <p className="text-gray-400 text-sm">{online ? "Online" : "Offline"}</p>
       </div>
 
     </div>

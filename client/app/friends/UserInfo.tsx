@@ -2,16 +2,35 @@
 
 import {
   UserX,
-  MessageCircle,
   Gamepad2,
   Trophy,
   TrendingDown,
 } from "lucide-react";
 import socket from "@/app/socket";
 import { useRouter } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
 
+type User = {
+  id: number;
+  name: string;
+  picture?: string;
+  level?: number;
+  games?: number;
+  win?: number;
+  lose?: number;
+  gold?: number;
+};
 
-export default function UserInfo({ user, currentUser, setUsers }) {
+type CurrentUser = {
+  id: number;
+  name: string;
+};
+
+export default function UserInfo({ user, currentUser, setUsers }: {
+  user: User;
+  currentUser: CurrentUser | null;
+  setUsers: Dispatch<SetStateAction<User[]>>;
+}) {
   const removeFriend = async () => {
     if (!currentUser) return;
     
@@ -28,7 +47,7 @@ export default function UserInfo({ user, currentUser, setUsers }) {
       if (socket) {
         socket.emit("friends:update", { userA: userId, userB: friendId });
       }
-      setUsers((prev) => prev.filter((u) => u.id !== friendId));
+      setUsers((prev: User[]) => prev.filter((u: User) => u.id !== friendId));
     }
   };
   

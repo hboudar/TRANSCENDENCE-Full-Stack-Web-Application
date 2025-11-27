@@ -9,7 +9,7 @@ interface User {
   name: string;
   email: string;
   picture?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Context type definition
@@ -24,7 +24,7 @@ export const UserContext = createContext<UserContextType>({
   user: null,
   loading: true,
   // expose a setter so components can update user immediately after mutations
-  setUser: (u: User | null) => {},
+  setUser: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -86,11 +86,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!socket) return;
 
-    const handler = (payload: any) => {
+    const handler = (payload: Partial<User> & { userId?: number }) => {
       try {
         if (!payload || !payload.userId) return;
         // Only update if the update is for current user
-        setUser((prev: any) => {
+        setUser((prev: User | null) => {
           if (!prev) return prev;
           if (prev.id === payload.userId) {
             return { ...prev, ...(payload || {}) };

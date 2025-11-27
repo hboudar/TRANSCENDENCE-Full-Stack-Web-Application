@@ -1,15 +1,27 @@
 
 
-import { Edit, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import Games_status from "../home/games_status";
 import { useUser } from "../Context/UserContext";
-import { useState } from "react";
-import EditProfile from "./editProfile";
 import { usePresence } from "../Context/PresenceContext";
 
-export default function ProfileHeader({ user, games, setEditMode }: { user: any, games: any[], setEditMode: (editMode: boolean) => void }) {
-    const wins = games.filter(game => game.winner_id === user.id).length;
-    const draw = games.filter(game => game.winner_id === 0).length;
+type Game = {
+    id: number;
+    winner_id?: number;
+    player1_id?: number;
+    player2_id?: number;
+};
+
+type User = {
+    id: number;
+    name: string;
+    picture?: string;
+    gold?: number;
+};
+
+export default function ProfileHeader({ user, games, setEditMode }: { user: User; games: Game[]; setEditMode: (editMode: boolean) => void }) {
+    const wins = games.filter((game: Game) => game.winner_id === user.id).length;
+    const draw = games.filter((game: Game) => game.winner_id === 0).length;
     const progress = (wins + (draw / 2)) % 10;
     const xp = (wins * 100) + draw * 50;
     const level = Math.floor((wins + (draw / 2)) / 10);

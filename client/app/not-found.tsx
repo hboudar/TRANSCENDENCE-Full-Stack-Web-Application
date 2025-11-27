@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Home, ArrowLeft, Search, Gamepad2 } from "lucide-react";
+import { ArrowLeft, Search, Gamepad2 } from "lucide-react";
 import { useUser } from "./Context/UserContext";
 import Loading from "./components/loading";
 
@@ -28,7 +28,7 @@ export default function NotFound() {
             y: 0,
             opacity: 1,
             transition: {
-                type: "spring",
+                type: "spring" as const,
                 stiffness: 100,
             },
         },
@@ -40,8 +40,7 @@ export default function NotFound() {
             rotate: [-5, 5, -5],
             transition: {
                 duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
+                repeat: Infinity as number,
             },
         },
     };
@@ -55,8 +54,7 @@ export default function NotFound() {
             ],
             transition: {
                 duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
+                repeat: Infinity as number,
             },
         },
     };
@@ -76,8 +74,7 @@ export default function NotFound() {
                     }}
                     transition={{
                         duration: 4,
-                        repeat: Infinity,
-                        ease: "easeInOut",
+                        repeat: Infinity as number,
                     }}
                 />
                 <motion.div
@@ -88,8 +85,7 @@ export default function NotFound() {
                     }}
                     transition={{
                         duration: 4,
-                        repeat: Infinity,
-                        ease: "easeInOut",
+                        repeat: Infinity as number,
                         delay: 1,
                     }}
                 />
@@ -101,8 +97,7 @@ export default function NotFound() {
                     }}
                     transition={{
                         duration: 8,
-                        repeat: Infinity,
-                        ease: "linear",
+                        repeat: Infinity as number,
                     }}
                 />
             </div>
@@ -139,8 +134,7 @@ export default function NotFound() {
                         }}
                         transition={{
                             duration: 5,
-                            repeat: Infinity,
-                            ease: "linear",
+                            repeat: Infinity as number,
                         }}
                     >
                         <Gamepad2 className="w-16 h-16 text-purple-400/40" />
@@ -154,8 +148,7 @@ export default function NotFound() {
                         }}
                         transition={{
                             duration: 6,
-                            repeat: Infinity,
-                            ease: "linear",
+                            repeat: Infinity as number,
                         }}
                     >
                         <Search className="w-12 h-12 text-blue-400/40" />
@@ -168,7 +161,7 @@ export default function NotFound() {
                         Page Not Found
                     </h2>
                     <p className="text-gray-400 text-lg md:text-xl max-w-md mx-auto">
-                        Looks like this page took a wrong turn in the game. Let's get you back on track!
+                        Looks like this page took a wrong turn in the game. Let&apos;s get you back on track!
                     </p>
                 </motion.div>
 

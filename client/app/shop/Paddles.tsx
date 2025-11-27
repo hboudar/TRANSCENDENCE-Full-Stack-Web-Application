@@ -16,7 +16,6 @@ type Props = {
 
 export default function Paddles({ currentUser }: Props) {
   const [items, setItems] = useState<Item[]>([]);
-  const [selected, setSelected] = useState<Item | null>(null);
 
   useEffect(() => {
     async function fetchPaddles() {
@@ -25,7 +24,6 @@ export default function Paddles({ currentUser }: Props) {
         if (!res.ok) throw new Error("Failed to fetch paddles");
         const data: Item[] = await res.json();
         setItems(data);
-        if (data.length > 0) setSelected(data[0]);
       } catch (err) {
         console.error(err);
       }

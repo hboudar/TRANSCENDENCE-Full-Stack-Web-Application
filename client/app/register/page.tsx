@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { User, Mail, Lock, EyeOff, EyeClosed } from 'lucide-react';
+import { User, Mail, Lock, EyeClosed } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SignUpForm() {

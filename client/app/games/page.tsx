@@ -3,11 +3,11 @@
 "use client";
 import { useState } from "react";
 import SkinContainer from "../components/SkinContainer";
-import { Homecontext } from "./layout";
+import { useHomeContext } from "./context";
 import GamesCard from "../components/gamescard";
 
 export default function Games() {
-	const { skins, selected, setselected } = Homecontext();
+	const { skins, selected, setselected } = useHomeContext();
 	const [GameType, setGameType] = useState<string>("localvsbot");
 	const [skinType, setSkinType] = useState<"table" | "ball" | "paddle">(
 		"table"

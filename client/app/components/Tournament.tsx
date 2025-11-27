@@ -424,7 +424,6 @@ export default function Tournament({
 	const [showWinnerAnimation, setShowWinnerAnimation] = useState(false);
 	const [tournamentWinner, setTournamentWinner] = useState<string>("");
 	const [isBlocked, setIsBlocked] = useState(false);
-	const [currentWindowId, setCurrentWindowId] = useState<string>("");
 
 	// Load from sessionStorage after mount to avoid hydration mismatch
 	useEffect(() => {
@@ -433,20 +432,17 @@ export default function Tournament({
 		const userId = user.id;
 		const savedFinals = localStorage.getItem(`tournament_finals_${userId}`);
 		const savedPlayers = localStorage.getItem(`tournament_players_${userId}`);
-		const savedStarted = localStorage.getItem(`tournament_started_${userId}`);
-		const savedTournamentId = localStorage.getItem(`tournament_id_${userId}`);
-		const savedWindowId = sessionStorage.getItem("currentWindowId");
+	const savedStarted = localStorage.getItem(`tournament_started_${userId}`);
+	const savedTournamentId = localStorage.getItem(`tournament_id_${userId}`);
+	const savedWindowId = sessionStorage.getItem("currentWindowId");
 
-		// Generate unique window ID if not exists
-		if (!savedWindowId) {
-			const newWindowId = crypto.randomUUID();
-			sessionStorage.setItem("currentWindowId", newWindowId);
-			setCurrentWindowId(newWindowId);
-		} else {
-			setCurrentWindowId(savedWindowId);
-		}
+	// Generate unique window ID if not exists
+	if (!savedWindowId) {
+		const newWindowId = crypto.randomUUID();
+		sessionStorage.setItem("currentWindowId", newWindowId);
+	}
 
-		const thisWindowId = sessionStorage.getItem("currentWindowId") || "";
+	const thisWindowId = sessionStorage.getItem("currentWindowId") || "";
 
 		// Check if there's an active tournament in another tab
 		if (savedTournamentId && savedTournamentId !== thisWindowId) {

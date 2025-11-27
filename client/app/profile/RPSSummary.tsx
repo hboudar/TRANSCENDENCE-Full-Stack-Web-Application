@@ -1,14 +1,28 @@
 "use client";
 import React from "react";
 import { motion } from "framer-motion";
-import { Scissors } from "lucide-react";
 
-type Props = {
-    user: any;
-    games: any[];
+type Game = {
+    id: number;
+    winner_id?: number;
+    player1_id?: number;
+    player2_id?: number;
 };
 
-export default function RPSSummary({ user, games }: Props) {
+type User = {
+    id?: number;
+    name?: string;
+    rps_wins?: number;
+    rps_losses?: number;
+    rps_draws?: number;
+};
+
+type Props = {
+    user: User | null;
+    games: Game[];
+};
+
+export default function RPSSummary({ user }: Props) {
     // Use database-backed stats from user object, fallback to calculating from games if not available
     const rpsWins = user?.rps_wins ?? 0;
     const rpsLosses = user?.rps_losses ?? 0;
@@ -63,7 +77,7 @@ export default function RPSSummary({ user, games }: Props) {
                             key={rpsWins}
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
                             className="text-xl font-extrabold text-green-300 mt-1"
                         >
                             {rpsWins}
@@ -76,7 +90,7 @@ export default function RPSSummary({ user, games }: Props) {
                             key={rpsLosses}
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
                             className="text-xl font-extrabold text-red-400 mt-1"
                         >
                             {rpsLosses}
@@ -89,7 +103,7 @@ export default function RPSSummary({ user, games }: Props) {
                             key={rpsDraws}
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
                             className="text-xl font-extrabold text-blue-300 mt-1"
                         >
                             {rpsDraws}

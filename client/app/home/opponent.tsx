@@ -4,7 +4,7 @@ import Loading from "../components/loading";
 import AvatarWithPresence from "../components/AvatarWithPresence";
 
 export default function OpponentInfo({ id }:
-  { id: string }
+  { id: number | string }
 
 ) {
   const [opponent, setOpponent] = useState(null);

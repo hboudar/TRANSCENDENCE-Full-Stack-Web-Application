@@ -10,7 +10,7 @@ interface gameStatsType {
     draws: number;
 }
 
-export default function rps(  ) {
+export default function Rps(  ) {
     const { user, loading } = useUser()
     
     // the data will be fetched from server

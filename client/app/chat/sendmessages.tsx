@@ -1,24 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import socket from "../socket";
 import { RiSendPlane2Fill } from "react-icons/ri";
-
-type Message = {
-  content: string;
-  sender_id: number;
-  receiver_id: number;
-  status: boolean;
-};
 
 export default function SendMessage({
   me,
   selected,
-  setMessages,
   isBlocked,
 }: {
   me: number;
   selected: number;
-  setMessages: (messages: Message[]) => void;
   isBlocked?: boolean;
 }) {
   const [message, setMessage] = useState("");
@@ -69,10 +61,10 @@ export default function SendMessage({
         <input
           type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
           placeholder={isBlocked ? "Cannot send messages" : "Type your message..."}
           className="w-full py-3 pl-5 pr-12 border-[#3800d2]  border-1 text-white placeholder-gray-400 rounded-full focus:outline-none focus:ring-0 focus:ring-blue-500 transition-all duration-200"
-          onKeyDown={(e) => {
+          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Enter" && !isBlocked) {
               e.preventDefault();
               sendMessage();

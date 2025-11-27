@@ -6,13 +6,21 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Loading from "@/app/components/loading";
-import { Homecontext } from "../layout";
+import { useHomeContext } from "../context";
 import { io, Socket } from "socket.io-client";
 import Tournament from "@/app/components/Tournament";
 import WinAnimation from "@/app/components/WinAnimation";
 import LoseAnimation from "@/app/components/LoseAnimation";
 import LocalGameWinAnimation from "@/app/components/LocalGameWinAnimation";
 import { Suspense } from "react";
+
+// Extend Window interface for game-specific properties
+declare global {
+	interface Window {
+		gameSocket?: Socket;
+		emitKey?: (key: string, action: "keydown" | "keyup") => void;
+	}
+}
 
 type SkinType = "table" | "paddle" | "ball";
 type Skin = {
@@ -59,7 +67,7 @@ type TournamentPlayers = {
 };
 
 function GameContent() {
-	const { user } = Homecontext();
+	const { user } = useHomeContext();
 	const [selected, setselected] = useState<Selected>({ types: [], type: 0 });
 	const router = useRouter();
 	const [Positions, setPositions] = useState<PositionsType>({});
@@ -149,7 +157,7 @@ function GameContent() {
 			isInitializing.current = true;
 
 			try {
-				let sessionid = crypto.randomUUID();
+				const sessionid = crypto.randomUUID();
 
 				const response = await fetch("/api/games/start", {
 					method: "POST",
@@ -303,10 +311,8 @@ function GameContent() {
 						}
 					}
 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(window as any).gameSocket = socket;
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(window as any).emitKey = emitKey;
+					window.gameSocket = socket;
+					window.emitKey = emitKey;
 
 					// Handle intentional navigation away (back button, route change)
 					const handleRouteChange = () => {
@@ -327,10 +333,8 @@ function GameContent() {
 						window.removeEventListener("popstate", handleRouteChange);
 						document.removeEventListener("keydown", handleKeyDown);
 						document.removeEventListener("keyup", handleKeyUp);
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						delete (window as any).gameSocket;
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						delete (window as any).emitKey;
+						delete window.gameSocket;
+						delete window.emitKey;
 						
 						// Cleanup on unmount
 						isInitializing.current = false;
@@ -632,16 +636,14 @@ function GameContent() {
 
 	// Button control handlers
 	const handleButtonPress = (key: string) => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const emitKey = (window as any).emitKey;
+		const emitKey = window.emitKey;
 		if (emitKey) {
 			emitKey(key, "keydown");
 		}
 	};
 
 	const handleButtonRelease = (key: string) => {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const emitKey = (window as any).emitKey;
+		const emitKey = window.emitKey;
 		if (emitKey) {
 			emitKey(key, "keyup");
 		}

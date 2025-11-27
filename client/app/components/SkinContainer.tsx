@@ -2,7 +2,7 @@
 
 "use client";
 import { useEffect } from "react";
-import { Homecontext } from "../games/layout";
+import { useHomeContext } from "../games/context";
 
 type SkinType = "table" | "paddle" | "ball";
 type Skin = {
@@ -32,9 +32,9 @@ export default function SkinContainer({
 }) {
 	// useEffect(()=>{
 	//     setSkins(data)
-	// const {skins} = Homecontext();
+	// const {skins} = useHomeContext();
 
-	const { user } = Homecontext();
+	const { user } = useHomeContext();
 	useEffect(() => {
 		async function fetchSkin() {
 			try {

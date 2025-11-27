@@ -103,16 +103,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     // Listen for expired game invitations
     const handleGameInviteExpired = (data: { senderId: number }) => {
       console.log("⏰ Game invite expired from sender:", data.senderId);
-      // Remove all game invites from that sender
-      setNotifications((prev) => 
-        prev.filter((n) => !(n.type === 'game_invite' && n.sender_id === data.senderId))
-      );
-      // Recalculate unread count
-      setUnreadCount((prev) => {
-        const expiredUnread = notifications.filter(
-          (n) => n.type === 'game_invite' && n.sender_id === data.senderId && !n.is_read
+      // Remove all game invites from that sender and update unread count
+      setNotifications((prev) => {
+        const expiredUnread = prev.filter(
+          (n: Notification) => n.type === 'game_invite' && n.sender_id === data.senderId && !n.is_read
         ).length;
-        return Math.max(0, prev - expiredUnread);
+        
+        setUnreadCount((current: number) => Math.max(0, current - expiredUnread));
+        
+        return prev.filter((n: Notification) => !(n.type === 'game_invite' && n.sender_id === data.senderId));
       });
     };
 
@@ -132,7 +131,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         socket.off("game_invite_expired", handleGameInviteExpired);
       }
     };
-  }, [user?.id, notifications]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   return (
     <NotificationContext.Provider

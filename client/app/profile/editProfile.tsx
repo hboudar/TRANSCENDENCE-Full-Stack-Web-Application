@@ -1,14 +1,27 @@
 import React, { useState } from "react"
 import { useUser } from "../Context/UserContext"
 import Cookies from 'js-cookie'
-import { Pencil, X, Globe, Upload, Lock, Eye, EyeOff } from "lucide-react"
+import { Pencil, X, Upload, Lock, Eye, EyeOff } from "lucide-react"
 import socket from "../socket"
 
-export default function EditProfile({ setEditMode, editMode, user }: any) {
+type User = {
+    id: number;
+    name: string;
+    picture?: string;
+    password?: string | null;
+    gold?: number;
+};
+
+type EditProfileProps = {
+    setEditMode: (mode: boolean) => void;
+    user: User;
+};
+
+export default function EditProfile({ setEditMode, user }: EditProfileProps) {
     // stores the new uploaded img, initially set to user.picture
     // which is the current picture supplied by server
-    const [previewPic , setPreviewPic ] = useState( user.picture )
-    const [uploadedImageUrl, setUploadedImageUrl] = useState(null) // Store uploaded image URL
+    const [previewPic , setPreviewPic ] = useState(user.picture)
+    const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null) // Store uploaded image URL
 
 
 
@@ -61,7 +74,7 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
     }
 
     const validatePassword = () => {
-        const errs: any = { name: '', currentPassword: '', newPassword: '', confirmPassword: '' }
+        const errs: { name: string; currentPassword: string; newPassword: string; confirmPassword: string } = { name: '', currentPassword: '', newPassword: '', confirmPassword: '' }
 
         // name validation
         if (!formData.name || formData.name.trim().length < 2) {
@@ -142,12 +155,10 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
                     console.warn('Could not set global user from editProfile:', e)
                 }
             } else if (result && result.user) {
-                try { setUser(result.user) } catch (e) { }
+                try { setUser(result.user) } catch { }
             } else {
-                // Fallback: update only name/picture locally in global user
-                try {
-                    setUser((prev: any) => ({ ...prev, name: updateData.name, picture: updateData.picture }))
-                } catch (e) { }
+                // Fallback: Server didn't return full user object, skip global update
+                console.log('Server response incomplete, skipping global user update')
             }
             // Update local preview so the modal shows the saved picture instantly
             setPreviewPic(updateData.picture)
@@ -158,7 +169,7 @@ export default function EditProfile({ setEditMode, editMode, user }: any) {
                     name: updateData.name,
                     picture: updateData.picture
                 })
-            } catch (e) {
+            } catch {
                 console.error('Failed to emit socket event', e)
             }
             // close modal after slight delay so user sees success message

@@ -1,6 +1,3 @@
-
-
-
 "use client"
 
 import { useEffect, useState } from "react";
@@ -10,9 +7,9 @@ import PingPongAchievements from "./cards";
 import GameHistory from "./gamehistory";
 import PingPongPerformanceChart from "./chart";
 import { Coins, Crown, Flame, Trophy, LucideIcon } from "lucide-react";
-import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from "react";
+import { Game } from "../types/game";
 
 // Type definition for tier levels
 type TierType = "gold" | "silver" | "bronze";
@@ -88,7 +85,7 @@ const AchievementCard = ({ icon: Icon, name, progress, total, completed = false,
 
 function HomeContent() {
     const { user, loading } = useUser();
-    const [games, setGames] = useState([]);
+    const [games, setGames] = useState<Game[]>([]);
     const searchParams = useSearchParams();    // Type assertion for user to access properties safely
     const typedUser = user as { id: number; username?: string; email?: string } | null;
 
@@ -153,14 +150,22 @@ function HomeContent() {
         );
     }
 
-    const gameCount = games.length;
-    const totalGold = (user as any)?.gold ?? 0;
+    const totalGold = (user as { gold?: number })?.gold ?? 0;
+    
+    // Calculate wins for First Victory achievement
+    const winCount = (() => {
+        if (!(user as { id?: number })?.id) return 0;
+        const wins = games.filter(game => game?.winner_id === (user as { id?: number })?.id).length;
+        // Cap at 1 for First Victory achievement (don't exceed 1/1)
+        return Math.min(wins, 1);
+    })();
+    
     const streak = (() => {
         // If we don't have a user yet, there's no streak to compute
-        if (!(user as any)?.id) return 0;
+        if (!(user as { id?: number })?.id) return 0;
         let maxStreak = 0, current = 0;
         for (let i = 0; i < games.length; i++) {
-            if ((games[i] as any)?.winner_id === (user as any).id) current++;
+            if (games[i]?.winner_id === (user as { id?: number })?.id) current++;
             else {
                 maxStreak = Math.max(maxStreak, current);
                 current = 0;
@@ -185,10 +190,10 @@ function HomeContent() {
                         <h2 className="text-lg font-bold text-white">Achievements</h2>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <AchievementCard icon={Trophy} name="First Victory" progress={gameCount} total={1} completed={gameCount > 0} />
+                        <AchievementCard icon={Trophy} name="First Victory" progress={winCount} total={1} completed={winCount >= 1} />
                         <AchievementCard icon={Flame} name="Streak Master" progress={streak} total={10} completed={streak >= 10} />
                         <AchievementCard icon={Coins} name="Gold Master" progress={totalGold} total={1000} completed={totalGold >= 1000} />
-                        <AchievementCard icon={Crown} name="Champion" progress={0} total={0} completed={user?.tounaments_won == 1} tier={`${user?.tounaments_won == 1 ? "gold" : "bronze"}` as TierType} />
+                        <AchievementCard icon={Crown} name="Champion" progress={0} total={0} completed={(user as { tounaments_won?: number })?.tounaments_won == 1} tier={`${(user as { tounaments_won?: number })?.tounaments_won == 1 ? "gold" : "bronze"}` as TierType} />
                     </div>
                 </div>
                 <GameHistory user={user} games={games} />

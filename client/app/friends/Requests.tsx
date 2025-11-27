@@ -12,7 +12,10 @@ type UserType = {
   picture?: string;
 };
 
-export default function Requests({ onClose, onFriendAccepted }) {
+export default function Requests({ onClose, onFriendAccepted }: {
+  onClose: () => void;
+  onFriendAccepted?: () => void;
+}) {
   const [requests, setRequests] = useState<UserType[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const { user, loading } = useUser();

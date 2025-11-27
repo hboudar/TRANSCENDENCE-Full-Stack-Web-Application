@@ -7,10 +7,16 @@ import Loading from "../components/loading";
 import { useUser } from "../Context/UserContext";
 import socket from "@/app/socket";
 
+type Friend = {
+  id: number;
+  name: string;
+  picture?: string;
+  gold?: number;
+};
+
 const LeaderboardSection = () => {
   const { user, loading } = useUser();
-  const [friends, setFriends] = useState([]);
-  const [refreshToggle, setRefreshToggle] = useState(false);
+  const [friends, setFriends] = useState<Friend[]>([]);
 
   const fetchFriends = useCallback(async () => {
     if (!user) return;
@@ -46,7 +52,7 @@ const LeaderboardSection = () => {
 
   return (
     <div className="w-full max-w-[100rem] p-2 relative flex flex-col h-screen max-h-screen">
-      <BottomButtons onRefreshFriends={() => setRefreshToggle((prev) => !prev)} />
+      <BottomButtons onRefreshFriends={fetchFriends} />
 
       {friends.length === 0 ? (
         <div className="flex-1 flex items-center justify-center">

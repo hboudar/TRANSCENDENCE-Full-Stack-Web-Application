@@ -2,14 +2,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  
-  typescript: {
-    // !! WARNING !! This will ignore TS errors in production builds
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true, // ignore ESLint errors
-  },
   reactStrictMode: true,
   images: {
     remotePatterns: [

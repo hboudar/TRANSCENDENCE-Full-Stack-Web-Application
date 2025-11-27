@@ -126,7 +126,7 @@ export default async function googleAuth(fastify, opts) {
 
             db.run(
               'INSERT INTO users (name, email, picture, password, gold) VALUES (?, ?, ?, ?, ?)',
-              [name, email, picture, null, 1000],  // password is null (OAuth user), give 1000 gold
+              [name, email, picture, null, 100],  // password is null (OAuth user), give 100 gold
               function (err) {
                 if (err) {
                   console.error('Insert error:', err);

@@ -6,7 +6,7 @@ import Requests from "./Requests";
 import { useUser } from "../Context/UserContext";
 import socket from "@/app/socket";
 
-export default function BottomButtons({ onRefreshFriends }) {
+export default function BottomButtons({ onRefreshFriends }: { onRefreshFriends: () => void }) {
   const [showAddFriends, setShowAddFriends] = useState(false);
   const [showRequests, setShowRequests] = useState(false);
   const [pendingRequests, setPendingRequests] = useState(0);

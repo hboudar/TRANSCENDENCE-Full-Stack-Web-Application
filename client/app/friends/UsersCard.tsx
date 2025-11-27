@@ -2,8 +2,19 @@
 
 import UserInfo from "./UserInfo";
 import { useUser } from "../Context/UserContext";
+import type { Dispatch, SetStateAction } from "react";
 
-export default function UsersCard({ friends, setUsers }) {
+type Friend = {
+  id: number;
+  name: string;
+  picture?: string;
+  gold?: number;
+};
+
+export default function UsersCard({ friends, setUsers }: {
+  friends: Friend[];
+  setUsers: Dispatch<SetStateAction<Friend[]>>;
+}) {
   const { user: currentUser } = useUser();
 
   return (

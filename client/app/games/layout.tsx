@@ -1,8 +1,9 @@
 /** @format */
 
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useUser } from "../Context/UserContext";
+import { HomeContext } from "./context";
 
 type SkinType = "table" | "paddle" | "ball";
 type Skin = {
@@ -25,15 +26,6 @@ type MinimalUser = {
 	picture?: string;
 } | null;
 
-type HomeContextType = {
-	skins: Skin[];
-	user: MinimalUser;
-	selected: Selected;
-	setSkins: React.Dispatch<React.SetStateAction<Skin[]>>;
-	setselected: React.Dispatch<React.SetStateAction<Selected>>;
-};
-
-const HomeContext = createContext<HomeContextType | undefined>(undefined);
 export default function Games({
 	children,
 }: Readonly<{
@@ -69,11 +61,4 @@ export default function Games({
 			{children}
 		</HomeContext.Provider>
 	);
-}
-export function Homecontext(): HomeContextType {
-	const context = useContext(HomeContext);
-	if (!context) {
-		throw new Error("Homecontext must be used within Games layout");
-	}
-	return context;
 }

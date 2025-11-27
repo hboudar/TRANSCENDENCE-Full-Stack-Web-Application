@@ -1,4 +1,3 @@
-import { FaUserPlus } from 'react-icons/fa';
 import AvatarWithPresence from './AvatarWithPresence';
 
 export default function NavSearch({ searchResults, me, value, setValue }: {

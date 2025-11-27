@@ -1,8 +1,18 @@
 "use client";
 import { useEffect, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import socket from '../socket'; // Make sure this is your initialized socket.io-client
 import SendMessage from './sendmessages';
 import FetchMessages from './fetchmessages';
+
+type Message = {
+    id?: number;
+    content: string;
+    sender_id: number;
+    receiver_id: number;
+    status: boolean;
+    created_at?: string;
+};
 
 export default function Room({
     selected,
@@ -14,8 +24,8 @@ export default function Room({
 }: {
     selected: number;
     me: number;
-    messages: any[];
-    setMessages: React.Dispatch<React.SetStateAction<any[]>>;
+    messages: Message[];
+    setMessages: Dispatch<SetStateAction<Message[]>>;
     isBlocked?: boolean;
     blockMessage?: string;
 }) {
@@ -26,7 +36,7 @@ export default function Room({
         // Join personal room for this user
         socket.emit("join", me); // This ensures the user is in their own room
 
-        const handleIncomingMessage = (msg: any) => {
+        const handleIncomingMessage = (msg: Message) => {
             // Only refresh messages if it's relevant
             if (
                 (msg.sender_id === selected && msg.receiver_id === me) ||
@@ -34,11 +44,11 @@ export default function Room({
             ) {
                 console.log("📥 Received live message:", msg);
                 // insert the new message at the end of the messages array
-                setMessages((prevMessages: any) => [...prevMessages, msg]);
+                setMessages((prevMessages: Message[]) => [...prevMessages, msg]);
             }
         };
 
-        const handleMessageBlocked = (data: any) => {
+        const handleMessageBlocked = (data: { message: string }) => {
             console.log("🚫 Message blocked:", data);
             setErrorMessage(data.message);
             setTimeout(() => setErrorMessage(""), 3000);
@@ -69,7 +79,7 @@ export default function Room({
             ) : (
                 <FetchMessages selected={selected} me={me} messages={messages} setMessages={setMessages} />
             )}
-            <SendMessage me={me} selected={selected} setMessages={setMessages} isBlocked={isBlocked} />
+            <SendMessage me={me} selected={selected} isBlocked={isBlocked} />
         </div>
     );
 }

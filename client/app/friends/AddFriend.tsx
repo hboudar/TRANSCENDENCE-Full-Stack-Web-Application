@@ -72,7 +72,7 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
     const fetchUsers = async () => {
       try {
         const res = await fetch("/api/users");
-        const data: UserType[] = await res.json();
+        const data = await res.json() as UserType[];
         if (isMounted) setUsers(data);
       } catch (err) {
         console.error(err);
@@ -87,7 +87,7 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
           `/api/friends/request?userId=${user.id}`
         );
         const data = await res.json();
-        setRequestedIds(data.data.map((r) => r.friend_id));
+        setRequestedIds(data.data.map((r: { friend_id: number }) => r.friend_id));
       } catch (err) {
         console.error(err);
       }
@@ -99,7 +99,7 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
           `/api/friends/myrequests?userId=${user.id}`
         );
         const data = await res.json();
-        setIncomingRequestIds(data.data.map((r) => r.user_id));
+        setIncomingRequestIds(data.data.map((r: { user_id: number }) => r.user_id));
       } catch (err) {
         console.error(err);
       }
@@ -111,7 +111,7 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
           `/api/friends/accepted?userId=${user.id}`
         );
         const data = await res.json();
-        setFriendsIds(data.data.map((f) => f.id));
+        setFriendsIds(data.data.map((f: { id: number }) => f.id));
       } catch (err) {
         console.error(err);
       }
@@ -171,7 +171,7 @@ const AddFriend = ({ onClose }: { onClose: () => void }) => {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
           placeholder="Search users..."
           className="w-full mb-4 px-3 py-2 rounded-xl bg-gray-800 text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-purple-600"
         />

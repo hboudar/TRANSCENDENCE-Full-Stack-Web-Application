@@ -1,5 +1,5 @@
 'use client';
-import React, { Suspense, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Leftheader from "./leftheader";
 import Topheader from "./topheader";

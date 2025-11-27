@@ -3,7 +3,6 @@
 import { GoHomeFill } from "react-icons/go";
 import { IoChatbubbleSharp, IoGameController } from "react-icons/io5";
 import { FaShoppingCart } from "react-icons/fa";
-import { IoMdSettings } from "react-icons/io";
 import { IoLogOut } from "react-icons/io5";
 // game icon
 import Link from "next/link";

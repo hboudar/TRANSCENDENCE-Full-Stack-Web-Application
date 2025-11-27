@@ -19,12 +19,21 @@ type User = {
     // add other properties as needed
 };
 
+type Message = {
+    id?: number;
+    content: string;
+    sender_id: number;
+    receiver_id: number;
+    status: boolean;
+    created_at?: string;
+};
+
 export default function Chat() {
     const rout = useRouter();
     const [users, setUsers] = useState<User[]>([]);
     const [selected, setSelected] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
-    const [messages, setMessages] = useState<any[]>([]); // Initialize messages as an empty array
+    const [messages, setMessages] = useState<Message[]>([]); // Initialize messages as an empty array
     const [isBlocked, setIsBlocked] = useState(false);
     const [isBlocker, setIsBlocker] = useState(false);
     const [blockLoading, setBlockLoading] = useState(false);
@@ -57,7 +66,7 @@ export default function Chat() {
 
     // Listen for real-time block/unblock events globally
     useEffect(() => {
-        const handleUserBlocked = (data: any) => {
+        const handleUserBlocked = (data: { blocker_id: number; blocked_id: number }) => {
             console.log('Block event received:', data);
             if ((data.blocker_id === selected && data.blocked_id === user?.id) ||
                 (data.blocker_id === user?.id && data.blocked_id === selected)) {
@@ -65,7 +74,7 @@ export default function Chat() {
             }
         };
 
-        const handleUserUnblocked = (data: any) => {
+        const handleUserUnblocked = (data: { blocker_id: number; blocked_id: number }) => {
             console.log('Unblock event received:', data);
             if ((data.blocker_id === selected && data.blocked_id === user?.id) ||
                 (data.blocker_id === user?.id && data.blocked_id === selected)) {
@@ -181,7 +190,7 @@ export default function Chat() {
     const handleSendGameInvite = () => {
         if (!socket) return;
 
-        const recipient = users.find(user => user.id === selected);
+        const recipient = users.find((u: User) => u.id === selected);
         if (!recipient) return;
         // Set flag to indicate this is an intentional private game creation
         sessionStorage.setItem('creatingPrivateGame', 'true');
@@ -195,7 +204,7 @@ export default function Chat() {
         });
 
         // Listen for confirmation
-        socket.once("game_invite_sent", (data) => {
+        socket.once("game_invite_sent", (data: { success: boolean }) => {
             if (data.success) {
                 alert(`Game invite sent to ${recipient.name}! 🎮`);
             }
@@ -215,7 +224,6 @@ export default function Chat() {
                     setSelected={setSelected}
                     isMobile={isMobile}
                     me={me}
-                    messages={messages}
                 />
             )}
             {showChat && (
@@ -242,9 +250,9 @@ export default function Chat() {
                                         }}
                                         className="flex items-center gap-4"
                                     >
-                                        <AvatarWithPresence userId={selected} src={users.find(user => user.id === selected)?.picture || "/profile.png"} sizeClass="w-12 h-12" imgClass="rounded-full shadow-md border border-gray-300" />
+                                        <AvatarWithPresence userId={selected} src={users.find((u: User) => u.id === selected)?.picture || "/profile.png"} sizeClass="w-12 h-12" imgClass="rounded-full shadow-md border border-gray-300" />
                                         <h2 className="text-xl font-semibold">
-                                            {users.find(user => user.id === selected)?.name}
+                                            {users.find((u: User) => u.id === selected)?.name}
                                         </h2>
                                     </button>
                                     <div className="flex items-center gap-2">

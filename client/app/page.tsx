@@ -22,7 +22,7 @@ export default function LandingPage() {
       y: 0,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 10,
       },
@@ -35,7 +35,7 @@ export default function LandingPage() {
       scale: 1,
       opacity: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         stiffness: 100,
         damping: 10,
         delay: 1.2, // Delay button animation
@@ -118,7 +118,7 @@ export default function LandingPage() {
             <motion.div
               className="bg-[#352c523d] p-5 rounded-xl shadow-lg border border-[#7b5ddf44] backdrop-blur-sm"
               whileHover={{ translateY: -5, boxShadow: "0 0 20px #7b5ddf99" }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ type: "spring" as const, stiffness: 300 }}
             >
               <h4 className="text-lg font-semibold mb-2">Solo Play</h4>
               <p className="text-gray-300 text-sm">Hone your skills against advanced AI opponents.</p>
@@ -126,7 +126,7 @@ export default function LandingPage() {
             <motion.div
               className="bg-[#352c523d] p-5 rounded-xl shadow-lg border border-[#7b5ddf44] backdrop-blur-sm"
               whileHover={{ translateY: -5, boxShadow: "0 0 20px #7b5ddf99" }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ type: "spring" as const, stiffness: 300 }}
             >
               <h4 className="text-lg font-semibold mb-2">Multiplayer</h4>
               <p className="text-gray-300 text-sm">Challenge friends or random players online.</p>
@@ -134,7 +134,7 @@ export default function LandingPage() {
             <motion.div
               className="bg-[#352c523d] p-5 rounded-xl shadow-lg border border-[#7b5ddf44] backdrop-blur-sm"
               whileHover={{ translateY: -5, boxShadow: "0 0 20px #7b5ddf99" }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ type: "spring" as const, stiffness: 300 }}
             >
               <h4 className="text-lg font-semibold mb-2">Tournaments</h4>
               <p className="text-gray-300 text-sm">Compete in thrilling tournaments for glory.</p>
