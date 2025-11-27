@@ -1,6 +1,5 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import Cookies from "js-cookie";
 import socket from "../socket";
 
 // User interface with proper typing
@@ -36,43 +35,34 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        // Get token from cookies
-        const token = Cookies.get("token");
+        console.log('🔍 UserContext: Fetching user data from /api/me');
         
-        if (!token) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        // Verify token with backend /me endpoint
+        // Verify token with backend /me endpoint (token is in httpOnly cookie)
         const res = await fetch("/api/me", {
-          headers: { Authorization: `Bearer ${token}` },
-          credentials: 'include',
+          credentials: 'include',  // Automatically sends httpOnly cookie
         });
         
+        console.log('📡 UserContext: Response status:', res.status);
+        
         if (!res.ok) {
-          // Remove invalid/expired/orphaned tokens
-          // 401 = token invalid/expired, 404 = user deleted from database
-          if (res.status === 401 || res.status === 404) {
-            Cookies.remove("token");
-            setUser(null);
-          }
+          console.warn('⚠️ UserContext: Failed to fetch user, status:', res.status);
+          setUser(null);
           setLoading(false);
           return;
         }
         
         // Token valid - save user data
         const data = await res.json();
+        console.log('✅ UserContext: User data fetched successfully:', data);
         setUser(data);
         
         // Join socket room for real-time chat/notifications
         if (data?.id && socket) {
+          console.log('🔌 UserContext: Joining socket room for user:', data.id);
           socket.emit("join", data.id);
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
-        Cookies.remove("token");
+        console.error("❌ UserContext: Error fetching user:", error);
         setUser(null);
       } finally {
         setLoading(false);

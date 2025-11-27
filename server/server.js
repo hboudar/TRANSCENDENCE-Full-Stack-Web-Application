@@ -246,6 +246,9 @@ fastify.register(friendsRoute, { db, io });
 const blockRoute = (await import('./routes/blockroute.js')).default;
 fastify.register(blockRoute, { db });
 
+const uploadRoute = (await import('./routes/uploadroute.js')).default;
+fastify.register(uploadRoute, { db, io });
+
 
 ///////////////////////////////////////////// devops /////////////////////////////////////////////
 // --- Prometheus Metrics Setup ---

@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useUser } from '../Context/UserContext'
-import Cookies from 'js-cookie'
 import { io, Socket } from 'socket.io-client'
 
 interface gameStatsType {
@@ -38,9 +37,7 @@ export default function Rps(  ) {
         if (user?.id) {
             try {
                 const res = await fetch('/api/me', {
-                    headers: {
-                        Authorization: `Bearer ${Cookies.get('token')}`,
-                    },
+                    credentials: 'include',
                 })
                 const data = await res.json()
                 if (data.rps_wins !== undefined) {

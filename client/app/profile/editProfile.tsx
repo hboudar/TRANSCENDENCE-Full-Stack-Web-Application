@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { useUser } from "../Context/UserContext"
-import Cookies from 'js-cookie'
 import { Pencil, X, Upload, Lock, Eye, EyeOff } from "lucide-react"
 import socket from "../socket"
 
@@ -132,8 +131,8 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${Cookies.get('token')}`
                 },
+                credentials: 'include',
                 body: JSON.stringify(updateData),
             })
 

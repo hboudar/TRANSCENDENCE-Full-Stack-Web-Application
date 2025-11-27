@@ -100,8 +100,10 @@ export default async function googleAuth(fastify, opts) {
           if (user) {
 
             // User Already Exists - Update & Login
-            // Update profile picture if it changed on Google
-            if (picture && user.picture !== picture) {
+            // Only update picture if user hasn't uploaded a custom one
+            // (custom pictures don't start with https://lh3.googleusercontent.com)
+            const isGooglePicture = user.picture && user.picture.startsWith('https://lh3.googleusercontent.com');
+            if (picture && isGooglePicture && user.picture !== picture) {
               db.run('UPDATE users SET picture = ? WHERE id = ?', [picture, user.id]);
             }
 
@@ -111,10 +113,10 @@ export default async function googleAuth(fastify, opts) {
             // Set token as HTTP cookie (more secure - not in URL)
             reply.setCookie('token', token, {
               path: '/',
-              maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
-              httpOnly: false, // Allow client-side access for now
-              sameSite: 'lax', // CSRF protection
-              secure: false // Set to true in production with HTTPS
+              maxAge: 7 * 24 * 60 * 60,
+              httpOnly: true,
+              secure: false,  // nginx handles HTTPS, backend is HTTP
+              sameSite: 'lax',
             });
 
             // Redirect to home page (token already in cookie)
@@ -140,10 +142,10 @@ export default async function googleAuth(fastify, opts) {
                 // Set token as HTTP cookie (more secure - not in URL)
                 reply.setCookie('token', token, {
                   path: '/',
-                  maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
-                  httpOnly: false, // Allow client-side access for now
-                  sameSite: 'lax', // CSRF protection
-                  secure: false // Set to true in production with HTTPS
+                  maxAge: 7 * 24 * 60 * 60,
+                  httpOnly: true, // must be true for auth
+                  secure: false,  // nginx handles HTTPS, backend is HTTP
+                  sameSite: 'lax', // prevents accidental removal
                 });
 
                 // Add default skins for new player

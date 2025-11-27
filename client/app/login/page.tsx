@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Mail, Lock } from "lucide-react";
 import Link from "next/link";
-import Cookies from 'js-cookie';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from "react";
 
@@ -47,12 +46,6 @@ function LoginContent() {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                Cookies.set("token", data.token, {
-                    expires: 7,
-                    secure: false, // Set to false for localhost (use true in production with HTTPS)
-                    sameSite: "lax",
-                });
                 window.location.href = "/home"; // Redirect to chat page
 
             } else {
