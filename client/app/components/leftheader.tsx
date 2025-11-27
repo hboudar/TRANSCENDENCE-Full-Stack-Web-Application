@@ -7,7 +7,6 @@ import { IoLogOut } from "react-icons/io5";
 // game icon
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Cookie from "js-cookie";
 
 export default function Leftheader() {
     const pathname = usePathname();
@@ -61,9 +60,17 @@ export default function Leftheader() {
             {/* Logout */}
             <button
                 className="flex flex-col items-center text-gray-400 hover:text-red-500 transition duration-300 group mt-8"
-                onClick={() => {
-                    Cookie.remove("token");
-                    window.location.href = "/login";
+                onClick={async () => {
+                    try {
+                        await fetch("/api/logout", {
+                            method: "POST",
+                            credentials: "include",
+                        });
+                    } catch (error) {
+                        console.error("Logout error:", error);
+                    } finally {
+                        window.location.href = "/login";
+                    }
                 }}
             >
                 <div className="group-hover:bg-red-500/10 p-2 rounded-full">

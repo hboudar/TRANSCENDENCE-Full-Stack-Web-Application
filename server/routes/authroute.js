@@ -3,7 +3,9 @@ import bcrypt from 'bcryptjs';
 
 // Use same JWT secret as Google OAuth (IMPORTANT: must match!)
 const SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
-
+const {           // Where Google sends users back to
+    CLIENT_URL               // Our frontend URL
+} = process.env;
 // Helper function to create JWT token for a user (valid for 7 days)
 function sign(id) {
     return jwt.sign({ userId: id }, SECRET, { expiresIn: '7d' });
@@ -59,16 +61,16 @@ export default async function authRoutes(fastify, opts) {
                     // Password correct - generate JWT token (valid for 7 days)
                     const token = sign(row.id.toString());
 
-                    // Send token and user data back to client
-                    reply.send({
-                        success: true,
-                        token,
-                        user: {
-                            id: row.id,
-                            name: row.name,
-                            picture: row.picture
-                        },
+                    reply.setCookie('token', token, {
+                        path: '/',
+                        maxAge: 7 * 24 * 60 * 60,
+                        httpOnly: true,
+                        secure: false,  // nginx handles HTTPS, backend is HTTP
+                        sameSite: 'lax',
                     });
+
+                    // Send token and user data back to client
+                    reply.redirect(`${CLIENT_URL}/home`);
                     resolve(row);
                 }
                 else {
@@ -128,6 +130,21 @@ export default async function authRoutes(fastify, opts) {
             console.error('JWT verification error:', err);
             reply.status(401).send({ error: 'Unauthorized' });
         }
+    });
+
+    // Logout Endpoint
+    // Clears the authentication cookie from the backend
+    fastify.post('/logout', async (request, reply) => {
+        // Clear the token cookie by setting it with an expired maxAge
+        reply.setCookie('token', '', {
+            path: '/',
+            maxAge: 0,
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+        });
+
+        reply.send({ success: true, message: 'Logged out successfully' });
     });
 
     // User Registration Endpoint

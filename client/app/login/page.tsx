@@ -39,6 +39,7 @@ function LoginContent() {
         try {
             const response = await fetch("/api/login", {
                 method: "POST",
+                credentials: 'include', // Include httpOnly cookies
                 headers: {
                     "Content-Type": "application/json",
                 },

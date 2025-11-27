@@ -28,6 +28,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // // If user has token and tries to access login/register → redirect to home
+  // if (token && (pathname === "/login" || pathname === "/register")) {
+  //   const url = request.nextUrl.clone();
+  //   url.pathname = "/home";
+  //   return NextResponse.redirect(url);
+  // }
+
   // Token exists or route not protected → allow access
   return NextResponse.next();
 }
