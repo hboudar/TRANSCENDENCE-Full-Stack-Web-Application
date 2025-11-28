@@ -69,8 +69,17 @@ export default async function authRoutes(fastify, opts) {
                         sameSite: 'lax',
                     });
 
-                    // Send token and user data back to client
-                    reply.redirect(`${CLIENT_URL}/home`);
+                    // Send success response (frontend will handle redirect)
+                    reply.send({ 
+                        success: true,
+                        message: 'Login successful',
+                        user: {
+                            id: row.id,
+                            name: row.name,
+                            email: row.email,
+                            picture: row.picture
+                        }
+                    });
                     resolve(row);
                 }
                 else {

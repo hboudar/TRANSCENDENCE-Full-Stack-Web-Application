@@ -5,3 +5,7 @@ client/node_modules
 server/*.db
 server/.envserver
 server/.env
+sqlite.db
+.env
+client/.next
+client/.envlocal

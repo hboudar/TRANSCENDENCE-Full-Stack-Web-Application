@@ -9,7 +9,7 @@ COPY client/next.config.ts ./
 COPY client/tsconfig.json ./
 COPY client/postcss.config.mjs ./
 COPY client/eslint.config.mjs ./
-# COPY client/middleware.ts ./
+COPY client/middleware.ts ./
 # COPY client/next-env.d.ts ./
 
 # Install dev dependencies for build
