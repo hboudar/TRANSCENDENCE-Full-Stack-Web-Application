@@ -2,6 +2,7 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
+import rateLimit from '@fastify/rate-limit';
 import sqlite3 from 'sqlite3';
 import { Server } from 'socket.io';
 import { sockethandler } from './socket.js';
@@ -44,10 +45,17 @@ fastify.addHook("onResponse", (req, reply, done) => {
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 await fastify.register(cors, {
-	origin: 'https://localhost',
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+});
+
+await fastify.register(rateLimit, {
+  max: 100,              // 100 requests per IP
+  timeWindow: '1 minute', // per minute
+  ban: 2,                // ban for 2 minutes if limit exceeded
+  cache: 10000,          // cache 10000 IPs
+  skipOnError: true      // don't block on error
 });
 
 await fastify.register(cookie);

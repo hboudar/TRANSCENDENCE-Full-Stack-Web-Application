@@ -6,7 +6,6 @@ services:
     container_name: client
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
     networks:
       - transcendence
     restart: unless-stopped
@@ -22,11 +21,6 @@ services:
     container_name: server
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - REDIRECT_URI=${REDIRECT_URI}
-      - CLIENT_URL=${CLIENT_URL}
     networks:
       - transcendence
     restart: unless-stopped
