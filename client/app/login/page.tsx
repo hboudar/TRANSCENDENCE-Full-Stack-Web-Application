@@ -140,13 +140,6 @@ function LoginContent() {
                         Sign in with Google
                     </button>
 
-                    <button
-                        type="button"
-                        className="w-full bg-black hover:bg-gray-900 text-white font-medium py-3 sm:py-3.5 rounded-xl transition-all duration-300 text-sm sm:text-base"
-                    >
-                        Sign in with 42
-                    </button>
-
                     <p className="text-center text-gray-300 text-xs sm:text-sm mt-4 sm:mt-6">
                         Don&apos;t have an account?{" "}
                         <Link

@@ -234,7 +234,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                 <div className="flex flex-col items-center gap-4">
                     <div className="relative">
                         <img
-                            src={previewPic}
+                            src={previewPic || '/profile.png'}
                             alt="Profile"
                             className="w-24 h-24 rounded-full object-cover border-4 border-gradient-to-r from-purple-500 to-blue-500 shadow-xl ring-4 ring-purple-500/20"
                         />
