@@ -102,7 +102,7 @@ export default function Topheader() {
   return (
     <div className="flex w-full justify-between items-center p-4 shadow-md rounded-lg">
 
-      <div className="relative px-0  w-[50%] ml-10 md:ml-0 lg:ml-0  border-b border-[#9b9b9b]">
+      <div className="relative px-0  w-[50%] ml-10 md:ml-0 lg:ml-0  border-b border-[#9b9b9b] z-[9999]">
         <CiSearch
           size={20}
           className="absolute top-1/2 -translate-y-1/2 text-[#9b9b9b] pointer-events-none"
@@ -121,7 +121,7 @@ export default function Topheader() {
           (searchResults.length > 0 ? (
             <NavSearch searchResults={searchResults} me={user.id} value={value} setValue={setValue} />
           ) :
-            <div className="absolute top-full left-0 w-full bg-[#1a1a1a] rounded-lg shadow-lg mt-2">
+            <div className="absolute top-full left-0 w-full bg-[#1a1a1a] rounded-lg shadow-lg mt-2 z-[9999]">
               <p className="p-4 text-gray-500">No results found</p>
             </div>
           )}

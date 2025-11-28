@@ -2,11 +2,17 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 import fastifyMultipart from '@fastify/multipart';
+import jwt from 'jsonwebtoken';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const SECRET = process.env.JWT_SECRET;
+
 export default async function uploadRoute(fastify, opts) {
+    const db = opts.db;
+    const io = opts.io;
+
     // Register multipart plugin to handle file uploads
     await fastify.register(fastifyMultipart, {
         limits: {
@@ -17,6 +23,22 @@ export default async function uploadRoute(fastify, opts) {
     fastify.post('/upload', async (request, reply) => {
         try {
             console.log('📤 Upload request received');
+
+            // Authenticate user from cookie
+            const token = request.cookies?.token;
+            if (!token) {
+                console.error('❌ No authentication token');
+                return reply.status(401).send({ error: 'Unauthorized' });
+            }
+
+            let userId;
+            try {
+                const decoded = jwt.verify(token, SECRET);
+                userId = decoded.userId || decoded.id;
+            } catch (err) {
+                console.error('❌ Invalid token:', err);
+                return reply.status(401).send({ error: 'Unauthorized' });
+            }
 
             // Get the uploaded file
             const data = await request.file();
@@ -32,6 +54,11 @@ export default async function uploadRoute(fastify, opts) {
                 encoding: data.encoding
             });
 
+            // Validate file type (images only)
+            if (!data.mimetype.startsWith('image/')) {
+                return reply.status(400).send({ error: 'Only image files are allowed' });
+            }
+
             // Read file buffer
             const buffer = await data.toBuffer();
 
@@ -39,8 +66,8 @@ export default async function uploadRoute(fastify, opts) {
             const ext = data.filename.split('.').pop();
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
 
-            // Define upload directory path (relative to project root)
-            const uploadDir = path.join(process.cwd(), '../', 'client', 'public', 'uploads');
+            // Use the shared uploads volume mounted at /usr/src/app/uploads
+            const uploadDir = path.join(process.cwd(), 'uploads');
             
             // Create uploads directory if it doesn't exist
             try {
@@ -50,15 +77,46 @@ export default async function uploadRoute(fastify, opts) {
                 await fs.mkdir(uploadDir, { recursive: true });
             }
 
-            // Save file
+            // Save file to shared volume
             const filePath = path.join(uploadDir, fileName);
             await fs.writeFile(filePath, buffer);
 
-            console.log('✅ File saved successfully:', fileName);
+            console.log('✅ File saved successfully to shared volume:', fileName);
 
-            // Return public URL
+            // Update user's picture in database
             const fileUrl = `/uploads/${fileName}`;
-            return reply.send({ url: fileUrl });
+            
+            return new Promise((resolve, reject) => {
+                db.run(
+                    `UPDATE users SET picture = ? WHERE id = ?`,
+                    [fileUrl, userId],
+                    function(err) {
+                        if (err) {
+                            console.error('❌ Database update error:', err);
+                            reply.status(500).send({ error: 'Failed to update profile picture' });
+                            return reject(err);
+                        }
+
+                        console.log('✅ Database updated for user:', userId);
+
+                        // Broadcast profile update via Socket.IO
+                        if (io) {
+                            io.emit('profileUpdated', {
+                                userId: userId,
+                                picture: fileUrl
+                            });
+                            console.log('📡 Profile update broadcasted');
+                        }
+
+                        reply.send({ 
+                            success: true,
+                            url: fileUrl,
+                            message: 'Profile picture updated successfully'
+                        });
+                        resolve();
+                    }
+                );
+            });
 
         } catch (error) {
             console.error('❌ Upload error:', error);

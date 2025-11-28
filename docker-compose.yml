@@ -11,6 +11,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"   # Nginx proxies internally
+    volumes:
+      - uploads_data:/app/public/uploads   # Shared uploads volume
 
   server:
     build:
@@ -26,6 +28,7 @@ services:
       - "4000:4000"
     volumes:
       - server_logs:/var/log/transcendence   # logs only
+      - uploads_data:/usr/src/app/uploads    # Shared uploads volume
 
   nginx:
     build:
@@ -40,6 +43,8 @@ services:
     networks:
       - transcendence
     restart: unless-stopped
+    volumes:
+      - uploads_data:/usr/share/nginx/uploads   # Shared uploads volume for serving files
 
 
   # prometheus:
@@ -217,3 +222,4 @@ volumes:
   prometheus_data:
   transcendence_certs:
   server_logs:
+  uploads_data:    # Shared volume for user uploads

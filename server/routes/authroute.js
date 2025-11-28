@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
 // Use same JWT secret as Google OAuth (IMPORTANT: must match!)
-const SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const SECRET = process.env.JWT_SECRET;
 const {           // Where Google sends users back to
     CLIENT_URL               // Our frontend URL
 } = process.env;

@@ -9,7 +9,7 @@ COPY client/next.config.ts ./
 COPY client/tsconfig.json ./
 COPY client/postcss.config.mjs ./
 COPY client/eslint.config.mjs ./
-COPY client/middleware.ts ./
+# COPY client/middleware.ts ./
 # COPY client/next-env.d.ts ./
 
 # Install dev dependencies for build
@@ -33,6 +33,9 @@ WORKDIR /app
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/package*.json ./
+
+# Create uploads directory for volume mount
+RUN mkdir -p /app/public/uploads
 
 # Install only production dependencies
 RUN npm install --omit=dev
