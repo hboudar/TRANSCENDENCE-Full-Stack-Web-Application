@@ -169,15 +169,34 @@ export default async function authRoutes(fastify, opts) {
                         return reject(err);
                     }
                     // Give new user default skins (3 selected, 3 locked)
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 1, 1]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 2, 1]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 3, 1]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 4, 0]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 5, 0]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 6, 0]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 7, 0]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 8, 0]);
-                    db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 9, 0]);
+                    const userId = this.lastID;
+                    db.all(`SELECT id, type FROM skins WHERE price = 0 ORDER BY id`, [], (err, freeSkins) => {
+                        
+
+                        const selectedTypes = new Set();
+                        let completed = 0;
+
+                        freeSkins.forEach((skin) => {
+                            let selected = 0;
+                        
+                            // Select the first skin of each type (table, paddle, ball)
+                            if (!selectedTypes.has(skin.type)) {
+                                selectedTypes.add(skin.type);
+                                selected = 1;
+                            }
+                        
+                            // Insert each skin directly
+                            db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, 
+                                [userId, skin.id, selected], 
+                                function(err) {
+                                    if (err) {
+                                        console.error(`Error inserting skin ${skin.id}:`, err.message);
+                                    }
+                                    completed++;
+                                }
+                            );
+                        });
+                    });
                     resolve({ id: this.lastID, name, email });
                 }
             );

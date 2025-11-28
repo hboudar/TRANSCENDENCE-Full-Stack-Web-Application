@@ -148,17 +148,41 @@ export default async function googleAuth(fastify, opts) {
                   sameSite: 'lax', // prevents accidental removal
                 });
 
-                // Add default skins for new player
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 1, 1]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 2, 1]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 3, 1]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 4, 0]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 5, 0]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 6, 0]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 7, 0]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 8, 0]);
-                db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, [this.lastID, 9, 0]);
-                // Redirect to home page (token already in cookie)
+                const userId = this.lastID;
+                db.all(`SELECT id, type FROM skins WHERE price = 0 ORDER BY id`, [], (err, freeSkins) => {
+                    
+
+                    console.log(`Found ${freeSkins.length} free skins for user ${userId}`);
+
+
+                    const selectedTypes = new Set();
+                    let completed = 0;
+
+                    freeSkins.forEach((skin) => {
+                        let selected = 0;
+                    
+                        // Select the first skin of each type (table, paddle, ball)
+                        if (!selectedTypes.has(skin.type)) {
+                            selectedTypes.add(skin.type);
+                            selected = 1;
+                            console.log(`Selecting skin ${skin.id} (${skin.type}) for user ${userId}`);
+                        }
+                      
+                        // Insert each skin directly
+                        db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, 
+                            [userId, skin.id, selected], 
+                            function(err) {
+                                if (err) {
+                                    console.error(`Error inserting skin ${skin.id}:`, err.message);
+                                } else {
+                                    console.log(`Inserted skin ${skin.id} for user ${userId}, selected: ${selected}`);
+                                }
+                                completed++;
+                              
+                            }
+                        );
+                    });
+                });
                 reply.redirect(`${CLIENT_URL}/home`);
                 resolve({ id: this.lastID, name, email, picture });
               }
