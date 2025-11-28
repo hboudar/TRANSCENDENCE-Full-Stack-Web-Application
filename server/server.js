@@ -54,7 +54,7 @@ await fastify.register(rateLimit, {
   max: 100,              // 100 requests per IP
   timeWindow: '1 minute', // per minute
   ban: 2,                // ban for 2 minutes if limit exceeded
-  cache: 10000,          // cache 10000 IPs
+  cache: 1000,          // cache 1000 IPs // is this necessary?
   skipOnError: true      // don't block on error
 });
 
