@@ -13,6 +13,9 @@ RUN npm install --only=production   # safer than npm ci for lockfile mismatch
 
 COPY ./server ./
 
+# Rebuild native modules (like sqlite3) for the container's architecture
+RUN npm rebuild sqlite3 --build-from-source
+
 # Create uploads directory for volume mount
 RUN mkdir -p /usr/src/app/uploads
 
