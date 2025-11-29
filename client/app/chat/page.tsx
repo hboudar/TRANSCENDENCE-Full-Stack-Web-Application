@@ -102,7 +102,7 @@ export default function Chat() {
         if (!selected || !user?.id) return;
 
         try {
-            const res = await fetch(`http://localhost:4000/blocks/check/${user.id}/${selected}`);
+            const res = await fetch(`/api/blocks/check/${user.id}/${selected}`);
             const data = await res.json();
 
             if (data.blocked) {
@@ -143,7 +143,7 @@ export default function Chat() {
         try {
             if (isBlocked && isBlocker) {
                 // Unblock (only if you are the blocker)
-                const res = await fetch('http://localhost:4000/blocks', {
+                const res = await fetch('/api/blocks', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -162,7 +162,7 @@ export default function Chat() {
                 }
             } else if (!isBlocked) {
                 // Block
-                const res = await fetch('http://localhost:4000/blocks', {
+                const res = await fetch('/api/blocks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

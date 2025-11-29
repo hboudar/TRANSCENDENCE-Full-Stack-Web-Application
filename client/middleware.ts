@@ -7,7 +7,8 @@ const PROTECTED_ROUTES = ['/home', '/chat', '/games', '/shop', '/friends', '/rps
 // Verify token by calling backend API directly (not through nginx)
 async function verifyToken(token: string): Promise<boolean> {
   try {
-    // Call backend server directly (Docker internal network)
+    // Call backend server using Docker internal network (server:4000)
+    // This works because middleware runs server-side in Next.js container
     const response = await fetch('http://server:4000/me', {
       headers: {
         'Cookie': `token=${token}`

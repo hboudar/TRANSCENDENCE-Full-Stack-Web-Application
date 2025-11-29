@@ -481,16 +481,14 @@ function GameContent() {
 		return (
 			<div className="bg-gray-400/30 backdrop-blur-sm flex flex-col justify-center items-center z-50  absolute top-0 bottom-0 left-0 right-0   ">
 				<Loading />
+				<button
+					onClick={handleExitWaiting}
+					className="absolute top-4 left-4 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95"
+				>
+					{isWaitingForPlayer && canExit ? 'Exit Waiting' : 'Back to Games'}
+				</button>
 				{isWaitingForPlayer && canExit && (
-					<div className="mt-8 flex flex-col items-center gap-4">
-						<p className="text-white text-lg animate-pulse">Waiting for opponent to join...</p>
-						<button
-							onClick={handleExitWaiting}
-							className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95"
-						>
-							Exit Waiting
-						</button>
-					</div>
+					<p className="text-white text-lg animate-pulse mt-8">Waiting for opponent to join...</p>
 				)}
 			</div>
 		);

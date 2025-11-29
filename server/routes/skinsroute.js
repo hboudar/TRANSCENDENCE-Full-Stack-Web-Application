@@ -6,32 +6,32 @@ export default function skinsRoutes(fastify, opts) {
 db.run(`
     INSERT OR IGNORE INTO skins (name, type, price, color, img) VALUES
     -- BALLS
-    ('Solar Flare', 'ball', 0, '#FFD54F', '#FFD54F'),
-    ('Fuchsia Blast', 'ball', 0, '#EC407A', '#EC407A'),
-    ('Arctic Cyan', 'ball', 0, '#4A148C', '#4A148C'),
-    ('Obsidian Core', 'ball', 30, '#283593', '#283593'),
-    ('Tangerine Burst', 'ball', 30, '#FF7043', '#FF7043'),
-    ('Emerald Spark', 'ball', 30, '#00C853', '#00C853'),
-    ('Violet Storm', 'ball', 30, '#212121', '#212121'),
-    ('Crimson Pulse', 'ball', 30, '#FF1744', '#FF1744'),
+    ('Solar Flare', 'ball', 0, '#FFD54F', '/Ball_Solar_Flare.webp'),
+    ('Fuchsia Blast', 'ball', 0, '#EC407A', '/Ball_Fuchsia_Blast.webp'),
+    ('Arctic Cyan', 'ball', 0, '#4A148C', '/Ball_Arctic_Cyan.webp'),
+    ('Obsidian Core', 'ball', 30, '#283593', '/Ball_Obsidian_Core.webp'),
+    ('Tangerine Burst', 'ball', 30, '#FF7043', '/Ball_Tangerine_Burst.webp'),
+    ('Emerald Spark', 'ball', 30, '#00C853', '/Ball_Emerald_Spark.webp'),
+    ('Violet Storm', 'ball', 30, '#212121', '/Ball_Violet_Storm.webp'),
+    ('Crimson Pulse', 'ball', 30, '#FF1744', '/Ball_Crimson_Pulse.webp'),
     -- TABLES
-    ('Ruby Velvet', 'table', 0, '#00695C', '/table1.png'),
-    ('Amethyst Dream', 'table', 0, '#9C27B0', '#9C27B0'),
-    ('Aqua Marine', 'table', 0, '#689F38', '#689F38'),
-    ('Mint Paradise', 'table', 100, '#26A69A', '#26A69A'),
-    ('Graphite Steel', 'table', 100, '#37474F', '#37474F'),
-    ('Golden Sand', 'table', 100, '#FFA000', '#FFA000'),
-    ('Forest Deep', 'table', 100, '#1B5E20', '#1B5E20'),
-    ('Royal Purple', 'table', 100, '#C51162', '#C51162'),
+    ('Emerald Velvet', 'table', 0, '#00695C', '/Table_Emerald_Velvet.webp'),
+    ('Amethyst Dream', 'table', 0, '#9C27B0', '/Table_Amethyst_Dream.webp'),
+    ('Aqua Marine', 'table', 0, '#689F38', '/Table_Aqua_Marine.webp'),
+    ('Mint Paradise', 'table', 100, '#26A69A', '/Table_Mint_Paradise.webp'),
+    ('Graphite Steel', 'table', 100, '#37474F', '/Table_Graphite_Steel.webp'),
+    ('Golden Sand', 'table', 100, '#FFA000', '/Table_Golden_Sand.webp'),
+    ('Forest Deep', 'table', 100, '#1B5E20', '/Table_Forest_Deep.webp'),
+    ('Royal Purple', 'table', 100, '#C51162', '/Table_Royal_Purple.webp'),
     -- PADDLES
-    ('Sapphire Wave', 'paddle', 0, '#00BCD4', '#00BCD4'),
-    ('Jade Forest', 'paddle', 0, '#66BB6A', '#66BB6A'),
-    ('Pearl White', 'paddle', 50, '#FFFFFF', '#FFFFFF'),
-    ('Amber Glow', 'paddle', 50, '#CDDC39', '#CDDC39'),
-    ('Scarlet Fire', 'paddle', 50, '#D32F2F', '#D32F2F'),
-    ('Copper Blaze', 'paddle', 50, '#FFC107', '#FFC107'),
-    ('Ocean Depth', 'paddle', 50, '#009688', '#009688'),
-    ('Midnight Blue', 'paddle', 50, '#303F9F', '#303F9F')
+    ('Sapphire Wave', 'paddle', 0, '#00BCD4', '/Paddle_Sapphire_Wave.webp'),
+    ('Jade Forest', 'paddle', 0, '#66BB6A', '/Paddle_Jade_Forest.webp'),
+    ('Pearl White', 'paddle', 50, '#FFFFFF', '/Paddle_Pearl_White.webp'),
+    ('Amber Glow', 'paddle', 50, '#CDDC39', '/Paddle_Amber_Glow.webp'),
+    ('Scarlet Fire', 'paddle', 50, '#D32F2F', '/Paddle_Scarlet_Fire.webp'),
+    ('Copper Blaze', 'paddle', 50, '#FFC107', '/Paddle_Copper_Blaze.webp'),
+    ('Ocean Depth', 'paddle', 50, '#009688', '/Paddle_Ocean_Depth.webp'),
+    ('Midnight Blue', 'paddle', 50, '#303F9F', '/Paddle_Midnight_Blue.webp')
 `);
 
 	fastify.get("/player_skins", async (request, reply) => {

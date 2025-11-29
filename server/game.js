@@ -3,34 +3,48 @@
 let players = [];
 const sessionsmap = new Map();
 
-async function postresult(p1_score, p2_score, p1_id, p2_id, winer) {
-	// console.log(id);
+async function postresult(p1_score, p2_score, p1_id, p2_id, winer, db) {
 	const winnergold = 50;
 	const losergold = 0;
-	// if (Curentplayer.oponent) oppid = Curentplayer.oponent.id;
+	const date = new Date().toISOString();
+	const player1_gold_earned = winer == 1 ? winnergold : losergold;
+	const player2_gold_earned = winer == 2 ? winnergold : losergold;
+	const winner_id = winer == 1 ? p1_id : p2_id;
 
-	try {
-		const response = await fetch(
-			`http://localhost:4000/games/${p1_id}/${p2_id}`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					player1_score: p1_score,
-					player2_score: p2_score,
-					player1_gold_earned: winer == 1 ? winnergold : losergold,
-					player2_gold_earned: winer == 2 ? winnergold : losergold,
-					winner_id: winer == 1 ? p1_id : p2_id,
-				}),
+	console.log("📊 Posting game result:", { p1_id, p2_id, p1_score, p2_score, winner_id });
+
+	// Insert game record into database
+	db.run(
+		`INSERT INTO games (date, player1_id, player2_id, player1_score, player2_score, player1_gold_earned, player2_gold_earned, winner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		[date, p1_id, p2_id, p1_score, p2_score, player1_gold_earned, player2_gold_earned, winner_id],
+		function (err) {
+			if (err) {
+				console.error("❌ Error inserting game:", err);
+				return;
 			}
-		);
-		const res = await response.json();
-		console.log("Game result posted:", res);
-	} catch (error) {
-		console.error("Error posting game result:", error);
-	}
+			console.log("✅ Game inserted with ID:", this.lastID);
+
+			// Update player 1 stats
+			db.run(
+				`UPDATE users SET gold = gold + ?, games = games + 1, win = win + ?, lose = lose + ? WHERE id = ?`,
+				[player1_gold_earned, winner_id == p1_id ? 1 : 0, winner_id == p2_id ? 1 : 0, p1_id],
+				(err) => {
+					if (err) console.error("❌ Error updating player 1 stats:", err);
+					else console.log("✅ Player 1 stats updated");
+				}
+			);
+
+			// Update player 2 stats
+			db.run(
+				`UPDATE users SET gold = gold + ?, games = games + 1, win = win + ?, lose = lose + ? WHERE id = ?`,
+				[player2_gold_earned, winner_id == p2_id ? 1 : 0, winner_id == p1_id ? 1 : 0, p2_id],
+				(err) => {
+					if (err) console.error("❌ Error updating player 2 stats:", err);
+					else console.log("✅ Player 2 stats updated");
+				}
+			);
+		}
+	);
 }
 function CalculateballVelocity(positions, angle) {
 	let vx = 0.5;
@@ -525,7 +539,8 @@ export function setupGameSocketIO(io, db) {
 					session.positions.score.p2,
 					session.players_info.p1_id,
 					session.players_info.p2_id,
-					session.positions.win
+					session.positions.win,
+					db
 				);
 			}
 			
