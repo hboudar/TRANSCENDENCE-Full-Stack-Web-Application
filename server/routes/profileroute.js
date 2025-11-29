@@ -4,22 +4,14 @@ export default async function ProfileRoutes(fastify, opts) {
     const db = opts.db;
     const io = opts.io;
     fastify.post('/profile', async (request, reply) => {
-        const { userid, name, email, picture, newPassword } = request.body;
+        const { userid, name, picture, newPassword } = request.body;
  
-        console.log('🔍 Profile update request:', {
-            userid,
-            hasUser: !!request.user,
-            user: request.user,
-            cookies: request.cookies,
-            authHeader: request.headers.authorization
-        });
-
         if (!request.user || String(request.user.id) !== String(userid)) {
             console.warn('Forbidden profile update attempt', { tokenUser: request.user?.id, targetUser: userid });
             return reply.status(403).send({ error: 'Forbidden: You can only update your own profile' });
         }
 
-        console.log("📥 Received profile update request:", { userid, name, email, picture, hasPassword: !!newPassword });
+        console.log("📥 Received profile update request:", { userid, name, picture, hasPassword: !!newPassword });
 
         // Build the SQL query dynamically based on what fields are provided
         let updateFields = [];
@@ -29,15 +21,7 @@ export default async function ProfileRoutes(fastify, opts) {
             updateFields.push('name = ?');
             updateValues.push(name);
         }
-        if (email) {
-            updateFields.push('email = ?');
-            updateValues.push(email);
-        }
-        // Ski - column doesn't exist in database
-        // if) {
-        //     updateFields.push = ?');
-        //     updateValues.pus);
-        // }
+
         if (picture) {
             updateFields.push('picture = ?');
             updateValues.push(picture);
