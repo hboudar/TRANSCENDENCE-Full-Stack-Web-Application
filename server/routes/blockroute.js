@@ -13,26 +13,58 @@ export default async function blockRoutes(fastify, opts) {
             return reply.status(400).send({ error: 'Cannot block yourself' });
         }
 
+        // Verify both users exist in database
         return new Promise((resolve, reject) => {
-            db.run(
-                `INSERT OR IGNORE INTO blocks (blocker_id, blocked_id) VALUES (?, ?)`,
-                [blocker_id, blocked_id],
-                function (err) {
+            db.get(
+                `SELECT id FROM users WHERE id = ?`,
+                [blocker_id],
+                (err, blockerRow) => {
                     if (err) {
-                        console.error('Error blocking user:', err);
-                        reply.status(500).send({ 
-                            error: 'Failed to block user',
-                            details: err.message 
-                        });
-                        resolve();
-                    } else {
-                        reply.send({ 
-                            message: 'User blocked successfully',
-                            blocker_id,
-                            blocked_id
-                        });
-                        resolve();
+                        reply.status(500).send({ error: 'Database error' });
+                        return reject(err);
                     }
+                    if (!blockerRow) {
+                        reply.status(404).send({ error: 'Blocker user not found' });
+                        return resolve();
+                    }
+
+                    db.get(
+                        `SELECT id FROM users WHERE id = ?`,
+                        [blocked_id],
+                        (err, blockedRow) => {
+                            if (err) {
+                                reply.status(500).send({ error: 'Database error' });
+                                return reject(err);
+                            }
+                            if (!blockedRow) {
+                                reply.status(404).send({ error: 'User to block not found' });
+                                return resolve();
+                            }
+
+                            // Both users exist, proceed with blocking
+                            db.run(
+                                `INSERT OR IGNORE INTO blocks (blocker_id, blocked_id) VALUES (?, ?)`,
+                                [blocker_id, blocked_id],
+                                function (err) {
+                                    if (err) {
+                                        console.error('Error blocking user:', err);
+                                        reply.status(500).send({ 
+                                            error: 'Failed to block user',
+                                            details: err.message 
+                                        });
+                                        resolve();
+                                    } else {
+                                        reply.send({ 
+                                            message: 'User blocked successfully',
+                                            blocker_id,
+                                            blocked_id
+                                        });
+                                        resolve();
+                                    }
+                                }
+                            );
+                        }
+                    );
                 }
             );
         });
@@ -46,26 +78,62 @@ export default async function blockRoutes(fastify, opts) {
             return reply.status(400).send({ error: 'blocker_id and blocked_id are required' });
         }
 
+        if (blocker_id === blocked_id) {
+            return reply.status(400).send({ error: 'Cannot unblock yourself' });
+        }
+
+        // Verify both users exist in database
         return new Promise((resolve, reject) => {
-            db.run(
-                `DELETE FROM blocks WHERE blocker_id = ? AND blocked_id = ?`,
-                [blocker_id, blocked_id],
-                function (err) {
+            db.get(
+                `SELECT id FROM users WHERE id = ?`,
+                [blocker_id],
+                (err, blockerRow) => {
                     if (err) {
-                        console.error('Error unblocking user:', err);
-                        reply.status(500).send({ 
-                            error: 'Failed to unblock user',
-                            details: err.message 
-                        });
-                        resolve();
-                    } else {
-                        reply.send({ 
-                            message: 'User unblocked successfully',
-                            blocker_id,
-                            blocked_id
-                        });
-                        resolve();
+                        reply.status(500).send({ error: 'Database error' });
+                        return reject(err);
                     }
+                    if (!blockerRow) {
+                        reply.status(404).send({ error: 'Blocker user not found' });
+                        return resolve();
+                    }
+
+                    db.get(
+                        `SELECT id FROM users WHERE id = ?`,
+                        [blocked_id],
+                        (err, blockedRow) => {
+                            if (err) {
+                                reply.status(500).send({ error: 'Database error' });
+                                return reject(err);
+                            }
+                            if (!blockedRow) {
+                                reply.status(404).send({ error: 'User to unblock not found' });
+                                return resolve();
+                            }
+
+                            // Both users exist, proceed with unblocking
+                            db.run(
+                                `DELETE FROM blocks WHERE blocker_id = ? AND blocked_id = ?`,
+                                [blocker_id, blocked_id],
+                                function (err) {
+                                    if (err) {
+                                        console.error('Error unblocking user:', err);
+                                        reply.status(500).send({ 
+                                            error: 'Failed to unblock user',
+                                            details: err.message 
+                                        });
+                                        resolve();
+                                    } else {
+                                        reply.send({ 
+                                            message: 'User unblocked successfully',
+                                            blocker_id,
+                                            blocked_id
+                                        });
+                                        resolve();
+                                    }
+                                }
+                            );
+                        }
+                    );
                 }
             );
         });

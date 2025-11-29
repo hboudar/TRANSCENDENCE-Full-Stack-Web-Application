@@ -38,7 +38,10 @@ export default function Chat() {
     const [isBlocker, setIsBlocker] = useState(false);
     const [blockLoading, setBlockLoading] = useState(false);
     const [blockMessage, setBlockMessage] = useState("");
-
+    const { user, loading } = useUser();
+    if (loading) {
+        return <Loading />;
+    }
 
     useEffect(() => {
         const checkMobile = () => {
@@ -52,17 +55,20 @@ export default function Chat() {
     useEffect(() => {
         async function fetchUsers() {
             try {
-                const res = await fetch('/api/users');
+                // Fetch friends instead of all users
+                if (!user?.id) return;
+                const res = await fetch(`/api/friends/accepted?userId=${user.id}`);
                 const data = await res.json();
-                setUsers(data);
+                setUsers(data.data || []);
             } catch (error) {
-                console.error("Error fetching users:", error);
+                console.error("Error fetching friends:", error);
             }
         }
-        fetchUsers();
-    }, []);
+        if (user?.id) {
+            fetchUsers();
+        }
+    }, [user?.id]);
 
-    const { user, loading } = useUser();
 
     // Listen for real-time block/unblock events globally
     useEffect(() => {

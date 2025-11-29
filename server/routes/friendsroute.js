@@ -8,6 +8,32 @@ export default async function friendRoutes(fastify, opts) {
     if (!userId || !friendId)
       return reply.status(400).send({ error: "Missing userId or friendId" });
 
+    // Prevent adding yourself as friend
+    if (Number(userId) === Number(friendId)) {
+      return reply.status(400).send({ error: "Cannot add yourself as a friend" });
+    }
+
+    // Verify both users exist
+    const userExists = await new Promise((resolve) => {
+      db.get('SELECT id FROM users WHERE id = ?', [userId], (err, row) => {
+        resolve(!!row && !err);
+      });
+    });
+
+    if (!userExists) {
+      return reply.status(404).send({ error: "User not found" });
+    }
+
+    const friendExists = await new Promise((resolve) => {
+      db.get('SELECT id FROM users WHERE id = ?', [friendId], (err, row) => {
+        resolve(!!row && !err);
+      });
+    });
+
+    if (!friendExists) {
+      return reply.status(404).send({ error: "Friend not found" });
+    }
+
     try {
       const result = await handleAddFriend(db, Number(userId), Number(friendId));
 
@@ -96,6 +122,11 @@ export default async function friendRoutes(fastify, opts) {
     if (!userId || !friendId)
       return reply.status(400).send({ error: "Missing userId or friendId" });
 
+    // Prevent removing yourself
+    if (Number(userId) === Number(friendId)) {
+      return reply.status(400).send({ error: "Invalid operation" });
+    }
+
     db.run(
       `
       DELETE FROM friends 
@@ -135,6 +166,11 @@ export default async function friendRoutes(fastify, opts) {
     const { userId, friendId } = request.body;
     if (!userId || !friendId)
       return reply.status(400).send({ error: "Missing userId or friendId" });
+
+    // Prevent accepting yourself
+    if (Number(userId) === Number(friendId)) {
+      return reply.status(400).send({ error: "Invalid operation" });
+    }
 
     db.run(
       "UPDATE friends SET is_request = 0 WHERE user_id = ? AND friend_id = ?",

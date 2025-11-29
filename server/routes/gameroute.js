@@ -26,6 +26,35 @@ export default async function gameRoutes(fastify, opts) {
 			return;
 		}
 
+		// Prevent playing against yourself
+		if (player1_id === player2_id) {
+			reply.status(400).send({ error: "Cannot play against yourself" });
+			return;
+		}
+
+		// Verify both players exist
+		const player1Exists = await new Promise((resolve) => {
+			db.get('SELECT id FROM users WHERE id = ?', [player1_id], (err, row) => {
+				resolve(!!row && !err);
+			});
+		});
+
+		if (!player1Exists) {
+			reply.status(404).send({ error: "Player 1 not found" });
+			return;
+		}
+
+		const player2Exists = await new Promise((resolve) => {
+			db.get('SELECT id FROM users WHERE id = ?', [player2_id], (err, row) => {
+				resolve(!!row && !err);
+			});
+		});
+
+		if (!player2Exists) {
+			reply.status(404).send({ error: "Player 2 not found" });
+			return;
+		}
+
 		const date = new Date().toISOString();
 		const {
 			player1_score,

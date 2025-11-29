@@ -67,16 +67,54 @@ export default async function chatRoutes(fastify, opts) {
   // Insert message
   fastify.post("/messages",schemasendmessage, async (req, reply) => {
     const { sender_id, receiver_id, content } = req.body;
+
+    // Check if user is trying to send message to themselves
+    if (sender_id === receiver_id) {
+      return reply.status(400).send({ error: "Cannot send messages to yourself" });
+    }
+
+    // Verify both users exist in database
     return new Promise((resolve, reject) => {
-      db.run(
-        `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
-        [sender_id, receiver_id, content],
-        function (err) {
+      db.get(
+        `SELECT id FROM users WHERE id = ?`,
+        [sender_id],
+        (err, senderRow) => {
           if (err) {
             reply.status(500).send({ error: "Database error" });
             return reject(err);
           }
-          resolve({ id: this.lastID, sender_id, receiver_id, content });
+          if (!senderRow) {
+            reply.status(404).send({ error: "Sender not found" });
+            return resolve();
+          }
+
+          db.get(
+            `SELECT id FROM users WHERE id = ?`,
+            [receiver_id],
+            (err, receiverRow) => {
+              if (err) {
+                reply.status(500).send({ error: "Database error" });
+                return reject(err);
+              }
+              if (!receiverRow) {
+                reply.status(404).send({ error: "Receiver not found" });
+                return resolve();
+              }
+
+              // Both users exist, insert message
+              db.run(
+                `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
+                [sender_id, receiver_id, content],
+                function (err) {
+                  if (err) {
+                    reply.status(500).send({ error: "Database error" });
+                    return reject(err);
+                  }
+                  resolve({ id: this.lastID, sender_id, receiver_id, content });
+                }
+              );
+            }
+          );
         }
       );
     });

@@ -5,10 +5,25 @@ export default async function ProfileRoutes(fastify, opts) {
     const io = opts.io;
     fastify.post('/profile', async (request, reply) => {
         const { userid, name, picture, newPassword } = request.body;
+
+        if (!userid) {
+            return reply.status(400).send({ error: 'User ID is required' });
+        }
  
         if (!request.user || String(request.user.id) !== String(userid)) {
             console.warn('Forbidden profile update attempt', { tokenUser: request.user?.id, targetUser: userid });
             return reply.status(403).send({ error: 'Forbidden: You can only update your own profile' });
+        }
+
+        // Verify user exists in database
+        const userExists = await new Promise((resolve) => {
+            db.get('SELECT id FROM users WHERE id = ?', [userid], (err, row) => {
+                resolve(!!row && !err);
+            });
+        });
+
+        if (!userExists) {
+            return reply.status(404).send({ error: 'User not found' });
         }
 
         console.log("📥 Received profile update request:", { userid, name, picture, hasPassword: !!newPassword });

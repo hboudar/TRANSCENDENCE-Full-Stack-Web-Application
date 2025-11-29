@@ -203,6 +203,22 @@ const gameApiRoute = async (fastify, options) => {
 	});
 	fastify.post("/tournament_win/:userId", async (request, reply) => {
 		const { userId } = request.params;
+
+		if (!userId) {
+			return reply.status(400).send({ success: false, error: "User ID is required" });
+		}
+
+		// Verify user exists
+		const userExists = await new Promise((resolve) => {
+			db.get('SELECT id FROM users WHERE id = ?', [userId], (err, row) => {
+				resolve(!!row && !err);
+			});
+		});
+
+		if (!userExists) {
+			return reply.status(404).send({ success: false, error: "User not found" });
+		}
+
 		try {
 			
 			db.run(
