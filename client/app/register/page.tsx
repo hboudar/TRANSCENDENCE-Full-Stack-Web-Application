@@ -37,6 +37,7 @@ export default function SignUpForm() {
             if (response.ok) {
                 window.location.href = '/login';
             } else {
+                console.error("Registration failed, status:", response.status);
                 alert("Registration failed!");
             }
         }

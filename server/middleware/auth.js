@@ -26,8 +26,20 @@ export default async function authMiddleware(req, reply, db) {
   // Attach user to request for later use in route handlers
   req.user = userId ? { id: userId } : null;
 
+  // Debug logging
+  if (req.url === '/profile' || req.url.startsWith('/profile')) {
+    console.log('🔐 Auth middleware for /profile:', {
+      url: req.url,
+      method: req.method,
+      hasToken: !!token,
+      userId,
+      cookies: req.cookies,
+      authHeader: req.headers.authorization
+    });
+  }
+
   // Public routes that don't need authentication
-  const publicRoutes = ['/', '/login', '/register', '/auth/google', '/auth/google/callback'];
+  const publicRoutes = ['/', '/login', '/register', '/users', '/auth/google', '/auth/google/callback'];
   
   if (publicRoutes.includes(req.url) || req.url.startsWith('/auth/')) {
     return; // Allow public routes

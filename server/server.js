@@ -60,7 +60,6 @@ await fastify.register(rateLimit, {
 
 await fastify.register(cookie);
 
-
 // Connect SQLite DB
 const db = new sqlite3.Database('sqlite.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
   if (err) {
@@ -188,8 +187,13 @@ db.serialize(() => {
 	  )
 	`);
 		
-		
 	});
+
+// Register authentication middleware
+const authMiddleware = (await import('./middleware/auth.js')).default;
+fastify.addHook('preHandler', async (request, reply) => {
+  await authMiddleware(request, reply, db);
+});
 	
 // Register routes on fastify
 const devRoute = (await import('./routes/devroute.js')).default;

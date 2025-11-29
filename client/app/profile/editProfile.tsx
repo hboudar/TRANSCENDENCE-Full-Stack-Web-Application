@@ -19,27 +19,23 @@ type EditProfileProps = {
 export default function EditProfile({ setEditMode, user }: EditProfileProps) {
     // stores the new uploaded img, initially set to user.picture
     // which is the current picture supplied by server
-    const [previewPic , setPreviewPic ] = useState(user.picture)
+    const [previewPic, setPreviewPic] = useState(user.picture)
     const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null) // Store uploaded image URL
 
 
 
     const [formData, setFormData] = useState({
         name: user.name || '',
-        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     })
 
     const [errors, setErrors] = useState({
         name: '',
-        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
     })
 
-    // Check if user has a password (e.g., not a Google OAuth user)
-    const hasPassword = user.password !== null && user.password !== undefined && user.password !== ''
     const [submitError, setSubmitError] = useState('')
     const [submitSuccess, setSubmitSuccess] = useState('')
 
@@ -52,7 +48,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
     // access global user setter so we can update header in real-time
     const { setUser } = useUser();
 
-    
+
 
     const handleInputChange = (field: string, value: string) => {
         // enforce max length for name
@@ -73,7 +69,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
     }
 
     const validatePassword = () => {
-        const errs: { name: string; currentPassword: string; newPassword: string; confirmPassword: string } = { name: '', currentPassword: '', newPassword: '', confirmPassword: '' }
+        const errs: { name: string; newPassword: string; confirmPassword: string } = { name: '', newPassword: '', confirmPassword: '' }
 
         // name validation
         if (!formData.name || formData.name.trim().length < 2) {
@@ -82,10 +78,6 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
 
         // password validation only if changing
         if (formData.newPassword) {
-            // Only require current password if user has a password
-            if (hasPassword && !formData.currentPassword) {
-                errs.currentPassword = 'Current password is required to change password.'
-            }
             const strong = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/
             if (!strong.test(formData.newPassword)) {
                 errs.newPassword = 'Password must be at least 6 chars and include letters and numbers.'
@@ -102,7 +94,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!validatePassword()) return
-        
+
         // Check if anything changed
         const nameChanged = formData.name !== user.name
         const pictureChanged = uploadedImageUrl !== null
@@ -121,7 +113,6 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                 userid: user.id,
                 name: formData.name,
                 picture: uploadedImageUrl || user.picture, // Use uploaded image or keep current
-                currentPassword: formData.currentPassword,
                 newPassword: formData.newPassword
             }
 
@@ -277,34 +268,11 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                                 )}
                             </div>
 
-                        
+
                         </div>
 
                         {/* RIGHT COLUMN - Password Section */}
                         <div className="space-y-6">
-                            {/* Current Password - only show if user has a password */}
-                            {hasPassword && (
-                            <div className="space-y-2">
-                                <label className="text-gray-300 font-medium flex items-center gap-2">
-                                    <Lock size={18} /> Current Password
-                                </label>
-                                <div className="relative">
-                                    <input
-                                        type={showPasswords.current ? "text" : "password"}
-                                        value={formData.currentPassword}
-                                        onChange={(e) => handleInputChange('currentPassword', e.target.value)}
-                                        className="w-full p-3 rounded-lg bg-black/40 text-white border border-purple-500/30 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-200"
-                                        placeholder="Enter current password"
-                                    />
-                                    <button type="button" onClick={() => togglePasswordVisibility('current')} className="absolute right-3 top-3 text-gray-400">
-                                        {showPasswords.current ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-                                {errors.currentPassword && (
-                                    <div className="text-sm text-red-500 mt-1">{errors.currentPassword}</div>
-                                )}
-                            </div>
-                            )}
 
                             {/* New Password */}
                             <div className="space-y-2">
