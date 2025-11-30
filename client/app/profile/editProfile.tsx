@@ -53,7 +53,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
     const handleInputChange = (field: string, value: string) => {
         // enforce max length for name
         if (field === 'name') {
-            const max = 24
+            const max = 16
             if (value.length > max) value = value.slice(0, max)
         }
         // clear submit messages on change

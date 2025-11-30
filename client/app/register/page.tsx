@@ -73,6 +73,7 @@ export default function SignUpForm() {
                             placeholder="Name"
                             value={formData.name}
                             onChange={handleChange}
+                            maxLength={16}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-2 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />
@@ -86,6 +87,7 @@ export default function SignUpForm() {
                             placeholder="Email"
                             value={formData.email}
                             onChange={handleChange}
+                            maxLength={24}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-2 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />
@@ -101,7 +103,7 @@ export default function SignUpForm() {
                             onChange={handleChange}
                             pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).+$"
                             minLength={8}
-
+                            maxLength={16}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-8 sm:pr-10 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />
@@ -126,6 +128,7 @@ export default function SignUpForm() {
                             placeholder="Confirm the Password"
                             value={formData.confirmPassword}
                             onChange={handleChange}
+                            maxLength={128}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-8 sm:pr-10 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />

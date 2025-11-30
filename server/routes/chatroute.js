@@ -14,7 +14,7 @@ const schemasendmessage = {
     properties: {
       sender_id: { type: "integer" },
       receiver_id: { type: "integer" },
-      content: { type: "string" },
+      content: { type: "string", minLength: 1, maxLength: 400 },  // Max 400 characters
     },
     required: ["sender_id", "receiver_id", "content"],
   },

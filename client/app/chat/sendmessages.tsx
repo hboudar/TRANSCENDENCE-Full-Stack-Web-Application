@@ -63,6 +63,7 @@ export default function SendMessage({
           value={message}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)}
           placeholder={isBlocked ? "Cannot send messages" : "Type your message..."}
+          maxLength={400}
           className="w-full py-3 pl-5 pr-12 border-[#3800d2]  border-1 text-white placeholder-gray-400 rounded-full focus:outline-none focus:ring-0 focus:ring-blue-500 transition-all duration-200"
           onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Enter" && !isBlocked) {

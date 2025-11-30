@@ -17,9 +17,9 @@ const SchemaRegister =
     type: 'object',
     required: ['name', 'email', 'password'],
     properties: {
-        name: { type: 'string' },
-        email: { type: 'string', format: 'email' },  // Must be valid email
-        password: { type: 'string', minLength: 6 }   // At least 6 characters
+        name: { type: 'string', minLength: 1, maxLength: 50 },  // Max 50 characters
+        email: { type: 'string', format: 'email', maxLength: 100 },  // Must be valid email, max 100 chars
+        password: { type: 'string', minLength: 6, maxLength: 128 }   // 6-128 characters
     },
 }
 
