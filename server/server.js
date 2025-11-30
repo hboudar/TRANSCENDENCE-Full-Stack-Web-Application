@@ -29,7 +29,8 @@ const logger = pino(
 const fastify = Fastify({
   logger: {
     instance: logger
-  }
+  },
+  bodyLimit: 1048576 // 1MB
 });
 
 fastify.addHook("onResponse", (req, reply, done) => {
@@ -128,6 +129,7 @@ db.serialize(() => {
 		price INTEGER,
 		img TEXT NOT NULL,
 		color TEXT NOT NULL,
+		description TEXT,
 		UNIQUE(name, type, img)
 	  );
 	`);
@@ -155,6 +157,14 @@ db.serialize(() => {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY (user_id) REFERENCES users(id),
 		FOREIGN KEY (sender_id) REFERENCES users(id)
+	  );
+	`);
+
+	db.run(`
+	  CREATE TABLE IF NOT EXISTS blacklist_tokens (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		token TEXT NOT NULL UNIQUE,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	  );
 	`);
 
@@ -189,9 +199,11 @@ db.serialize(() => {
 		
 	});
 
-// Register authentication middleware
+// Register authentication middleware  
+// Note: Runs at preValidation, before body parsing
+// Middleware only checks headers/cookies, NOT req.body
 const authMiddleware = (await import('./middleware/auth.js')).default;
-fastify.addHook('preHandler', async (request, reply) => {
+fastify.addHook('preValidation', async (request, reply) => {
   await authMiddleware(request, reply, db);
 });
 	

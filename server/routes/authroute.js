@@ -142,9 +142,40 @@ export default async function authRoutes(fastify, opts) {
     });
 
     // Logout Endpoint
-    // Clears the authentication cookie from the backend
+    // Clears the authentication cookie and blacklists the token
     fastify.post('/logout', async (request, reply) => {
-        // Clear the token cookie by setting it with an expired maxAge
+        // Get token from Authorization header or cookies
+        let token = request.headers.authorization?.split(' ')[1];
+        if (!token && request.cookies) {
+            token = request.cookies.token;
+        }
+
+        // If token exists, add it to blacklist
+        if (token) {
+            return new Promise((resolve, reject) => {
+                db.run('INSERT OR IGNORE INTO blacklist_tokens (token) VALUES (?)', [token], (err) => {
+                    if (err) {
+                        console.error('Error blacklisting token:', err.message);
+                        reply.status(500).send({ error: 'Failed to logout' });
+                        return reject(err);
+                    }
+
+                    // Clear the token cookie
+                    reply.setCookie('token', '', {
+                        path: '/',
+                        maxAge: 0,
+                        httpOnly: true,
+                        secure: false,
+                        sameSite: 'lax',
+                    });
+
+                    reply.send({ success: true, message: 'Logged out successfully' });
+                    resolve();
+                });
+            });
+        }
+
+        // No token to blacklist, just clear cookie
         reply.setCookie('token', '', {
             path: '/',
             maxAge: 0,

@@ -39,9 +39,31 @@ export default function Chat() {
     const [blockLoading, setBlockLoading] = useState(false);
     const [blockMessage, setBlockMessage] = useState("");
     const { user, loading } = useUser();
-    if (loading) {
-        return <Loading />;
-    }
+
+    const checkBlockStatus = async () => {
+        if (!selected || !user?.id) return;
+
+        try {
+            const res = await fetch(`/api/blocks/check/${user.id}/${selected}`);
+            const data = await res.json();
+
+            if (data.blocked) {
+                setIsBlocked(true);
+                setIsBlocker(data.is_blocker);
+                if (data.is_blocker) {
+                    setBlockMessage("You have blocked this user. Unblock to send messages.");
+                } else {
+                    setBlockMessage("This user has blocked you. You cannot send messages.");
+                }
+            } else {
+                setIsBlocked(false);
+                setIsBlocker(false);
+                setBlockMessage("");
+            }
+        } catch (error) {
+            console.error("Error checking block status:", error);
+        }
+    };
 
     useEffect(() => {
         const checkMobile = () => {
@@ -104,30 +126,6 @@ export default function Chat() {
         }
     }, [selected, user?.id]);
 
-    const checkBlockStatus = async () => {
-        if (!selected || !user?.id) return;
-
-        try {
-            const res = await fetch(`/api/blocks/check/${user.id}/${selected}`);
-            const data = await res.json();
-
-            if (data.blocked) {
-                setIsBlocked(true);
-                setIsBlocker(data.is_blocker);
-                if (data.is_blocker) {
-                    setBlockMessage("You have blocked this user. Unblock to send messages.");
-                } else {
-                    setBlockMessage("This user has blocked you. You cannot send messages.");
-                }
-            } else {
-                setIsBlocked(false);
-                setIsBlocker(false);
-                setBlockMessage("");
-            }
-        } catch (error) {
-            console.error("Error checking block status:", error);
-        }
-    };
     if (loading) {
         return <Loading />;
     }

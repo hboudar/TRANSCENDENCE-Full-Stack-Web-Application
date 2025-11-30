@@ -8,6 +8,7 @@ interface Item {
   name: string;
   img: string;
   price: number;
+  description: string;
 }
 
 type Props = {
@@ -57,7 +58,7 @@ export default function Paddles({ currentUser }: Props) {
               </span>
               {/* Description */}
               <span className="text-left text-base sm:text-xl text-gray-500 break-words">
-                This is a Description of the Table, it is very good and you should buy it, trust me.
+                {item.description}
               </span>
               {/* Price */}
               <span className="text-left text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">

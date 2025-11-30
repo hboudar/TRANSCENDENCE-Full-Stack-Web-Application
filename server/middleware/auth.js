@@ -5,6 +5,16 @@ async function verifyTokenAndUser(token, db) {
   if (!token) return null;
 
   try {
+    // Check if token is blacklisted
+    const isBlacklisted = await new Promise((resolve) => {
+      db.get('SELECT token FROM blacklist_tokens WHERE token = ?', [token], (err, row) => {
+        if (err) return resolve(false);
+        resolve(!!row);
+      });
+    });
+
+    if (isBlacklisted) return null;
+
     const decoded = jwt.verify(token, SECRET);
     const userId = decoded.userId || decoded.id;
 
@@ -26,15 +36,20 @@ export default async function authMiddleware(req, reply, db) {
   // Attach user to request for later use in route handlers
   req.user = userId ? { id: userId } : null;
 
+  // Debug logging
+  console.log('Middleware - URL:', req.url, 'Method:', req.method, 'Has Token:', !!token);
+
   // Public routes that don't need authentication
   const publicRoutes = ['/', '/login', '/register', '/users', '/auth/google', '/auth/google/callback'];
   
   if (publicRoutes.includes(req.url) || req.url.startsWith('/auth/')) {
+    console.log('Allowing public route:', req.url);
     return; // Allow public routes
   }
 
   // All other routes require authentication
   if (!userId) {
+    console.log('Blocking unauthenticated request to:', req.url);
     return reply.code(401).send({ error: 'Unauthorized' });
   }
 
