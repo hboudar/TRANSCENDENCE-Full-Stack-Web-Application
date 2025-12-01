@@ -128,9 +128,9 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
             })
 
             if (!response.ok) {
-                const errorText = await response.text()
-                console.error("Update failed:", errorText)
-                setSubmitError(errorText || 'Failed to update profile')
+                const errorData = await response.json().catch(() => ({ error: 'Failed to update profile' }))
+                console.error("Update failed:", errorData)
+                setSubmitError(errorData.error || 'Failed to update profile')
                 return
             }
 

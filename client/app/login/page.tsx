@@ -14,13 +14,24 @@ function LoginContent() {
     const searchParams = useSearchParams();
     
     // ========================================
-    // Handle Google OAuth Errors
+    // Handle Google OAuth Errors and Email Verification Success
     // ========================================
     // If Google authentication fails, user gets redirected here with error parameter
     useEffect(() => {
         const error = searchParams.get('error');
-        if (error) {
-            // Show user-friendly error messages
+        const verified = searchParams.get('verified');
+        
+        if (verified === 'true') {
+            alert('✅ Email verified successfully! You can now login.');
+            window.history.replaceState({}, '', '/login');
+        } else if (error === 'invalid_token') {
+            alert('❌ Invalid verification link. Please request a new verification email.');
+            window.history.replaceState({}, '', '/login');
+        } else if (error === 'verification_failed') {
+            alert('❌ Email verification failed. Please try again or contact support.');
+            window.history.replaceState({}, '', '/login');
+        } else if (error) {
+            // Show user-friendly error messages for OAuth errors
             const errorMessages: { [key: string]: string } = {
                 'no_code': 'Authorization code not received from Google',
                 'no_access_token': 'Failed to get access token from Google',

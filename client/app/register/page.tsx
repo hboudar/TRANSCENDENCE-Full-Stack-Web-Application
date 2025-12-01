@@ -14,10 +14,14 @@ export default function SignUpForm() {
     const [confirmapasswordtype, setConfirmapasswordtype] = useState('password');
     const [passwordtype, setPasswordtype] = useState('password');
 
+    const [error, setError] = useState('');
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        setError('');
+        
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+            setError("Passwords do not match!");
             return;
         }
 
@@ -35,17 +39,20 @@ export default function SignUpForm() {
                 })
             });
             if (response.ok) {
+                const data = await response.json();
+                // Show success message telling user to check email
+                alert('✅ ' + data.message);
                 window.location.href = '/login';
             } else {
+                const data = await response.json();
+                setError(data.error || "Registration failed!");
                 console.error("Registration failed, status:", response.status);
-                alert("Registration failed!");
             }
         }
         catch (error) {
             console.error("Error during registration:", error);
-            alert("An error occurred. Please try again later.");
+            setError("An error occurred. Please try again later.");
         }
-        console.log(formData);
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +70,12 @@ export default function SignUpForm() {
                 <h1 className="text-3xl sm:text-4xl font-bold text-white text-center mb-6 sm:mb-8">
                     Sign up
                 </h1>
+
+                {error && (
+                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center">
+                        {error}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     <div className="relative">

@@ -4,7 +4,7 @@ export default async function ProfileRoutes(fastify, opts) {
     const db = opts.db;
     const io = opts.io;
     fastify.post('/profile', async (request, reply) => {
-        const { userid, name, picture, newPassword } = request.body;
+        const { userid, name, email, picture, newPassword } = request.body;
 
         if (!userid) {
             return reply.status(400).send({ error: 'User ID is required' });
@@ -33,8 +33,53 @@ export default async function ProfileRoutes(fastify, opts) {
         let updateValues = [];
 
         if (name) {
+            // Check if the new name is different from current name
+            const currentUser = await new Promise((resolve) => {
+                db.get('SELECT name FROM users WHERE id = ?', [userid], (err, row) => {
+                    resolve(row);
+                });
+            });
+
+            // Only check for duplicates if name is actually changing
+            if (currentUser && name !== currentUser.name) {
+                const nameExists = await new Promise((resolve) => {
+                    db.get('SELECT id FROM users WHERE name = ? AND id != ?', [name, userid], (err, row) => {
+                        resolve(!!row && !err);
+                    });
+                });
+
+                if (nameExists) {
+                    return reply.status(409).send({ error: 'Username already taken' });
+                }
+            }
+
             updateFields.push('name = ?');
             updateValues.push(name);
+        }
+
+        if (email) {
+            // Check if the new email is different from current email
+            const currentUser = await new Promise((resolve) => {
+                db.get('SELECT email FROM users WHERE id = ?', [userid], (err, row) => {
+                    resolve(row);
+                });
+            });
+
+            // Only check for duplicates if email is actually changing
+            if (currentUser && email !== currentUser.email) {
+                const emailExists = await new Promise((resolve) => {
+                    db.get('SELECT id FROM users WHERE email = ? AND id != ?', [email, userid], (err, row) => {
+                        resolve(!!row && !err);
+                    });
+                });
+
+                if (emailExists) {
+                    return reply.status(409).send({ error: 'Email already registered' });
+                }
+            }
+
+            updateFields.push('email = ?');
+            updateValues.push(email);
         }
 
         if (picture) {

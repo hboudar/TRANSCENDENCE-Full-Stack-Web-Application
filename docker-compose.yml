@@ -17,6 +17,8 @@ services:
       context: .
       dockerfile: ./server/dockerfile
     container_name: server
+    env_file:
+      - ./server/.env
     environment:
       - NODE_ENV=production
     networks:

@@ -48,7 +48,7 @@ export default async function chatRoutes(fastify, opts) {
     const { search } = req.query;
     return new Promise((resolve, reject) => {
       db.all(
-        `SELECT * FROM users WHERE name LIKE ?`,
+        `SELECT * FROM friends WHERE name LIKE ?`,
         [`%${search || ""}%`],
         (err, rows) => {
           if (err) {

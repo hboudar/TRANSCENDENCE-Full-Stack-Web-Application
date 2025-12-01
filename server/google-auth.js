@@ -107,6 +107,11 @@ export default async function googleAuth(fastify, opts) {
               db.run('UPDATE users SET picture = ? WHERE id = ?', [picture, user.id]);
             }
 
+            // Verify email for Google OAuth users (if they previously signed up with email/password)
+            if (user.email_verified === 0) {
+              db.run('UPDATE users SET email_verified = 1, verification_token = NULL WHERE id = ?', [user.id]);
+            }
+
             // Create JWT token for this user (valid for 7 days)
             const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
 
@@ -127,8 +132,8 @@ export default async function googleAuth(fastify, opts) {
             // New User - Create Account
 
             db.run(
-              'INSERT INTO users (name, email, picture, password, gold) VALUES (?, ?, ?, ?, ?)',
-              [name, email, picture, null, 100],  // password is null (OAuth user), give 100 gold
+              'INSERT INTO users (name, email, picture, password, gold, email_verified) VALUES (?, ?, ?, ?, ?, ?)',
+              [name, email, picture, null, 100, 1],  // password is null (OAuth user), give 100 gold, email auto-verified
               function (err) {
                 if (err) {
                   console.error('Insert error:', err);

@@ -79,6 +79,8 @@ db.serialize(() => {
 		email TEXT UNIQUE,
 		password TEXT,
 		picture TEXT,
+		email_verified BOOLEAN DEFAULT 0,
+		verification_token TEXT,
 		games Integer DEFAULT 0,
         win INTEGER DEFAULT 0,
         lose INTEGER DEFAULT 0,
