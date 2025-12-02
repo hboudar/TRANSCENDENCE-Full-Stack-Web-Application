@@ -44,7 +44,7 @@ export function isTokenExpired(tokenWithTimestamp) {
 
 // Send verification email
 export async function sendVerificationEmail(email, token, name) {
-    const verificationUrl = `https://localhost/verify-email-result?token=${token}`;
+    const verificationUrl = `https://localhost/verify-email?token=${token}`;
     
     const mailOptions = {
         from: EMAIL_FROM,
