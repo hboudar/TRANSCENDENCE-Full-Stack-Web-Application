@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { User, Mail, Lock, EyeOff, EyeClosed } from 'lucide-react';
+import { User, Mail, Lock, EyeClosed } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SignUpForm() {
@@ -14,15 +14,19 @@ export default function SignUpForm() {
     const [confirmapasswordtype, setConfirmapasswordtype] = useState('password');
     const [passwordtype, setPasswordtype] = useState('password');
 
+    const [error, setError] = useState('');
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        setError('');
+        
         if (formData.password !== formData.confirmPassword) {
-            alert("Passwords do not match!");
+            setError("Passwords do not match!");
             return;
         }
 
         try {
-            const response = await fetch('http://localhost:4000/users', {
+            const response = await fetch('/api/users', {
 
                 method: 'POST',
                 headers: {
@@ -35,16 +39,20 @@ export default function SignUpForm() {
                 })
             });
             if (response.ok) {
-                alert("Registration successful!");
+                const data = await response.json();
+                // Show success message telling user to check email
+                alert('✅ ' + data.message);
+                window.location.href = '/login';
             } else {
-                alert("Registration failed!");
+                const data = await response.json();
+                setError(data.error || "Registration failed!");
+                console.error("Registration failed, status:", response.status);
             }
         }
         catch (error) {
             console.error("Error during registration:", error);
-            alert("An error occurred. Please try again later.");
+            setError("An error occurred. Please try again later.");
         }
-        console.log(formData);
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +71,12 @@ export default function SignUpForm() {
                     Sign up
                 </h1>
 
+                {error && (
+                    <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300 text-sm text-center">
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     <div className="relative">
                         <User className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -72,6 +86,7 @@ export default function SignUpForm() {
                             placeholder="Name"
                             value={formData.name}
                             onChange={handleChange}
+                            maxLength={16}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-2 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />
@@ -85,6 +100,7 @@ export default function SignUpForm() {
                             placeholder="Email"
                             value={formData.email}
                             onChange={handleChange}
+                            maxLength={24}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-2 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />
@@ -100,7 +116,7 @@ export default function SignUpForm() {
                             onChange={handleChange}
                             pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).+$"
                             minLength={8}
-
+                            maxLength={16}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-8 sm:pr-10 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />
@@ -125,6 +141,7 @@ export default function SignUpForm() {
                             placeholder="Confirm the Password"
                             value={formData.confirmPassword}
                             onChange={handleChange}
+                            maxLength={128}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-8 sm:pr-10 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />
@@ -155,7 +172,7 @@ export default function SignUpForm() {
                     <button
                         type="button"
                         className="w-full bg-white hover:bg-gray-100 text-gray-800 font-medium py-3 sm:py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"
-                        onClick={() => window.location.href = 'http://localhost:4000/auth/google'}
+                        onClick={() => window.location.href = '/api/auth/google'}
                     >
                         <svg className="w-4 h-4 sm:w-5 sm:h-5" viewBox="0 0 24 24">
                             <path
@@ -176,13 +193,6 @@ export default function SignUpForm() {
                             />
                         </svg>
                         Sign in with Google
-                    </button>
-
-                    <button
-                        type="button"
-                        className="w-full bg-black hover:bg-gray-900 text-white font-medium py-3 sm:py-3.5 rounded-xl transition-all duration-300 text-sm sm:text-base"
-                    >
-                        Sign in with 42
                     </button>
 
                     <p className="text-center text-gray-300 text-xs sm:text-sm mt-4 sm:mt-6">

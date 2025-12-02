@@ -1,10 +1,7 @@
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-
-import { console } from "inspector";
 import { Chakra_Petch } from "next/font/google";
+import "./globals.css";
 import { LayoutComp } from "./components/layoutnavbar";
 import { UserProvider } from "./Context/UserContext";
 import { NotificationProvider } from "./Context/NotificationContext";
@@ -14,18 +11,6 @@ const chakra = Chakra_Petch({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
   variable: "--font-chakra",
-});
-
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -40,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-chakra min-h-screen" >
+      <body className={`${chakra.variable} font-chakra min-h-screen`} >
       {/* <Suspense fallback={<div className="flex justify-center items-center h-screen text-white">Loading...</div>}> */}
         <UserProvider>
           <NotificationProvider>

@@ -1,42 +1,68 @@
 /** @format */
 
 "use client";
-import Image from "next/image";
-import { Homecontext } from "../home/layout";
-import { useEffect, useState } from "react";
-let table;
-let ball;
-let paddle;
+import { useEffect } from "react";
+import { useHomeContext } from "../games/context";
+
+type SkinType = "table" | "paddle" | "ball";
+type Skin = {
+	skin_id: number;
+	type: SkinType;
+	color: string;
+	img: string;
+	selected?: boolean;
+	player_id: number;
+};
+
+type Selected = {
+	types: Skin[];
+	type: number;
+};
+
 export default function SkinContainer({
 	skinType,
 	skins,
 	selected,
 	setselected,
+}: {
+	skinType: "table" | "ball" | "paddle";
+	skins: Skin[];
+	selected: Selected;
+	setselected: React.Dispatch<React.SetStateAction<Selected>>;
 }) {
 	// useEffect(()=>{
 	//     setSkins(data)
-	// const {skins} = Homecontext();
+	// const {skins} = useHomeContext();
 
+	const { user } = useHomeContext();
 	useEffect(() => {
-		table = skins.find((item) => item.type == "table" && item.selected);
-		ball = skins.find((item) => item.type == "ball" && item.selected);
-		paddle = skins.find((item) => item.type == "paddle" && item.selected);
-	}, [skins]);
+		async function fetchSkin() {
+			try {
+				const res = await fetch(
+					`/api/selected_skins?player_id=${user!.id}`
+				);
+				const data = await res.json();
+				setselected({ types: data, type: 0 });
+			} catch (err) {
+				console.error("Error fetching skin:", err);
+			}
+		}
+		if (user) {
+			fetchSkin();
+		}
+	}, [user, setselected]);
 	useEffect(() => {
 		if (skins) {
 			const alltypes = ["table", "paddle", "ball"];
 			const typeindex = alltypes.indexOf(skinType);
-			if (!selected.types || !selected.types[0])
-				setselected({ types: [table, paddle, ball], type: typeindex });
-			else setselected({ ...selected, type: typeindex });
+			setselected((prev) => ({ ...prev, type: typeindex }));
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [skinType, skins]);
-	function changeselected(skin) {
-		console.log("new skin :", skin);
-		console.log("old skin :", selected.types[selected.type]);
+	function changeselected(skin: Skin) {
 		async function postselect() {
 			const response = await fetch(
-				"http://localhost:4000/select_skin?player_id=" +
+				"/api/select_skin?player_id=" +
 					skin.player_id +
 					"&oldskin=" +
 					selected.types[selected.type].skin_id +
@@ -64,11 +90,11 @@ export default function SkinContainer({
 	return (
 		<div
 			className="px-4 py-2  md:w-[calc(100vw-125px)] max-md:w-[clac(100vw-40px)]    overflow-y-hidden overflow-x-scroll 
-                flex 
+                flex flex-1 w-full
                [&::-webkit-scrollbar-thumb]:bg-blue-400
                [&::-webkit-scrollbar-thumb]:rounded-full
                [&::-webkit-scrollbar]:h-2">
-			<div className=" flex gap-[5%] px-[5%] items-center mx-auto ">
+			<div className=" flex flex-1 gap-[5%] px-[5%] items-center mx-auto ">
 				{skins.map((skin, index) =>
 					skin.type == skinType ? (
 						<div
@@ -78,9 +104,7 @@ export default function SkinContainer({
 							}}
 							style={{
 								background: `${
-									skinType == "table"
-										? skin.color
-										: selected.types[0].color
+									skinType == "table" ? skin.color : selected.types[0].color
 								}`,
 							}}
 							className={`relative group    cursor-pointer flex  
@@ -89,7 +113,7 @@ export default function SkinContainer({
                   transition hover:scale-105 
                   `}>
 							{/* {skinType == "table" && skin.img[0] != "#" ? (
-								<Image
+								<img
 									fill
 									className=" object-cover object-center"
 									src={skin.img}
@@ -98,7 +122,7 @@ export default function SkinContainer({
 								<></>
 							)}
 							{skinType != "table" && selected.types[0].img[0] != "#" ? (
-								<Image
+								<img
 									fill
 									className=" object-cover object-center"
 									src={selected.types[0].img}
@@ -111,15 +135,13 @@ export default function SkinContainer({
 								id="paddle1"
 								style={{
 									background: `${
-										skinType == "paddle"
-											? skin.color
-											: selected.types[1].color
+										skinType == "paddle" ? skin.color : selected.types[1].color
 									}`,
 								}}
 								className={`h-1/3 top-1/4 -translate-y-1/2  aspect-[1/6] rounded-full 
                     absolute left-1`}>
 								{/* {skinType == "paddle" && skin.img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={skin.img}
@@ -128,7 +150,7 @@ export default function SkinContainer({
 									<></>
 								)}
 								{skinType != "paddle" && selected.types[1].img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={selected.types[1].img}
@@ -141,15 +163,13 @@ export default function SkinContainer({
 								id="paddle2"
 								style={{
 									background: `${
-										skinType == "paddle"
-											? skin.color
-											: selected.types[1].color
+										skinType == "paddle" ? skin.color : selected.types[1].color
 									}`,
 								}}
 								className={`h-1/3 top-1/2 -translate-y-1/2 aspect-[1/6]
                      rounded-full absolute right-1`}>
 								{/* {skinType == "paddle" && skin.img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={skin.img}
@@ -158,7 +178,7 @@ export default function SkinContainer({
 									<></>
 								)}
 								{skinType != "paddle" && selected.types[1].img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={selected.types[1].img}
@@ -171,20 +191,14 @@ export default function SkinContainer({
 								id="ball"
 								style={{
 									background: `${
-										skinType == "ball"
-											? skin.color
-											: selected.types[2].color
+										skinType == "ball" ? skin.color : selected.types[2].color
 									}`,
 								}}
 								className={` top-1/3 left-3/5 h-[10%]
-                    ${
-											skinType == "ball"
-												? skin.color
-												: selected.types[2].color
-										}
+                    ${skinType == "ball" ? skin.color : selected.types[2].color}
                     -translate-1/2 aspect-square   rounded-full absolute`}>
 								{/* {skinType == "ball" && skin.img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={skin.img}
@@ -193,7 +207,7 @@ export default function SkinContainer({
 									<></>
 								)}
 								{skinType != "ball" && selected.types[2].img[0] != "#" ? (
-									<Image
+									<img
 										fill
 										className=" object-cover object-center"
 										src={selected.types[2].img}

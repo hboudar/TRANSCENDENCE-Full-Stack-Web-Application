@@ -4,9 +4,11 @@ import socket from '../socket'
 
 export function useOnlineStatus() {
   // initialize from current socket connection state so UI is correct immediately
-  const [isOnline, setIsOnline] = useState<boolean>(socket.connected)
+  const [isOnline, setIsOnline] = useState<boolean>(socket?.connected ?? false)
 
   useEffect(() => {
+    if (!socket) return
+
     const handleConnect = () => setIsOnline(true)
     const handleDisconnect = () => setIsOnline(false)
     const handleConnectError = () => setIsOnline(false)
