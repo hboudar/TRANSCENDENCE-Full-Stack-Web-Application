@@ -250,8 +250,6 @@ export default async function authRoutes(fastify, opts) {
                             console.error('Failed to send verification email:', err.message);
                         });
                     db.all(`SELECT id, type FROM skins WHERE price = 0 ORDER BY id`, [], (err, freeSkins) => {
-                        
-
                         const selectedTypes = new Set();
                         let completed = 0;
 
@@ -302,7 +300,7 @@ export default async function authRoutes(fastify, opts) {
             // Find user with matching verification token
             db.get(
                 `SELECT id, name, email, verification_token FROM users WHERE verification_token LIKE ?`,
-                [token.split('.')[0] + '.%'], // Match token part before timestamp
+                [token.split('.')[0] + '.%'], // Match token part before timestamp, .% is wildcard for timestamp
                 (err, user) => {
                     if (err) {
                         console.error("Database error:", err.message);

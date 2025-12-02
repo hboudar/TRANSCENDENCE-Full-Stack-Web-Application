@@ -1,3 +1,5 @@
+import { checkFriendship, checkBlock } from './utils/friendshipHelper.js';
+
 const sockethandler = (io, db) => {
   io.on("connection", (socket) => {
     console.log("⚡ Socket.IO client connected:", socket.id);
@@ -15,7 +17,7 @@ const sockethandler = (io, db) => {
       }
     });
 
-    socket.on("chat message", (msg) => {
+    socket.on("chat message", async (msg) => {
       const { content, sender_id, receiver_id, status } = msg;
 
       if (!status) {
@@ -25,56 +27,59 @@ const sockethandler = (io, db) => {
 
       console.log("📩 Received message:", msg);
 
-      // Check if sender is blocked by receiver OR receiver is blocked by sender
-      db.get(
-        `SELECT * FROM blocks WHERE 
-         (blocker_id = ? AND blocked_id = ?) OR 
-         (blocker_id = ? AND blocked_id = ?)`,
-        [receiver_id, sender_id, sender_id, receiver_id],
-        (err, block) => {
-          if (err) {
-            console.error("❌ Error checking blocks:", err.message);
-            return;
-          }
+      try {
+        // Check if sender is blocked by receiver OR receiver is blocked by sender
+        const block = await checkBlock(db, sender_id, receiver_id);
+        if (block) {
+          console.log("🚫 Message blocked between users", sender_id, receiver_id);
+          socket.emit("message_blocked", {
+            sender_id,
+            receiver_id,
+            message: block.blocker_id === sender_id 
+              ? "You have blocked this user. Unblock to send messages." 
+              : "This user has blocked you. You cannot send messages."
+          });
+          return;
+        }
 
-          if (block) {
-            console.log("🚫 Message blocked between users", sender_id, receiver_id);
-            // Notify sender that message was blocked
-            socket.emit("message_blocked", {
+        // Check if users are friends
+        const areFriends = await checkFriendship(db, sender_id, receiver_id);
+        if (!areFriends) {
+          console.log("🚫 Users are not friends", sender_id, receiver_id);
+          socket.emit("message_blocked", {
+            sender_id,
+            receiver_id,
+            message: "You can only send messages to friends"
+          });
+          return;
+        }
+
+        // Users are friends and not blocked, insert message
+        db.run(
+          `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
+          [sender_id, receiver_id, content],
+          function (err) {
+            if (err) {
+              console.error("❌ Error inserting message:", err.message);
+              return;
+            }
+
+            const messageData = {
+              id: this.lastID,
+              content,
               sender_id,
               receiver_id,
-              message: block.blocker_id === sender_id 
-                ? "You have blocked this user. Unblock to send messages." 
-                : "This user has blocked you. You cannot send messages."
-            });
-            return;
+              status: true,
+              created_at: new Date().toISOString(),
+            };
+           
+            io.to(`user:${sender_id}`).emit("new message", messageData);
+            io.to(`user:${receiver_id}`).emit("new message", messageData);
           }
-
-          // Insert message if not blocked
-          db.run(
-            `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
-            [sender_id, receiver_id, content],
-            function (err) {
-              if (err) {
-                console.error("❌ Error inserting message:", err.message);
-                return;
-              }
-
-              const messageData = {
-                id: this.lastID,
-                content,
-                sender_id,
-                receiver_id,
-                status: true,
-                created_at: new Date().toISOString(),
-              };
-             
-              io.to(`user:${sender_id}`).emit("new message", messageData);
-              io.to(`user:${receiver_id}`).emit("new message", messageData);
-            }
-          );
-        }
-      );
+        );
+      } catch (error) {
+        console.error("❌ Error in chat message handler:", error);
+      }
     });
 
     // Respond with list of currently connected user IDs
