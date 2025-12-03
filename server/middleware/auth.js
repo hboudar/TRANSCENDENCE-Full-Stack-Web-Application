@@ -40,7 +40,7 @@ export default async function authMiddleware(req, reply, db) {
   console.log('Middleware - URL:', req.url, 'Method:', req.method, 'Has Token:', !!token);
 
   // Public routes that don't need authentication
-  const publicRoutes = ['/', '/login', '/register', '/users', '/auth/google', '/auth/google/callback', '/verify-email'];
+  const publicRoutes = ['/', '/login', '/register', '/users', '/auth/google', '/auth/google/callback', '/verify-email', '/forgot-password', '/reset-password'];
   
   // Extract pathname without query parameters
   const pathname = req.url.split('?')[0];

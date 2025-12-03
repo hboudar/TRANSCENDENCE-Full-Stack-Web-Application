@@ -119,6 +119,15 @@ function LoginContent() {
                         />
                     </div>
 
+                    <div className="text-right">
+                        <Link
+                            href="/forgot-password"
+                            className="text-[#4c7cf3] hover:text-[#3d6ae0] text-xs sm:text-sm font-medium transition-colors"
+                        >
+                            Forgot Password?
+                        </Link>
+                    </div>
+
                     <button
                         type="submit"
                         className="w-full bg-[#4c7cf3] hover:bg-[#3d6ae0] text-white font-medium py-3 sm:py-3.5 rounded-xl transition-all duration-300 mt-6 sm:mt-8 text-sm sm:text-base"

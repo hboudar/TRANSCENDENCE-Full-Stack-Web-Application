@@ -10,16 +10,32 @@ const {
     CLIENT_URL
 } = process.env;
 
+// Check if email configuration is present
+const isEmailConfigured = EMAIL_HOST && EMAIL_PORT && EMAIL_USER && EMAIL_PASSWORD && EMAIL_FROM;
+
+if (!isEmailConfigured) {
+    console.warn('⚠️  EMAIL CONFIGURATION MISSING!');
+    console.warn('Please configure the following in your .env file:');
+    console.warn('- EMAIL_HOST (e.g., smtp.gmail.com)');
+    console.warn('- EMAIL_PORT (e.g., 587)');
+    console.warn('- EMAIL_USER (your email address)');
+    console.warn('- EMAIL_PASSWORD (your email password or app password)');
+    console.warn('- EMAIL_FROM (sender name and email)');
+    console.warn('Emails will NOT be sent until configured!\n');
+}
+
 // Create reusable transporter
-const transporter = nodemailer.createTransport({
+const transporter = isEmailConfigured ? nodemailer.createTransport({
     host: EMAIL_HOST,
-    port: EMAIL_PORT,
+    port: parseInt(EMAIL_PORT),
     secure: false, // true for 465, false for other ports
     auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASSWORD,
     },
-});
+    debug: true, // Enable debug output
+    logger: true // Log to console
+}) : null;
 
 // Generate verification token with timestamp
 export function generateVerificationToken() {
@@ -44,6 +60,11 @@ export function isTokenExpired(tokenWithTimestamp) {
 
 // Send verification email
 export async function sendVerificationEmail(email, token, name) {
+    if (!transporter) {
+        console.error('❌ Cannot send verification email: Email service not configured');
+        return false;
+    }
+
     const verificationUrl = `${CLIENT_URL}/verify-email?token=${token}`;
     
     const mailOptions = {
@@ -71,11 +92,69 @@ export async function sendVerificationEmail(email, token, name) {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
-        console.log('✅ Verification email sent to:', email);
+        console.log('📧 Attempting to send verification email to:', email);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Verification email sent successfully!');
+        console.log('   Message ID:', info.messageId);
+        console.log('   To:', email);
         return true;
     } catch (error) {
-        console.error('❌ Error sending verification email:', error.message);
+        console.error('❌ Error sending verification email:');
+        console.error('   Error:', error.message);
+        console.error('   Code:', error.code);
+        console.error('   To:', email);
+        return false;
+    }
+}
+
+// Send password reset email
+export async function sendPasswordResetEmail(email, token, name) {
+    if (!transporter) {
+        console.error('❌ Cannot send password reset email: Email service not configured');
+        return false;
+    }
+
+    const resetUrl = `${CLIENT_URL}/reset-password?token=${token}`;
+    
+    const mailOptions = {
+        from: EMAIL_FROM,
+        to: email,
+        subject: 'Reset Your Password',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #4c7cf3;">Password Reset Request</h2>
+                <p>Hi ${name},</p>
+                <p>We received a request to reset your password. Click the button below to create a new password:</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetUrl}" 
+                       style="background-color: #4c7cf3; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                        Reset Password
+                    </a>
+                </div>
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="color: #666; word-break: break-all;">${resetUrl}</p>
+                <p style="color: #ff6b6b; margin-top: 20px;">
+                    ⚠️ This link will expire in 1 hour for security reasons.
+                </p>
+                <p style="color: #999; font-size: 12px; margin-top: 30px;">
+                    If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+                </p>
+            </div>
+        `
+    };
+
+    try {
+        console.log('📧 Attempting to send password reset email to:', email);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Password reset email sent successfully!');
+        console.log('   Message ID:', info.messageId);
+        console.log('   To:', email);
+        return true;
+    } catch (error) {
+        console.error('❌ Error sending password reset email:');
+        console.error('   Error:', error.message);
+        console.error('   Code:', error.code);
+        console.error('   To:', email);
         return false;
     }
 }

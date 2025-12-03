@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { generateVerificationToken, sendVerificationEmail, isTokenExpired } from '../utils/emailService.js';
+import { generateVerificationToken, sendVerificationEmail, sendPasswordResetEmail, isTokenExpired } from '../utils/emailService.js';
 
 // Use same JWT secret as Google OAuth (IMPORTANT: must match!)
 const SECRET = process.env.JWT_SECRET;
@@ -21,6 +21,25 @@ const SchemaRegister =
         name: { type: 'string', minLength: 1, maxLength: 16 },  // Max 50 characters
         email: { type: 'string', format: 'email', maxLength: 36 },  // Must be valid email, max 100 chars
         password: { type: 'string', minLength: 6, maxLength: 16 }   // 6-128 characters
+    },
+}
+
+// Validation schema for forgot password request
+const SchemaForgotPassword = {
+    type: 'object',
+    required: ['email'],
+    properties: {
+        email: { type: 'string', format: 'email', maxLength: 36 }
+    },
+}
+
+// Validation schema for reset password request
+const SchemaResetPassword = {
+    type: 'object',
+    required: ['token', 'newPassword'],
+    properties: {
+        token: { type: 'string', minLength: 1 },
+        newPassword: { type: 'string', minLength: 6, maxLength: 16 }
     },
 }
 
@@ -339,6 +358,185 @@ export default async function authRoutes(fastify, opts) {
                 }
             );
         });
+    });
+
+    // Forgot Password Endpoint
+    // Generates a password reset token and sends email to user
+    // Note: Google OAuth users cannot reset password as they don't have one
+    fastify.post('/forgot-password', { schema: { body: SchemaForgotPassword } }, async (req, reply) => {
+        const { email } = req.body;
+
+        if (!email) {
+            return reply.status(400).send({ error: 'Email is required' });
+        }
+
+        return new Promise((resolve, reject) => {
+            // Find user by email
+            db.get(`SELECT id, name, password FROM users WHERE email = ?`, [email], async (err, user) => {
+                if (err) {
+                    console.error('Database error:', err);
+                    reply.status(500).send({ error: 'Database error' });
+                    return reject(err);
+                }
+
+                if (!user) {
+                    // Email doesn't exist in database
+                    return reply.status(404).send({ 
+                        error: 'No account found with this email address.'
+                    });
+                }
+
+                // Check if user signed up with Google (password is null)
+                if (!user.password) {
+                    return reply.status(400).send({
+                        error: 'This account was created with Google Sign-In, so no password exists. Please sign in with Google.'
+                    });
+                }
+
+                // Generate a secure reset token
+                const resetToken = jwt.sign({ userId: user.id }, SECRET, { expiresIn: '1h' });
+                const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
+
+                // Delete any existing reset tokens for this user
+                db.run(`DELETE FROM password_reset_tokens WHERE user_id = ?`, [user.id], async (err) => {
+                    if (err) {
+                        console.error('Error deleting old tokens:', err);
+                        reply.status(500).send({ error: 'Database error' });
+                        return reject(err);
+                    }
+
+                    // Store the reset token in database
+                    db.run(
+                        `INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`,
+                        [user.id, resetToken, expiresAt],
+                        async (err) => {
+                            if (err) {
+                                console.error('Error storing reset token:', err);
+                                reply.status(500).send({ error: 'Database error' });
+                                return reject(err);
+                            }
+
+                            // Send password reset email
+                            const emailSent = await sendPasswordResetEmail(email, resetToken, user.name);
+                            
+                            if (emailSent) {
+                                reply.send({
+                                    success: true,
+                                    message: 'Password reset link has been sent to your email.'
+                                });
+                            } else {
+                                reply.status(500).send({
+                                    error: 'Failed to send reset email. Please try again later.'
+                                });
+                            }
+                            resolve();
+                        }
+                    );
+                });
+            });
+        });
+    });
+
+    // Reset Password Endpoint
+    // Verifies the reset token and updates the user's password
+    fastify.post('/reset-password', { schema: { body: SchemaResetPassword } }, async (req, reply) => {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return reply.status(400).send({ error: 'Token and new password are required' });
+        }
+
+        try {
+            // Verify the JWT token
+            const decoded = jwt.verify(token, SECRET);
+            const userId = decoded.userId;
+
+            return new Promise((resolve, reject) => {
+                // Check if token exists in database and hasn't expired
+                db.get(
+                    `SELECT * FROM password_reset_tokens WHERE token = ? AND user_id = ? AND expires_at > datetime('now')`,
+                    [token, userId],
+                    async (err, resetToken) => {
+                        if (err) {
+                            console.error('Database error:', err);
+                            reply.status(500).send({ error: 'Database error' });
+                            return reject(err);
+                        }
+
+                        if (!resetToken) {
+                            return reply.status(400).send({ 
+                                error: 'Invalid or expired reset token' 
+                            });
+                        }
+
+                        // Verify user still exists and check if Google OAuth account
+                        db.get(`SELECT id, password FROM users WHERE id = ?`, [userId], async (err, user) => {
+                            if (err) {
+                                console.error('Database error:', err);
+                                reply.status(500).send({ error: 'Database error' });
+                                return reject(err);
+                            }
+
+                            if (!user) {
+                                return reply.status(400).send({ 
+                                    error: 'User account no longer exists' 
+                                });
+                            }
+
+                            // Prevent setting password on Google OAuth accounts
+                            if (user.password === null) {
+                                return reply.status(400).send({
+                                    error: 'This account was created with Google Sign-In, so no password exists. Please sign in with Google.'
+                                });
+                            }
+
+                            // Hash the new password
+                            const hashedPassword = await bcrypt.hash(newPassword, 8);
+
+                            // Update user's password
+                            db.run(
+                                `UPDATE users SET password = ? WHERE id = ?`,
+                                [hashedPassword, userId],
+                                function(err) {
+                                    if (err) {
+                                        console.error('Error updating password:', err);
+                                        reply.status(500).send({ error: 'Database error' });
+                                        return reject(err);
+                                    }
+
+                                    // Verify update actually affected a row
+                                    if (this.changes === 0) {
+                                        console.error('Password update affected 0 rows');
+                                        reply.status(500).send({ error: 'Failed to update password' });
+                                        return reject(new Error('No rows updated'));
+                                    }
+
+                                    // Delete the used reset token
+                                    db.run(
+                                        `DELETE FROM password_reset_tokens WHERE token = ?`,
+                                        [token],
+                                        (err) => {
+                                            if (err) {
+                                                console.error('Error deleting reset token:', err);
+                                            }
+
+                                            reply.send({
+                                                success: true,
+                                                message: 'Password has been reset successfully'
+                                            });
+                                            resolve();
+                                        }
+                                    );
+                                }
+                            );
+                        });
+                    }
+                );
+            });
+        } catch (err) {
+            console.error('Token verification error:', err);
+            return reply.status(400).send({ error: 'Invalid or expired reset token' });
+        }
     });
 
 }
