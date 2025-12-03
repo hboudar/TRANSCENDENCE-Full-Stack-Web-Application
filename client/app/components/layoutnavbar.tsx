@@ -30,23 +30,15 @@ export const LayoutComp = ({ children }: { children: React.ReactNode }) => {
                     {isMobile ? (
                         <>
                             <button
-                                className="absolute top-5 left-3 z-50 p-3 bg-gradient-to-br from-purple-600/80 to-blue-600/80 rounded-xl text-white md:hidden shadow-lg hover:shadow-purple-500/50 hover:scale-105 transition-all duration-200 backdrop-blur-sm border border-purple-500/30"
+                                className="fixed bottom-6 left-4 z-50 p-3 bg-gradient-to-br from-purple-600/90 to-blue-600/90 rounded-full text-white md:hidden shadow-2xl hover:shadow-purple-500/50 hover:scale-110 transition-all duration-200 backdrop-blur-md border border-purple-400/40"
                                 onClick={() => setIsOpen(!isOpen)}
                             >
-                                <GiHamburgerMenu size={24} className="drop-shadow-lg" />
+                                <GiHamburgerMenu size={22} className="drop-shadow-lg" />
                             </button>
                             {isOpen && (
                                 <>
                                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30" onClick={() => setIsOpen(false)} />
-                                    <div className="absolute top-0 left-0 z-40 w-64 h-full bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1e] shadow-2xl shadow-purple-500/20 transition-transform duration-300 border-r border-purple-500/30">
-                                        <div className="p-4 border-b border-purple-500/30 flex justify-end">
-                                            <button
-                                                onClick={() => setIsOpen(false)}
-                                                className="flex items-center justify-center w-10 h-10 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-all"
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
+                                    <div className="absolute top-0 left-0 z-40 w-fit h-full bg-[#0a0a0a]/95 shadow-2xl transition-transform duration-300 px-3">
                                         <Leftheader />
                                     </div>
                                 </>

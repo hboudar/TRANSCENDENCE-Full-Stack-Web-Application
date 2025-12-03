@@ -99,7 +99,7 @@ export default function Topheader() {
   }
 
   return (
-    <div className="flex w-full justify-between items-center p-4 shadow-md rounded-lg relative">
+    <div className="flex w-full justify-between items-center p-4 md:p-4 shadow-md rounded-lg relative">
       <div className="hidden md:block relative px-0 w-[50%] ml-0 md:ml-0 border-b border-[#9b9b9b] z-[9999]">
         <CiSearch size={20} className="absolute top-1/2 -translate-y-1/2 text-[#9b9b9b] pointer-events-none" />
         <input
@@ -125,7 +125,7 @@ export default function Topheader() {
       </div>
 
       {showSearchInput && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] md:hidden">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000] md:hidden">
           <div ref={searchRef} className="absolute top-0 left-0 right-0 bg-[#0a0a0a] p-4 shadow-2xl">
             <div className="flex-1 relative border-b border-[#9b9b9b]">
               <CiSearch size={20} className="absolute top-1/2 -translate-y-1/2 text-[#9b9b9b] pointer-events-none" />
@@ -223,7 +223,7 @@ export default function Topheader() {
           )}
 
           {showNotifications && (
-            <div className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999]">
+            <div className="md:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[10000]">
               <div className="absolute top-0 left-0 right-0 h-[80vh] bg-gradient-to-b from-[#1a1a2e] to-[#0f0f1e] border-b border-blue-500/30 shadow-2xl overflow-hidden">
                 <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
                   <h3 className="text-lg font-bold text-white">Notifications</h3>

@@ -4,8 +4,8 @@ WORKDIR /usr/src/app
 
 # Install Python and build dependencies for native modules like sqlite3
 # Clean cache and retry on failure to handle network issues
-RUN apk update && apk add --no-cache python3 make g++ || \
-    (rm -rf /var/cache/apk/* && apk update && apk add --no-cache python3 make g++)
+# RUN apk update && apk add --no-cache python3 make g++ || \
+#     (rm -rf /var/cache/apk/* && apk update && apk add --no-cache python3 make g++)
 
 COPY ./server/package*.json ./
 
