@@ -6,7 +6,7 @@
 // Disable SSL verification for self-signed certificates
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const BASE_URL = 'https://localhost';
+const BASE_URL = 'https://10.32.118.247';
 let validToken = null;
 let validUserId = null;
 let validToken2 = null;

@@ -51,7 +51,7 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 
 # Your frontend URL
-CLIENT_URL=http://localhost:3000
+CLIENT_URL=http://10.32.118.247:3000
 
 # Your JWT secret
 JWT_SECRET=your_secret_key_here

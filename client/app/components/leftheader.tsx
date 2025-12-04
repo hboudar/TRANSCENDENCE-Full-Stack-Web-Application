@@ -19,7 +19,7 @@ export default function Leftheader() {
     ];
 
     return (
-        <div className="h-full flex flex-col justify-between items-center text-white shadow-xl py-6 px-2">
+        <div className="h-full flex flex-col justify-around items-center text-white shadow-xl py-6 px-2">
             {/* Logo */}
             <div className="w-12 mb-4">
                 <img

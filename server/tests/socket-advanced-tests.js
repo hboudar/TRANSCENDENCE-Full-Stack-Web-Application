@@ -5,8 +5,8 @@ import https from 'https';
 // Disable SSL certificate validation for testing
 const agent = new https.Agent({ rejectUnauthorized: false });
 
-const SERVER_URL = 'https://localhost/auth';
-const SOCKET_URL = 'https://localhost';
+const SERVER_URL = 'https://10.32.118.247/auth';
+const SOCKET_URL = 'https://10.32.118.247';
 
 // Helper function to login and get token
 async function loginUser(email, password) {

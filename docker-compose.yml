@@ -128,7 +128,7 @@ services:
   #   depends_on:
   #     - es_certs
   #   healthcheck:
-  #     test: ["CMD", "curl", "-k", "-u", "elastic:${ELASTIC_PASSWORD}", "https://localhost:9200/_cluster/health"]
+  #     test: ["CMD", "curl", "-k", "-u", "elastic:${ELASTIC_PASSWORD}", "https://10.32.118.247:9200/_cluster/health"]
   #     interval: 20s
   #     timeout: 10s
   #     retries: 10

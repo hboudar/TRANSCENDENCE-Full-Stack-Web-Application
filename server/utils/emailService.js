@@ -45,7 +45,7 @@ export function generateVerificationToken() {
     return `${token}.${timestamp}`;
 }
 
-// Check if token is expired (5 minutes = 300000 ms)
+// Check if token is expired (10 minutes = 600000 ms)
 export function isTokenExpired(tokenWithTimestamp) {
     if (!tokenWithTimestamp || !tokenWithTimestamp.includes('.')) {
         return true; // Invalid format
@@ -53,9 +53,9 @@ export function isTokenExpired(tokenWithTimestamp) {
     
     const [token, timestamp] = tokenWithTimestamp.split('.');
     const tokenAge = Date.now() - parseInt(timestamp);
-    const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const TEN_MINUTES = 10 * 60 * 1000; // 10 minutes in milliseconds
     
-    return tokenAge > FIVE_MINUTES;
+    return tokenAge > TEN_MINUTES;
 }
 
 // Send verification email
@@ -84,6 +84,9 @@ export async function sendVerificationEmail(email, token, name) {
                 </div>
                 <p>Or copy and paste this link into your browser:</p>
                 <p style="color: #666; word-break: break-all;">${verificationUrl}</p>
+                <p style="color: #ff6b6b; margin-top: 20px;">
+                    ⚠️ This link will expire in 10 minutes for security reasons.
+                </p>
                 <p style="color: #999; font-size: 12px; margin-top: 30px;">
                     If you didn't create an account, please ignore this email.
                 </p>
@@ -126,7 +129,7 @@ export async function sendPasswordResetEmail(email, token, name) {
                 <p>Hi ${name},</p>
                 <p>We received a request to reset your password. Click the button below to create a new password:</p>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetUrl}" 
+                    <a href="${resetUrl}"
                        style="background-color: #4c7cf3; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
                         Reset Password
                     </a>
@@ -134,7 +137,7 @@ export async function sendPasswordResetEmail(email, token, name) {
                 <p>Or copy and paste this link into your browser:</p>
                 <p style="color: #666; word-break: break-all;">${resetUrl}</p>
                 <p style="color: #ff6b6b; margin-top: 20px;">
-                    ⚠️ This link will expire in 1 hour for security reasons.
+                    ⚠️ This link will expire in 10 minutes for security reasons.
                 </p>
                 <p style="color: #999; font-size: 12px; margin-top: 30px;">
                     If you didn't request a password reset, please ignore this email. Your password will remain unchanged.

@@ -7,7 +7,7 @@
 import fetch from 'node-fetch';
 import https from 'https';
 
-const BASE_URL = 'https://localhost';
+const BASE_URL = 'https://10.32.118.247';
 
 // HTTPS agent that accepts self-signed certificates
 const httpsAgent = new https.Agent({

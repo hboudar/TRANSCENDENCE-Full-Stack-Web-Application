@@ -125,7 +125,7 @@ All returned 403 (expected 200):
 **Root Cause Analysis:**
 1. **Nginx CORS blocking** - Possible preflight issues
 2. **Cookie not being sent** - Authorization header may not work with nginx proxy
-3. **Origin mismatch** - localhost vs container hostnames
+3. **Origin mismatch** - 10.32.118.247 vs container hostnames
 
 **Recommendations:**
 1. Test directly against server:4000 (bypass nginx)
@@ -307,7 +307,7 @@ docker-compose exec server sh -c "
 "
 
 # Or use the registration API:
-curl -k -X POST https://localhost/api/users \
+curl -k -X POST https://10.32.118.247/api/users \
   -H "Content-Type: application/json" \
   -d '{"name":"security_test_user1","email":"security_test1@test.com","password":"TestPass123!"}'
 ```

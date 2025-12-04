@@ -100,7 +100,7 @@ export default function SignUpForm() {
                             placeholder="Email"
                             value={formData.email}
                             onChange={handleChange}
-                            maxLength={24}
+                            maxLength={50}
                             className="w-full bg-transparent border-b border-gray-500 text-white placeholder-gray-400 py-2.5 sm:py-3 pl-7 sm:pl-8 pr-2 focus:outline-none focus:border-blue-400 transition-colors text-sm sm:text-base"
                             required
                         />

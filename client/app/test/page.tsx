@@ -7,7 +7,7 @@ export default function WebSocketTest() {
 
   useEffect(() => {
     // Connect to Fastify WebSocket server
-    const ws = new WebSocket("ws://localhost:3001");
+    const ws = new WebSocket("ws://10.32.118.247:3001");
 
     ws.onopen = () => {
       console.log("✅ Connected to WebSocket");

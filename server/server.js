@@ -325,5 +325,5 @@ httpServer.listen(PORT, (err) => {
     console.error('Error starting server:', err);
     process.exit(1);
   }
-  console.log(`🚀 Server running at https://localhost:${PORT}`);
+  console.log(`🚀 Server running at https://10.32.118.247:${PORT}`);
 });

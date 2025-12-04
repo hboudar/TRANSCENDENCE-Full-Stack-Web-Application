@@ -14,7 +14,7 @@ const httpsAgent = new https.Agent({
 });
 
 // Test configuration
-const BASE_URL = 'https://localhost';
+const BASE_URL = 'https://10.32.118.247';
 const SOCKET_URL = BASE_URL;
 
 // Color output helpers

@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-const SERVER_URL = 'http://localhost:3000';
+const SERVER_URL = 'http://10.32.118.247:3000';
 
 const users = [
   { email: 'testuser1@test.com', username: 'testuser1', password: 'Test123!@#' },
