@@ -122,7 +122,7 @@ const gameApiRoute = async (fastify, options) => {
 			});
 		} catch (error) {
 			console.error("Error starting game:", error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: "Failed to start game",
 			});
@@ -160,7 +160,7 @@ const gameApiRoute = async (fastify, options) => {
 			};
 		} catch (error) {
 			console.error("Error fetching active games:", error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: "Failed to fetch active games",
 			});
@@ -195,7 +195,7 @@ const gameApiRoute = async (fastify, options) => {
 			};
 		} catch (error) {
 			console.error("Error fetching game session:", error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: "Failed to fetch game session",
 			});
@@ -227,7 +227,7 @@ const gameApiRoute = async (fastify, options) => {
 				function (err) {
 					if (err) {
 						console.error("Error updating tournaments won:", err);
-						return reply.status(500).send({
+						return reply.status(503).send({
 							success: false,
 							error: "Failed to update tournaments won",
 						});
@@ -240,7 +240,7 @@ const gameApiRoute = async (fastify, options) => {
 			);
 		} catch (error) {
 			console.error("Error updating tournaments won:", error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: "Failed to update tournaments won",
 			});
@@ -268,7 +268,7 @@ const gameApiRoute = async (fastify, options) => {
 			};
 		} catch (error) {
 			console.error("Error ending game session:", error);
-			return reply.status(500).send({
+			return reply.status(503).send({
 				success: false,
 				error: "Failed to end game session",
 			});

@@ -48,7 +48,7 @@ db.run(`
 				[player_id],
 				(err, rows) => {
 					if (err) {
-						reply.status(500).send({ error: "Database error" });
+						reply.status(503).send({ error: "Database error" });
 						return reject(err);
 					}
 					console.log(rows);
@@ -74,7 +74,7 @@ db.run(`
 				[player_id],
 				(err, rows) => {
 					if (err) {
-						reply.status(500).send({ error: "Database error" });
+						reply.status(503).send({ error: "Database error" });
 						return reject(err);
 					}
 
@@ -127,10 +127,10 @@ db.run(`
 				[player_id, oldskin, newskin],
 				(err, rows) => {
 					if (err) {
-						reply.status(500).send({ error: "Database error" });
+						reply.status(503).send({ error: "Database error" });
 						return reject(err);
 					} else if (rows.length != 2 || rows[0].type != rows[1].type) {
-						reply.status(500).send({ error: "Database error" });
+						reply.status(503).send({ error: "Database error" });
 						return reject(new Error("diferent skin type"));
 					} else {
 						db.run(

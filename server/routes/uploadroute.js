@@ -93,7 +93,7 @@ export default async function uploadRoute(fastify, opts) {
                     function(err) {
                         if (err) {
                             console.error('❌ Database update error:', err);
-                            reply.status(500).send({ error: 'Failed to update profile picture' });
+                            reply.status(503).send({ error: 'Failed to update profile picture' });
                             return reject(err);
                         }
 
@@ -120,7 +120,7 @@ export default async function uploadRoute(fastify, opts) {
 
         } catch (error) {
             console.error('❌ Upload error:', error);
-            return reply.status(500).send({ error: 'Upload failed', details: error.message });
+            return reply.status(422).send({ error: 'Upload failed', details: error.message });
         }
     });
 }

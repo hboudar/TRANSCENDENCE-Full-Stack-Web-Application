@@ -8,7 +8,7 @@ export default async function gameRoutes(fastify, opts) {
 		return new Promise((resolve, reject) => {
 			db.all(`SELECT * FROM games`, [], (err, rows) => {
 				if (err) {
-					reply.status(500).send({ error: "Database error" });
+					reply.status(503).send({ error: "Database error" });
 					return reject(err);
 				}
 				resolve(rows);
@@ -79,7 +79,7 @@ export default async function gameRoutes(fastify, opts) {
 					],
 					function (err) {
 						if (err) {
-							reply.status(500).send({ error: "Database error" });
+							reply.status(503).send({ error: "Database error" });
 							return reject(err);
 						}
 						resolve({ id: this.lastID });
@@ -101,7 +101,7 @@ export default async function gameRoutes(fastify, opts) {
 				],
 				(err) => {
 					if (err) {
-						reply.status(500).send({ error: "Database error" });
+						reply.status(503).send({ error: "Database error" });
 						return reject(err);
 					}
 				}
@@ -113,6 +113,18 @@ export default async function gameRoutes(fastify, opts) {
 
 	fastify.get("/games/:userId", async (req, reply) => {
 		const userId = req.params.userId;
+		const requestUserId = req.user?.id;
+		
+		// Authorization check - user can only view their own games unless viewing public profiles
+		if (!requestUserId) {
+			return reply.status(401).send({ error: "Unauthorized" });
+		}
+		
+		// Optional: Remove this check if game history should be public
+		// For now, users can only view their own game history
+		if (requestUserId != userId) {
+			return reply.status(403).send({ error: "Forbidden: You can only view your own game history" });
+		}
 
 		return new Promise((resolve, reject) => {
 			db.all(
@@ -120,7 +132,7 @@ export default async function gameRoutes(fastify, opts) {
 				[userId, userId],
 				(err, rows) => {
 					if (err) {
-						reply.status(500).send({ error: "Database error" });
+						reply.status(503).send({ error: "Database error" });
 						return reject(err);
 					}
 					resolve(rows);

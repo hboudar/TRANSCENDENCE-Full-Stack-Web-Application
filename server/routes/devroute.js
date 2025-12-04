@@ -7,7 +7,7 @@ export default async function userRoutes(fastify, opts) {
     return new Promise((resolve, reject) => {
       db.all(`SELECT * FROM users`, [], (err, rows) => {
         if (err) {
-          reply.status(500).send({ error: "Database error" });
+          reply.status(503).send({ error: "Database error" });
           return reject(err);
         }
         resolve(rows);
@@ -21,7 +21,7 @@ export default async function userRoutes(fastify, opts) {
     return new Promise((resolve, reject) => {
       db.get(`SELECT * FROM users WHERE id = ?`, [userId], (err, row) => {
         if (err) {
-          return reject({ statusCode: 500, error: "Database error" });
+          return reject({ statusCode: 503, error: "Database error" });
         }
         if (!row) {
           return reject({ statusCode: 404, error: "User not found" });

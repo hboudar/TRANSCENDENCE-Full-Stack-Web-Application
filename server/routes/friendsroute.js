@@ -101,7 +101,7 @@ export default async function friendRoutes(fastify, opts) {
     `;
 
     db.all(query, [userId, userId], (err, rows) => {
-      if (err) return reply.status(500).send({ error: "Database error" });
+      if (err) return reply.status(503).send({ error: "Database error" });
 
       const updated = rows.map((user) => {
         const level = ((Number(user.win) || 0) / 10).toFixed(1);
@@ -119,7 +119,7 @@ export default async function friendRoutes(fastify, opts) {
       "SELECT * FROM friends WHERE user_id = ? AND is_request = 1",
       [userId],
       (err, rows) => {
-        if (err) return reply.code(500).send({ error: "Database error" });
+        if (err) return reply.code(503).send({ error: "Database error" });
         reply.send({ data: rows });
       }
     );
@@ -150,7 +150,7 @@ export default async function friendRoutes(fastify, opts) {
     `,
       [userId, friendId, friendId, userId],
       function (err) {
-        if (err) return reply.status(500).send({ error: "Database error" });
+        if (err) return reply.status(503).send({ error: "Database error" });
 
         io.to(`user:${userId}`).emit("friends:updated");
         io.to(`user:${friendId}`).emit("friends:updated");
@@ -172,7 +172,7 @@ export default async function friendRoutes(fastify, opts) {
     `;
 
     db.all(sql, [userId], (err, rows) => {
-      if (err) return reply.status(500).send({ error: "Database error" });
+      if (err) return reply.status(503).send({ error: "Database error" });
       reply.send({ data: rows });
     });
   });
@@ -198,7 +198,7 @@ export default async function friendRoutes(fastify, opts) {
       "UPDATE friends SET is_request = 0 WHERE user_id = ? AND friend_id = ?",
       [friendId, userId],
       function (err) {
-        if (err) return reply.status(500).send({ error: "Database error" });
+        if (err) return reply.status(503).send({ error: "Database error" });
 
         io.to(`user:${userId}`).emit("friends:updated");
         io.to(`user:${friendId}`).emit("friends:updated");

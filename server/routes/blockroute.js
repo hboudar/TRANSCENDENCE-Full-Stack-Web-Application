@@ -56,7 +56,7 @@ export default async function blockRoutes(fastify, opts) {
                     [blocker_id],
                     (err, blockerRow) => {
                         if (err) {
-                            reply.status(500).send({ error: 'Database error' });
+                            reply.status(503).send({ error: 'Database error' });
                             return reject(err);
                         }
                         if (!blockerRow) {
@@ -69,7 +69,7 @@ export default async function blockRoutes(fastify, opts) {
                             [blocked_id],
                             (err, blockedRow) => {
                                 if (err) {
-                                    reply.status(500).send({ error: 'Database error' });
+                                    reply.status(503).send({ error: 'Database error' });
                                     return reject(err);
                                 }
                                 if (!blockedRow) {
@@ -84,7 +84,7 @@ export default async function blockRoutes(fastify, opts) {
                                     function (err) {
                                         if (err) {
                                             console.error('Error blocking user:', err);
-                                            reply.status(500).send({ 
+                                            reply.status(503).send({ 
                                                 error: 'Failed to block user',
                                                 details: err.message 
                                             });
@@ -106,7 +106,7 @@ export default async function blockRoutes(fastify, opts) {
             });
         } catch (error) {
             console.error('Error in block endpoint:', error);
-            return reply.status(500).send({ error: 'Database error' });
+            return reply.status(503).send({ error: 'Database error' });
         }
     });
 
@@ -134,7 +134,7 @@ export default async function blockRoutes(fastify, opts) {
                 [blocker_id],
                 (err, blockerRow) => {
                     if (err) {
-                        reply.status(500).send({ error: 'Database error' });
+                        reply.status(503).send({ error: 'Database error' });
                         return reject(err);
                     }
                     if (!blockerRow) {
@@ -147,7 +147,7 @@ export default async function blockRoutes(fastify, opts) {
                         [blocked_id],
                         (err, blockedRow) => {
                             if (err) {
-                                reply.status(500).send({ error: 'Database error' });
+                                reply.status(503).send({ error: 'Database error' });
                                 return reject(err);
                             }
                             if (!blockedRow) {
@@ -162,7 +162,7 @@ export default async function blockRoutes(fastify, opts) {
                                 function (err) {
                                     if (err) {
                                         console.error('Error unblocking user:', err);
-                                        reply.status(500).send({ 
+                                        reply.status(503).send({ 
                                             error: 'Failed to unblock user',
                                             details: err.message 
                                         });
@@ -197,7 +197,7 @@ export default async function blockRoutes(fastify, opts) {
                 (err, row) => {
                     if (err) {
                         console.error('Error checking block status:', err);
-                        reply.status(500).send({ 
+                        reply.status(503).send({ 
                             error: 'Failed to check block status',
                             details: err.message 
                         });
@@ -231,7 +231,7 @@ export default async function blockRoutes(fastify, opts) {
                 (err, rows) => {
                     if (err) {
                         console.error('Error fetching blocked users:', err);
-                        reply.status(500).send({ 
+                        reply.status(503).send({ 
                             error: 'Failed to fetch blocked users',
                             details: err.message 
                         });

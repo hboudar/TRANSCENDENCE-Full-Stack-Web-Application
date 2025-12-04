@@ -59,7 +59,7 @@ export default async function authRoutes(fastify, opts) {
             db.get(`SELECT * FROM users WHERE email = ?`, [email], (err, row) => {
 
                 if (err) {
-                    reply.status(500).send({ error: 'Database error' });
+                    reply.status(503).send({ error: 'Database error' });
                     return reject(err);
                 }
 
@@ -67,22 +67,25 @@ export default async function authRoutes(fastify, opts) {
                     // IMPORTANT: Check if user signed up with Google
                     // Google OAuth users have null password - they can't login with password
                     if (!row.password) {
-                        return reply.status(401).send({
+                        reply.status(401).send({
                             error: 'This account uses Google sign-in. Please sign in with Google.'
                         });
+                        return resolve();
                     }
 
                     // Check if email is verified (only for email/password users)
                     if (row.email_verified === 0) {
-                        return reply.status(403).send({
+                        reply.status(403).send({
                             error: 'Please verify your email before logging in. Check your inbox for the verification link.'
                         });
+                        return resolve();
                     }
 
                     // Verify password matches hashed password in database
                     const passwordMatch = bcrypt.compareSync(password, row.password);
                     if (!passwordMatch) {
-                        return reply.status(401).send({ error: 'Invalid credentials' });
+                        reply.status(401).send({ error: 'Invalid credentials' });
+                        return resolve();
                     }
 
                     // Password correct - generate JWT token (valid for 7 days)
@@ -112,6 +115,7 @@ export default async function authRoutes(fastify, opts) {
                 else {
                     // No user found with this email
                     reply.status(404).send({ error: 'User not found' });
+                    resolve();
                 }
             });
         });
@@ -138,7 +142,7 @@ export default async function authRoutes(fastify, opts) {
                 // Get user data from database using ID from token
                 db.get(`SELECT * FROM users WHERE id = ?`, [decoded.userId || decoded.id], (err, row) => {
                     if (err) {
-                        reply.status(500).send({ error: 'Database error' });
+                        reply.status(503).send({ error: 'Database error' });
                         return reject(err);
                     }
 
@@ -183,7 +187,7 @@ export default async function authRoutes(fastify, opts) {
                 db.run('INSERT OR IGNORE INTO blacklist_tokens (token) VALUES (?)', [token], (err) => {
                     if (err) {
                         console.error('Error blacklisting token:', err.message);
-                        reply.status(500).send({ error: 'Failed to logout' });
+                        reply.status(503).send({ error: 'Failed to logout' });
                         return reject(err);
                     }
 
@@ -257,7 +261,7 @@ export default async function authRoutes(fastify, opts) {
                 function (err) {
                     if (err) {
                         console.error("Insert user error:", err.message);
-                        reply.status(500).send({ error: "Database error" });
+                        reply.status(503).send({ error: "Database error" });
                         return reject(err);
                     }
                     // Give new user default skins (3 selected, 3 locked)
@@ -323,7 +327,7 @@ export default async function authRoutes(fastify, opts) {
                 (err, user) => {
                     if (err) {
                         console.error("Database error:", err.message);
-                        reply.status(500).send({ error: 'Database error' });
+                        reply.status(503).send({ error: 'Database error' });
                         return reject(err);
                     }
 
@@ -343,7 +347,7 @@ export default async function authRoutes(fastify, opts) {
                         (err) => {
                             if (err) {
                                 console.error("Error updating user:", err.message);
-                                reply.status(500).send({ error: 'Failed to verify email' });
+                                reply.status(503).send({ error: 'Failed to verify email' });
                                 return reject(err);
                             }
 
@@ -375,7 +379,7 @@ export default async function authRoutes(fastify, opts) {
             db.get(`SELECT id, name, password FROM users WHERE email = ?`, [email], async (err, user) => {
                 if (err) {
                     console.error('Database error:', err);
-                    reply.status(500).send({ error: 'Database error' });
+                    reply.status(503).send({ error: 'Database error' });
                     return reject(err);
                 }
 
@@ -401,7 +405,7 @@ export default async function authRoutes(fastify, opts) {
                 db.run(`DELETE FROM password_reset_tokens WHERE user_id = ?`, [user.id], async (err) => {
                     if (err) {
                         console.error('Error deleting old tokens:', err);
-                        reply.status(500).send({ error: 'Database error' });
+                        reply.status(503).send({ error: 'Database error' });
                         return reject(err);
                     }
 
@@ -412,7 +416,7 @@ export default async function authRoutes(fastify, opts) {
                         async (err) => {
                             if (err) {
                                 console.error('Error storing reset token:', err);
-                                reply.status(500).send({ error: 'Database error' });
+                                reply.status(503).send({ error: 'Database error' });
                                 return reject(err);
                             }
 
@@ -425,7 +429,7 @@ export default async function authRoutes(fastify, opts) {
                                     message: 'Password reset link has been sent to your email.'
                                 });
                             } else {
-                                reply.status(500).send({
+                                reply.status(502).send({
                                     error: 'Failed to send reset email. Please try again later.'
                                 });
                             }
@@ -459,7 +463,7 @@ export default async function authRoutes(fastify, opts) {
                     async (err, resetToken) => {
                         if (err) {
                             console.error('Database error:', err);
-                            reply.status(500).send({ error: 'Database error' });
+                            reply.status(503).send({ error: 'Database error' });
                             return reject(err);
                         }
 
@@ -473,7 +477,7 @@ export default async function authRoutes(fastify, opts) {
                         db.get(`SELECT id, password FROM users WHERE id = ?`, [userId], async (err, user) => {
                             if (err) {
                                 console.error('Database error:', err);
-                                reply.status(500).send({ error: 'Database error' });
+                                reply.status(503).send({ error: 'Database error' });
                                 return reject(err);
                             }
 
@@ -500,14 +504,14 @@ export default async function authRoutes(fastify, opts) {
                                 function(err) {
                                     if (err) {
                                         console.error('Error updating password:', err);
-                                        reply.status(500).send({ error: 'Database error' });
+                                        reply.status(503).send({ error: 'Database error' });
                                         return reject(err);
                                     }
 
                                     // Verify update actually affected a row
                                     if (this.changes === 0) {
                                         console.error('Password update affected 0 rows');
-                                        reply.status(500).send({ error: 'Failed to update password' });
+                                        reply.status(422).send({ error: 'Failed to update password' });
                                         return reject(new Error('No rows updated'));
                                     }
 

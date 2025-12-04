@@ -111,14 +111,14 @@ export default async function ProfileRoutes(fastify, opts) {
             db.run(query, updateValues, function (err) {
                 if (err) {
                     console.error("❌ Update profile error:", err.message);
-                    return reject({ statusCode: 500, error: "Database error", details: err.message });
+                    return reject({ statusCode: 503, error: "Database error", details: err.message });
                 }
                 console.log("✅ Profile updated successfully. Rows affected:", this.changes);
                 // After update, fetch the updated user row and return it
                 db.get('SELECT id, name, email, picture, gold FROM users WHERE id = ?', [userid], (err2, row) => {
                     if (err2) {
                         console.error('❌ Error fetching updated user:', err2.message);
-                        return reject({ statusCode: 500, error: 'Database error', details: err2.message });
+                        return reject({ statusCode: 503, error: 'Database error', details: err2.message });
                     }
                     // Broadcast update via Socket.IO (server-side) so all clients receive authoritative update
                     try {

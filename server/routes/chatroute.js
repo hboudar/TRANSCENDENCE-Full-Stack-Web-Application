@@ -47,14 +47,42 @@ export default async function chatRoutes(fastify, opts) {
 
   fastify.get("/search",schemasearch, async (req, reply) => {
     const { search } = req.query;
+    const userId = req.user?.id;
+    
+    // Authorization check
+    if (!userId) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    
+    // Input validation
+    if (!search || typeof search !== 'string') {
+      return reply.status(400).send({ error: "Invalid search query" });
+    }
+    
+    if (search.length > 100) {
+      return reply.status(400).send({ error: "Search query too long" });
+    }
+    
+    // Sanitize input - remove special SQL characters
+    const sanitizedSearch = search.replace(/[%_\\]/g, '');
+    
     return new Promise((resolve, reject) => {
+      // Search only among user's accepted friends
       db.all(
-        `SELECT * FROM friends WHERE name LIKE ?`,
-        [`%${search || ""}%`],
+        `SELECT u.id, u.name, u.email, u.picture 
+         FROM users u
+         INNER JOIN friends f ON (
+           (f.user_id = ? AND f.friend_id = u.id) OR 
+           (f.friend_id = ? AND f.user_id = u.id)
+         )
+         WHERE f.is_request = 0 
+         AND (u.name LIKE ? OR u.email LIKE ?)
+         LIMIT 20`,
+        [userId, userId, `%${sanitizedSearch}%`, `%${sanitizedSearch}%`],
         (err, rows) => {
           if (err) {
-            console.error("Get users error:", err.message);
-            reply.status(500).send({ error: "Database error" });
+            console.error("Search friends error:", err.message);
+            reply.status(503).send({ error: "Database error" });
             return reject(err);
           }
           resolve(rows);
@@ -102,7 +130,7 @@ export default async function chatRoutes(fastify, opts) {
           [sender_id],
           (err, senderRow) => {
             if (err) {
-              reply.status(500).send({ error: "Database error" });
+              reply.status(503).send({ error: "Database error" });
               return reject(err);
             }
             if (!senderRow) {
@@ -115,7 +143,7 @@ export default async function chatRoutes(fastify, opts) {
               [receiver_id],
               (err, receiverRow) => {
                 if (err) {
-                  reply.status(500).send({ error: "Database error" });
+                  reply.status(503).send({ error: "Database error" });
                   return reject(err);
                 }
                 if (!receiverRow) {
@@ -129,7 +157,7 @@ export default async function chatRoutes(fastify, opts) {
                   [sender_id, receiver_id, content],
                   function (err) {
                     if (err) {
-                      reply.status(500).send({ error: "Database error" });
+                      reply.status(503).send({ error: "Database error" });
                       return reject(err);
                     }
                     resolve({ id: this.lastID, sender_id, receiver_id, content });
@@ -142,33 +170,44 @@ export default async function chatRoutes(fastify, opts) {
       });
     } catch (error) {
       console.error("Error in message endpoint:", error);
-      return reply.status(500).send({ error: "Database error" });
+      return reply.status(503).send({ error: "Database error" });
     }
   });
 
-  // Get all messages
-  fastify.get("/messages", async (req, reply) => {
-    return new Promise((resolve, reject) => {
-      db.all(`SELECT * FROM messages`, [], (err, rows) => {
-        if (err) {
-          reply.status(500).send({ error: "Database error" });
-          return reject(err);
-        }
-        resolve(rows);
-      });
-    });
-  });
+  // // Get all messages
+  // fastify.get("/messages", async (req, reply) => {
+  //   return new Promise((resolve, reject) => {
+  //     db.all(`SELECT * FROM messages`, [], (err, rows) => {
+  //       if (err) {
+  //         reply.status(503).send({ error: "Database error" });
+  //         return reject(err);
+  //       }
+  //       resolve(rows);
+  //     });
+  //   });
+  // });
 
   // Get messages between two users
   fastify.get("/messages/:sender_id/:receiver_id",schemagetmessages, async (req, reply) => {
     const { sender_id, receiver_id } = req.params;
+    const userId = req.user?.id;
+    
+    // Authorization check - user must be part of this conversation
+    if (!userId) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    
+    if (userId != sender_id && userId != receiver_id) {
+      return reply.status(403).send({ error: "Forbidden: You can only view your own messages" });
+    }
+    
     return new Promise((resolve, reject) => {
       db.all(
         `SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)`,
         [sender_id, receiver_id, receiver_id, sender_id],
         (err, rows) => {
           if (err) {
-            reply.status(500).send({ error: "Database error" });
+            reply.status(503).send({ error: "Database error" });
             return reject(err);
           }
           resolve(rows);
@@ -180,6 +219,16 @@ export default async function chatRoutes(fastify, opts) {
   // Get last message between two users
   fastify.get("/lastmessage/:sender_id/:receiver_id",schemalastmessage, async (req, reply) => {
     const { sender_id, receiver_id } = req.params;
+    const userId = req.user?.id;
+    
+    // Authorization check - user must be part of this conversation
+    if (!userId) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    
+    if (userId != sender_id && userId != receiver_id) {
+      return reply.status(403).send({ error: "Forbidden: You can only view your own messages" });
+    }
 
     return new Promise((resolve, reject) => {
       db.get(
@@ -190,7 +239,7 @@ export default async function chatRoutes(fastify, opts) {
         [sender_id, receiver_id, receiver_id, sender_id],
         (err, row) => {
           if (err) {
-            reply.status(500).send({ error: "Database error" });
+            reply.status(503).send({ error: "Database error" });
             return reject(err);
           }
 
