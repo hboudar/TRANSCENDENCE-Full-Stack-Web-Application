@@ -7,7 +7,7 @@ export default async function BuyItem(
     const res = await fetch("/api/buy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, itemId, itemPrice }),
+      body: JSON.stringify({ itemId, itemPrice }),
     });
 
     const data = await res.json();

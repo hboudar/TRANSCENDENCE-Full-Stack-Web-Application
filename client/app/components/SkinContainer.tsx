@@ -39,7 +39,7 @@ export default function SkinContainer({
 		async function fetchSkin() {
 			try {
 				const res = await fetch(
-					`/api/selected_skins?player_id=${user!.id}`
+					`/api/selected_skins`
 				);
 				const data = await res.json();
 				setselected({ types: data, type: 0 });
@@ -62,9 +62,8 @@ export default function SkinContainer({
 	function changeselected(skin: Skin) {
 		async function postselect() {
 			const response = await fetch(
-				"/api/select_skin?player_id=" +
-					skin.player_id +
-					"&oldskin=" +
+				"/api/select_skin?" +
+					"oldskin=" +
 					selected.types[selected.type].skin_id +
 					"&newskin=" +
 					skin.skin_id,

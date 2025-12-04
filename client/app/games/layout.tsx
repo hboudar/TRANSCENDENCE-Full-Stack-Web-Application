@@ -40,7 +40,7 @@ export default function Games({
 			async function fetchOwnedSkins() {
 				try {
 					const res = await fetch(
-						"/api/player_skins?player_id=" + user!.id
+						"/api/player_skins"
 					);
 					if (!res.ok) {
 						throw new Error("Failed to fetch player skins");

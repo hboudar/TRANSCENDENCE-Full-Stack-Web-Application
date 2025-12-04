@@ -164,20 +164,15 @@ function GameContent() {
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({
-						player_id: user!.id,
-						player_name: tournamentplayers.p1
-							? tournamentplayers.p1
-							: user!.name,
-						player2_id: oppid,
-						invited_player: invited_player ? true : false,
-						player2_name: tournamentplayers.p2
-							? tournamentplayers.p2
-							: "Player 2",
-						player_img: user!.picture ? user!.picture : (user!.name as string),
-						game_type: gametype,
-						sessionId: sessionid,
-					}),
+				body: JSON.stringify({
+					player2_id: oppid,
+					invited_player: invited_player ? true : false,
+					player2_name: tournamentplayers.p2
+						? tournamentplayers.p2
+						: "Player 2",
+					game_type: gametype,
+					sessionId: sessionid,
+				}),
 				});
 				const res = await response.json();
 				console.log(res);

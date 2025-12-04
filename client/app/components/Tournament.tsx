@@ -530,7 +530,7 @@ export default function Tournament({
 			setTournamentWinner(tournamentWinnerEntry.name);
 			setShowWinnerAnimation(true);
 			
-			fetch(`/api/tournament_win/${user.id}`, {
+			fetch(`/api/tournament_win`, {
 				method: "POST",
 			});
 			// Auto-close after 5 seconds

@@ -1,7 +1,5 @@
 /** @format */
 
-// Import the GameAPI and gameResults from your existing game module
-// import { log } from "console";
 import fastify from "fastify";
 import { sessionsmap } from "../game.js";
 import { randomUUID } from "crypto";
@@ -14,31 +12,55 @@ const gameApiRoute = async (fastify, options) => {
 	// Start a new game session
 	fastify.post("/games/start", async (request, reply) => {
 		try {
-			const {
-				player_id,
-				player2_id,
-				invited_player,
-				player2_name,
-				player_name,
-				player_img,
-				game_type,
-				sessionId,
-			} = request.body;
+		// Get authenticated user from middleware
+		const authenticatedUserId = request.user?.id;
+		
+		if (!authenticatedUserId) {
+			return reply.status(401).send({
+				success: false,
+				error: "Authentication required",
+			});
+		}
+		
+		const {
+			player2_id,
+			invited_player,
+			player2_name,
+			game_type,
+			sessionId,
+		} = request.body;
 
-			if (
-				!player_id ||
-				!player_name ||
-				!player_img ||
-				!game_type ||
-				!sessionId
-			) {
-				return reply.status(400).send({
-					success: false,
-					error: "missing data",
-				});
-			}
+		if (
+			!game_type ||
+			!sessionId
+		) {
+			return reply.status(400).send({
+				success: false,
+				error: "missing data",
+			});
+		}
 
-			const ingame = Array.from(sessionsmap.values()).some(
+		// SECURITY: Use authenticated user ID directly, never trust client input
+		const player_id = authenticatedUserId;
+
+		// SECURITY: Fetch player name and image from database, never trust client
+		const playerData = await new Promise((resolve, reject) => {
+			db.get('SELECT name, picture FROM users WHERE id = ?', [player_id], (err, row) => {
+				if (err) return reject(err);
+				if (!row) return reject(new Error('User not found'));
+				resolve(row);
+			});
+		});
+
+		if (!playerData) {
+			return reply.status(404).send({
+				success: false,
+				error: "User not found",
+			});
+		}
+
+		const player_name = playerData.name;
+		const player_img = playerData.picture || playerData.name;			const ingame = Array.from(sessionsmap.values()).some(
 				(player) =>
 					(player.players_info.p1_id == player_id && player.p1_ready) ||
 					(player.players_info.p2_id == player_id && player.p2_ready)
@@ -98,7 +120,7 @@ const gameApiRoute = async (fastify, options) => {
 					});
 				}
 			}
-			console.log("new session flow");
+			// console.log("new session flow");
 
 			sessionsmap.set(sessionId, {
 				players_info: {
@@ -201,12 +223,15 @@ const gameApiRoute = async (fastify, options) => {
 			});
 		}
 	});
-	fastify.post("/tournament_win/:userId", async (request, reply) => {
-		const { userId } = request.params;
+	fastify.post("/tournament_win", async (request, reply) => {
+		const authenticatedUserId = request.user?.id;
 
-		if (!userId) {
-			return reply.status(400).send({ success: false, error: "User ID is required" });
+		if (!authenticatedUserId) {
+			return reply.status(401).send({ success: false, error: "Authentication required" });
 		}
+
+		// SECURITY: Use authenticated user ID directly
+		const userId = authenticatedUserId;
 
 		// Verify user exists
 		const userExists = await new Promise((resolve) => {
@@ -250,12 +275,32 @@ const gameApiRoute = async (fastify, options) => {
 	fastify.post("/games/session/:sessionId/end", async (request, reply) => {
 		try {
 			const { sessionId } = request.params;
+			const authenticatedUserId = request.user?.id;
+
+			if (!authenticatedUserId) {
+				return reply.status(401).send({
+					success: false,
+					error: "Authentication required",
+				});
+			}
+
 			const session = sessionsmap.get(sessionId);
 
 			if (!session) {
 				return reply.status(404).send({
 					success: false,
 					error: "Game session not found",
+				});
+			}
+
+			// SECURITY: Verify that the authenticated user is one of the players
+			const isPlayer1 = Number(session.players_info.p1_id) === Number(authenticatedUserId);
+			const isPlayer2 = Number(session.players_info.p2_id) === Number(authenticatedUserId);
+			
+			if (!isPlayer1 && !isPlayer2) {
+				return reply.status(403).send({
+					success: false,
+					error: "You can only end your own game sessions",
 				});
 			}
 
