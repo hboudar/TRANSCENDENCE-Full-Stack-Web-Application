@@ -228,7 +228,7 @@ const chatRoute = (await import('./routes/chatroute.js')).default;
 fastify.register(chatRoute, { db });
 
 const authRoute = (await import('./routes/authroute.js')).default;
-fastify.register(authRoute, { db });
+fastify.register(authRoute, { prefix: '/auth', db });
 
 const gameRoute = (await import('./routes/gameroute.js')).default;
 fastify.register(gameRoute, { db });
@@ -325,5 +325,5 @@ httpServer.listen(PORT, (err) => {
     console.error('Error starting server:', err);
     process.exit(1);
   }
-  console.log(`🚀 Server running at https://10.32.118.247:${PORT}`);
+  console.log(`🚀 Server running at https://localhost:${PORT}`);
 });

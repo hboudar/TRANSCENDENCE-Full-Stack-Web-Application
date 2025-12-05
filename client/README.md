@@ -14,7 +14,7 @@ pnpm dev
 bun dev
 ```
 
-Open [https://10.32.118.247](https://10.32.118.247) with your browser to see the result.
+Open [https://localhost](https://localhost) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

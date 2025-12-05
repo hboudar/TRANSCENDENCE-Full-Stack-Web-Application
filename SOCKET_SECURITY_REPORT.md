@@ -1,7 +1,7 @@
 # Socket Security Test Results
 
 **Test Date:** December 4, 2025  
-**Server:** https://10.32.118.247  
+**Server:** https://localhost  
 **Test Suite:** Comprehensive Socket.IO Security Tests
 
 ## Summary

@@ -13,7 +13,7 @@
 - ✅ HTTPS connection to Elasticsearch
 - ✅ Elasticsearch authentication (username/password)
 - ✅ Certificate verification enabled
-- ✅ Accessible via `https://10.32.118.247/kibana`
+- ✅ Accessible via `https://localhost/kibana`
 
 ### 3. **Logstash Security**
 - ✅ HTTPS connection to Elasticsearch
@@ -56,7 +56,7 @@ sleep 15
 docker-compose ps
 
 # Check Elasticsearch with authentication
-curl -u elastic:changeme --cacert /path/to/ca.crt https://10.32.118.247:9200/_cluster/health
+curl -u elastic:changeme --cacert /path/to/ca.crt https://localhost:9200/_cluster/health
 
 # Check Kibana logs
 docker-compose logs -f kibana
@@ -67,7 +67,7 @@ docker-compose logs -f logstash
 
 ### Step 6: Access Kibana
 ```
-https://10.32.118.247/kibana
+https://localhost/kibana
 ```
 
 ## 🔑 Default Credentials

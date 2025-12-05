@@ -4,7 +4,7 @@
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const BASE_URL = 'https://10.32.118.247';
+const BASE_URL = 'https://localhost';
 
 async function makeRequest(endpoint, options = {}) {
   const apiPath = endpoint.startsWith('/auth') ? endpoint : `/api${endpoint}`;
