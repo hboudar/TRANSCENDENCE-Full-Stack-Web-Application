@@ -36,11 +36,16 @@ db.run(`
 
 	fastify.get("/player_skins", async (request, reply) => {
 		return new Promise((resolve, reject) => {
-			const { player_id } = request.query;
-			if (!player_id) {
-				reply.status(400).send({ error: "Missing player_id in query" });
-				return reject(new Error("Missing player_id in query"));
+			const authenticatedUserId = request.user?.id;
+
+			if (!authenticatedUserId) {
+				reply.status(401).send({ error: "Authentication required" });
+				return reject(new Error("Authentication required"));
 			}
+
+			// SECURITY: Use authenticated user ID directly
+			const player_id = authenticatedUserId;
+
 			db.all(
 				`SELECT *  FROM player_skins
                     JOIN skins ON player_skins.skin_id = skins.id
@@ -51,7 +56,7 @@ db.run(`
 						reply.status(503).send({ error: "Database error" });
 						return reject(err);
 					}
-					console.log(rows);
+					// console.log(rows);
 
 					resolve(rows);
 				}
@@ -60,11 +65,15 @@ db.run(`
 	});
 	fastify.get("/selected_skins", async (request, reply) => {
 		return new Promise((resolve, reject) => {
-			const { player_id } = request.query;
-			if (!player_id) {
-				reply.status(400).send({ error: "Missing player_id in query" });
-				return reject(new Error("Missing player_id in query"));
+			const authenticatedUserId = request.user?.id;
+
+			if (!authenticatedUserId) {
+				reply.status(401).send({ error: "Authentication required" });
+				return reject(new Error("Authentication required"));
 			}
+
+			// SECURITY: Use authenticated user ID directly
+			const player_id = authenticatedUserId;
 
 			db.all(
 				`SELECT player_skins.*, skins.* 
@@ -110,14 +119,25 @@ db.run(`
 	});
 
 	fastify.post("/select_skin", async (request, reply) => {
-		console.log("POST");
+		// console.log("POST");
 
 		return new Promise((resolve, reject) => {
-			const { player_id, oldskin, newskin } = request.query;
-			if (!player_id || !oldskin || !newskin) {
-				reply.status(400).send({ error: "Missing player_id in query" });
-				return reject(new Error("Missing player_id in query"));
+			const { oldskin, newskin } = request.query;
+			const authenticatedUserId = request.user?.id;
+
+			if (!authenticatedUserId) {
+				reply.status(401).send({ error: "Authentication required" });
+				return reject(new Error("Authentication required"));
 			}
+
+			if (!oldskin || !newskin) {
+				reply.status(400).send({ error: "Missing required parameters" });
+				return reject(new Error("Missing required parameters"));
+			}
+
+			// SECURITY: Use authenticated user ID directly
+			const player_id = authenticatedUserId;
+
 			db.all(
 				`SELECT player_skins.* , skins.type
              FROM player_skins

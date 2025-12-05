@@ -11,7 +11,7 @@ async function postresult(p1_score, p2_score, p1_id, p2_id, winer, db) {
 	const player2_gold_earned = winer == 2 ? winnergold : losergold;
 	const winner_id = winer == 1 ? p1_id : p2_id;
 
-	console.log("📊 Posting game result:", { p1_id, p2_id, p1_score, p2_score, winner_id });
+	// console.log("📊 Posting game result:", { p1_id, p2_id, p1_score, p2_score, winner_id });
 
 	// Insert game record into database
 	db.run(
@@ -22,7 +22,7 @@ async function postresult(p1_score, p2_score, p1_id, p2_id, winer, db) {
 				console.error("❌ Error inserting game:", err);
 				return;
 			}
-			console.log("✅ Game inserted with ID:", this.lastID);
+			// console.log("✅ Game inserted with ID:", this.lastID);
 
 			// Update player 1 stats
 			db.run(
@@ -30,7 +30,7 @@ async function postresult(p1_score, p2_score, p1_id, p2_id, winer, db) {
 				[player1_gold_earned, winner_id == p1_id ? 1 : 0, winner_id == p2_id ? 1 : 0, p1_id],
 				(err) => {
 					if (err) console.error("❌ Error updating player 1 stats:", err);
-					else console.log("✅ Player 1 stats updated");
+					// else console.log("✅ Player 1 stats updated");
 				}
 			);
 
@@ -40,7 +40,7 @@ async function postresult(p1_score, p2_score, p1_id, p2_id, winer, db) {
 				[player2_gold_earned, winner_id == p2_id ? 1 : 0, winner_id == p1_id ? 1 : 0, p2_id],
 				(err) => {
 					if (err) console.error("❌ Error updating player 2 stats:", err);
-					else console.log("✅ Player 2 stats updated");
+					// else console.log("✅ Player 2 stats updated");
 				}
 			);
 		}
@@ -337,12 +337,12 @@ export function setupGameSocketIO(io, db) {
 		socket.sessionId = sessionId;
 		socket.playerId = playerId;
 		socket.session = session;
-		console.log(session);
+		// console.log(session);
 
 		next();
 	});
 	io.of("/game").on("connection", (socket) => {
-		console.log("Client connected to game namespace:", socket.id);
+		// console.log("Client connected to game namespace:", socket.id);
 		const keysPressed = {};
 		// let currentPlayerId = null;
 		const session = socket.session;
@@ -429,13 +429,13 @@ export function setupGameSocketIO(io, db) {
 
 		// Handle exit from waiting screen
 		socket.on("exit_waiting", () => {
-			console.log("🚪 Player exiting from waiting screen:", socket.playerId);
+			// console.log("🚪 Player exiting from waiting screen:", socket.playerId);
 			
 			// If host is exiting a private game invite, notify the invited player
 			if (session.gametype === "online" && 
 					socket.playerId == session.players_info.p1_id && 
 					session.players_info.p2_id !== 0) {
-				console.log(`🧹 Host canceling invite - removing notification for player ${session.players_info.p2_id}`);
+				// console.log(`🧹 Host canceling invite - removing notification for player ${session.players_info.p2_id}`);
 				db.run(
 					`DELETE FROM notifications WHERE type = 'game_invite' AND sender_id = ? AND user_id = ?`,
 					[session.players_info.p1_id, session.players_info.p2_id],
@@ -452,22 +452,22 @@ export function setupGameSocketIO(io, db) {
 			// Clean up session
 			clearInterval(intervalID);
 			sessionsmap.delete(socket.sessionId);
-			console.log("🗑️ Session deleted (exit waiting):", socket.sessionId);
+			// console.log("🗑️ Session deleted (exit waiting):", socket.sessionId);
 			
 			// Disconnect the socket
 			socket.disconnect();
 		});
 
 		socket.on("disconnect", () => {
-			console.log("Client disconnected from game:", socket.id);
+			// console.log("Client disconnected from game:", socket.id);
 			
 			// If game hasn't started (still in loading), clean up without counting as loss
 			if (!session.startgame && session.gametype === "online") {
-				console.log("🔄 Player disconnected during loading phase");
+				// console.log("🔄 Player disconnected during loading phase");
 				
 				// If host (p1) disconnects during loading, notify invited player
 				if (socket.playerId == session.players_info.p1_id && session.players_info.p2_id !== 0) {
-					console.log(`📣 Host left during loading - notifying player ${session.players_info.p2_id}`);
+					// console.log(`📣 Host left during loading - notifying player ${session.players_info.p2_id}`);
 					db.run(
 						`DELETE FROM notifications WHERE type = 'game_invite' AND sender_id = ? AND user_id = ?`,
 						[session.players_info.p1_id, session.players_info.p2_id],
@@ -484,7 +484,7 @@ export function setupGameSocketIO(io, db) {
 				// Clean up session immediately
 				clearInterval(intervalID);
 				sessionsmap.delete(socket.sessionId);
-				console.log("🗑️ Session deleted (loading phase):", socket.sessionId);
+				// console.log("🗑️ Session deleted (loading phase):", socket.sessionId);
 				return;
 			}
 			
@@ -497,7 +497,7 @@ export function setupGameSocketIO(io, db) {
 				socket.session.positions.win = 2;
 				session.positions.score.p1 = 0;
 				session.positions.score.p2 = 12;
-				console.log("🎮 Host (P1) disconnected - P2 wins, notification kept");
+				// console.log("🎮 Host (P1) disconnected - P2 wins, notification kept");
 			} else if (
 				socket.session.positions.win == 0 &&
 				socket.playerId == socket.session.players_info.p2_id
@@ -509,7 +509,7 @@ export function setupGameSocketIO(io, db) {
 				
 				// Clean up game invite notification when invited player exits
 				if (session.gametype === "online" && session.players_info.p2_id && session.players_info.p1_id) {
-					console.log(`🧹 Invited player (P2) disconnected - removing notification for player ${session.players_info.p2_id}`);
+					// console.log(`🧹 Invited player (P2) disconnected - removing notification for player ${session.players_info.p2_id}`);
 					db.run(
 						`DELETE FROM notifications WHERE type = 'game_invite' AND sender_id = ? AND user_id = ?`,
 						[session.players_info.p1_id, session.players_info.p2_id],
@@ -525,7 +525,7 @@ export function setupGameSocketIO(io, db) {
 						}
 					);
 				}
-				console.log("🎮 Invited player (P2) disconnected - P1 wins, notification removed");
+				// console.log("🎮 Invited player (P2) disconnected - P1 wins, notification removed");
 			}
 			
 			// Post result if online game ended
@@ -548,7 +548,7 @@ export function setupGameSocketIO(io, db) {
 			clearInterval(intervalID);
 			setTimeout(() => {
 				sessionsmap.delete(socket.sessionId);
-				console.log("🗑️ Session deleted:", socket.sessionId);
+				// console.log("🗑️ Session deleted:", socket.sessionId);
 			}, 100);
 
 			// if (currentPlayerId) {

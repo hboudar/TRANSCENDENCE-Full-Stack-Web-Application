@@ -16,18 +16,24 @@ export default async function gameRoutes(fastify, opts) {
 		});
 	});
 
-	fastify.post("/games/:player1_id/:player2_id", async (req, reply) => {
-		const player1_id = req.params.player1_id;
+	fastify.post("/games/:player2_id", async (req, reply) => {
 		const player2_id = req.params.player2_id;
-		console.log("Received game result for players:", player1_id, player2_id);
+		const authenticatedUserId = req.user?.id;
 
-		if (!player1_id || !player2_id) {
-			reply.status(400).send({ error: "Player IDs are required" });
+		if (!authenticatedUserId) {
+			return reply.status(401).send({ error: "Authentication required" });
+		}
+
+		// SECURITY: Player 1 is always the authenticated user
+		const player1_id = authenticatedUserId;
+
+		if (!player2_id) {
+			reply.status(400).send({ error: "Player 2 ID is required" });
 			return;
 		}
 
 		// Prevent playing against yourself
-		if (player1_id === player2_id) {
+		if (Number(player1_id) === Number(player2_id)) {
 			reply.status(400).send({ error: "Cannot play against yourself" });
 			return;
 		}
