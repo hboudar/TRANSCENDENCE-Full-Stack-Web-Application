@@ -28,9 +28,13 @@ export default function Sidebar({
     const [searchResults, setSearchResults] = useState<User[]>([]);
 
     useEffect(() => {
+        if (!value || value.trim() === "") {
+            // setSearchResults([]);
+            return;
+        }
         const fectusers = async () => {
             try {
-                const res = await fetch('/api/search?search=' + value);
+                const res = await fetch('/api/search/friends?search=' + value);
                 const data = await res.json();
                 setSearchResults(data);
             } catch (error) {

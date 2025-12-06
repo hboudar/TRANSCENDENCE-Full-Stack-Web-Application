@@ -16,7 +16,7 @@ export default async function uploadRoute(fastify, opts) {
     // Register multipart plugin to handle file uploads
     await fastify.register(fastifyMultipart, {
         limits: {
-            fileSize: 5 * 1024 * 1024, // 5MB max file size
+            fileSize: 1 * 1024 * 1024, // 1MB max file size
         }
     });
 
@@ -61,6 +61,11 @@ export default async function uploadRoute(fastify, opts) {
 
             // Read file buffer
             const buffer = await data.toBuffer();
+            
+            // Validate file size (1MB max)
+            if (buffer.length > 1 * 1024 * 1024) {
+                return reply.status(400).send({ error: 'File size exceeds 1MB limit' });
+            }
 
             // Create random filename with extension
             const ext = data.filename.split('.').pop();

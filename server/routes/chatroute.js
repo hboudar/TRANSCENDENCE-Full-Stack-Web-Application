@@ -45,7 +45,51 @@ const schemalastmessage = {
 export default async function chatRoutes(fastify, opts) {
   const db = opts.db;
 
+  // Search all users (for top header global search)
   fastify.get("/search",schemasearch, async (req, reply) => {
+    const { search } = req.query;
+    const userId = req.user?.id;
+    
+    // Authorization check
+    if (!userId) {
+      return reply.status(401).send({ error: "Unauthorized" });
+    }
+    
+    // Input validation
+    if (!search || typeof search !== 'string') {
+      return reply.status(400).send({ error: "Invalid search query" });
+    }
+    
+    if (search.length > 100) {
+      return reply.status(400).send({ error: "Search query too long" });
+    }
+    
+    // Sanitize input - remove special SQL characters
+    const sanitizedSearch = search.replace(/[%_\\]/g, '');
+    
+    return new Promise((resolve, reject) => {
+      // Search all users (for global search in header)
+      db.all(
+        `SELECT u.id, u.name, u.picture 
+         FROM users u
+         WHERE (u.name LIKE ? OR u.email LIKE ?)
+         AND u.id != ?
+         LIMIT 20`,
+        [`%${sanitizedSearch}%`, `%${sanitizedSearch}%`, userId],
+        (err, rows) => {
+          if (err) {
+            console.error("Search users error:", err.message);
+            reply.status(503).send({ error: "Database error" });
+            return reject(err);
+          }
+          resolve(rows);
+        }
+      );
+    });
+  });
+
+  // Search only friends (for chat sidebar search)
+  fastify.get("/search/friends",schemasearch, async (req, reply) => {
     const { search } = req.query;
     const userId = req.user?.id;
     
@@ -69,7 +113,7 @@ export default async function chatRoutes(fastify, opts) {
     return new Promise((resolve, reject) => {
       // Search only among user's accepted friends
       db.all(
-        `SELECT u.id, u.name, u.email, u.picture 
+        `SELECT u.id, u.name, u.picture 
          FROM users u
          INNER JOIN friends f ON (
            (f.user_id = ? AND f.friend_id = u.id) OR 

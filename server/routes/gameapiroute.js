@@ -151,6 +151,11 @@ const gameApiRoute = async (fastify, options) => {
 		}
 	});
 	fastify.get("/games/active", async (request, reply) => {
+		// SECURITY: Require authentication to view active games
+		if (!request.user?.id) {
+			return reply.status(401).send({ success: false, error: "Authentication required" });
+		}
+
 		try {
 			const activeSessions = Array.from(sessionsmap.entries()).map(
 				([sessionId, session]) => ({
@@ -191,6 +196,12 @@ const gameApiRoute = async (fastify, options) => {
 
 	// Get specific game session details
 	fastify.get("/games/session/:sessionId", async (request, reply) => {
+		// SECURITY: Require authentication
+		const authenticatedUserId = request.user?.id;
+		if (!authenticatedUserId) {
+			return reply.status(401).send({ success: false, error: "Authentication required" });
+		}
+
 		try {
 			const { sessionId } = request.params;
 			const session = sessionsmap.get(sessionId);
@@ -199,6 +210,15 @@ const gameApiRoute = async (fastify, options) => {
 				return reply.status(404).send({
 					success: false,
 					error: "Game session not found",
+				});
+			}
+
+			// SECURITY: Verify user is a participant in this session
+			if (session.players_info.p1_id !== authenticatedUserId && 
+			    session.players_info.p2_id !== authenticatedUserId) {
+				return reply.status(403).send({
+					success: false,
+					error: "Forbidden: You are not a participant in this game",
 				});
 			}
 

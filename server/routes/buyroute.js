@@ -4,13 +4,22 @@ export default async function buySkin(fastify, opts) {
 	const { db } = opts;
 
 	fastify.post("/buy", async (request, reply) => {
-		const { userId, itemId, itemPrice } = request.body;
+		const { itemId, itemPrice } = request.body;
+		const authenticatedUserId = request.user?.id;
 
-		if (!userId || !itemId || itemPrice === undefined) {
+		// SECURITY: Require authentication
+		if (!authenticatedUserId) {
+			return reply.status(401).send({ success: false, error: "Authentication required" });
+		}
+
+		// SECURITY: Use authenticated user ID directly, ignore any userId from request body
+		const userId = authenticatedUserId;
+
+		if (!itemId || itemPrice === undefined) {
 			return reply.status(400).send({ success: false, error: "Missing required fields" });
 		}
 
-		// Verify user exists
+		// Verify user exists (should always pass since user is authenticated)
 		const userExists = await new Promise((resolve) => {
 			db.get('SELECT id FROM users WHERE id = ?', [userId], (err, row) => {
 				resolve(!!row && !err);

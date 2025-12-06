@@ -5,6 +5,11 @@ export default async function gameRoutes(fastify, opts) {
 
 	// Get all games
 	fastify.get("/games", async (req, reply) => {
+		// SECURITY: Require authentication
+		if (!req.user?.id) {
+			return reply.status(401).send({ error: "Authentication required" });
+		}
+
 		return new Promise((resolve, reject) => {
 			db.all(`SELECT * FROM games`, [], (err, rows) => {
 				if (err) {
@@ -121,15 +126,9 @@ export default async function gameRoutes(fastify, opts) {
 		const userId = req.params.userId;
 		const requestUserId = req.user?.id;
 		
-		// Authorization check - user can only view their own games unless viewing public profiles
+		// Require authentication but allow viewing any user's game history (for profiles)
 		if (!requestUserId) {
 			return reply.status(401).send({ error: "Unauthorized" });
-		}
-		
-		// Optional: Remove this check if game history should be public
-		// For now, users can only view their own game history
-		if (requestUserId != userId) {
-			return reply.status(403).send({ error: "Forbidden: You can only view your own game history" });
 		}
 
 		return new Promise((resolve, reject) => {

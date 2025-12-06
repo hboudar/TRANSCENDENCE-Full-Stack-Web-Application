@@ -2,7 +2,7 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
-import rateLimit from '@fastify/rate-limit';
+// import rateLimit from '@fastify/rate-limit';
 import sqlite3 from 'sqlite3';
 import { Server } from 'socket.io';
 import { sockethandler } from './socket.js';
@@ -51,13 +51,13 @@ await fastify.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 });
 
-await fastify.register(rateLimit, {
-  max: 100,              // 100 requests per IP
-  timeWindow: '1 minute', // per minute
-  ban: 2,                // ban for 2 minutes if limit exceeded
-  cache: 1000,          // cache 1000 IPs // is this necessary?
-  skipOnError: true      // don't block on error
-});
+// await fastify.register(rateLimit, {
+//   max: 100,              // 100 requests per IP
+//   timeWindow: '1 minute', // per minute
+//   ban: 2,                // ban for 2 minutes if limit exceeded
+//   cache: 1000,          // cache 1000 IPs // is this necessary?
+//   skipOnError: true      // don't block on error
+// });
 
 await fastify.register(cookie);
 
@@ -228,7 +228,7 @@ const chatRoute = (await import('./routes/chatroute.js')).default;
 fastify.register(chatRoute, { db });
 
 const authRoute = (await import('./routes/authroute.js')).default;
-fastify.register(authRoute, { prefix: '/auth', db });
+fastify.register(authRoute, { db });
 
 const gameRoute = (await import('./routes/gameroute.js')).default;
 fastify.register(gameRoute, { db });
