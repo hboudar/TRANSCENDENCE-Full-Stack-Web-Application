@@ -1,21 +1,21 @@
-export function handleBuy(db, userId, itemId, itemPrice) {
+export function handleBuy(db, userId, itemId) {
 	return new Promise((resolve, reject) => {
-		itemPrice = Number(itemPrice);
-		if (isNaN(itemPrice) || itemPrice <= 0)
-			return reject(new Error("Invalid item price"));
 		db.serialize(() => {
 			db.get(`SELECT gold FROM users WHERE id = ?`, [userId], (err, user) => {
 				if (err)
 					return reject(err);
 				if (!user)
 					return reject(new Error("User not found"));
-				if (user.gold < itemPrice)
-					return reject(new Error("Not enough gold"));
-				db.get(`SELECT id FROM skins WHERE id = ?`, [itemId], (err, item) => {
+				db.get(`SELECT id, price FROM skins WHERE id = ?`, [itemId], (err, item) => {
 					if (err)
 						return reject(err);
 					if (!item)
 						return reject(new Error("Item not found"));
+					const itemPrice = Number(item.price);
+					if (isNaN(itemPrice) || itemPrice < 0)
+						return reject(new Error("Invalid item price"));
+					if (user.gold < itemPrice)
+						return reject(new Error("Not enough gold"));
 					db.get( `SELECT * FROM player_skins WHERE player_id = ? AND skin_id = ?`, [userId, itemId], (err, owned) => {
 						if (err)
 							return reject(err);

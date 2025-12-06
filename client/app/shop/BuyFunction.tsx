@@ -2,14 +2,13 @@ import { showAlert } from "../components/Alert";
 
 export default async function BuyItem(
   userId: number,
-  itemId: number,
-  itemPrice: number
+  itemId: number
 ) {
   try {
     const res = await fetch("/api/buy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemId, itemPrice }),
+      body: JSON.stringify({ itemId }),
     });
 
     const data = await res.json();

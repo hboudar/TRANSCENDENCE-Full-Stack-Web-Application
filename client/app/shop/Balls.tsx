@@ -68,7 +68,7 @@ export default function Balls({ currentUser }: Props) {
             {/* Buy Button */}
             <div className="w-full px-4 pb-4">
               <button
-                onClick={() => BuyItem(currentUser.id, item.id, item.price)}
+                onClick={() => BuyItem(currentUser.id, item.id)}
                 className="w-full text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300
                   font-medium rounded-lg text-xl py-2.5 flex items-center gap-2 justify-center
                   dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800 transition-all duration-300 hover:scale-105"

@@ -64,7 +64,7 @@ db.serialize(() => {
 		name TEXT NOT NULL,
 		email TEXT UNIQUE,
 		password TEXT,
-		picture TEXT,
+		picture TEXT DEFAULT '/profile.png',
 		email_verified BOOLEAN DEFAULT 0,
 		verification_token TEXT,
 		games Integer DEFAULT 0,
