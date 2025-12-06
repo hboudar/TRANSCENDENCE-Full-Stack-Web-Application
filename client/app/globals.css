@@ -34,7 +34,6 @@ body {
   font-family: var(--font-orbitron);
 }
 
-/* Custom Scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #7b5ddf #2a1f3d;
@@ -61,7 +60,6 @@ body {
   box-shadow: 0 0 10px #7b5ddf44;
 }
 
-/* Animation keyframes */
 @keyframes glow {
 
   0%,

@@ -1,4 +1,3 @@
-// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -7,13 +6,13 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "example.com", // Replace with your image host
+        hostname: "example.com",
         port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com", // Google profile images
+        hostname: "lh3.googleusercontent.com",
         port: "",
         pathname: "/**",
       },

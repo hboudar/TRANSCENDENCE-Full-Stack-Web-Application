@@ -2,15 +2,12 @@ import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
-// import rateLimit from '@fastify/rate-limit';
 import sqlite3 from 'sqlite3';
 import { Server } from 'socket.io';
 import { sockethandler } from './socket.js';
 import { rpsHandler } from './rps.js';
 import game, { setupGameSocketIO } from './game.js';
 
-
-///////////////////////////////////////////// devops /////////////////////////////////////////////
 import pino from "pino";
 
 const logStream = pino.destination({
@@ -30,7 +27,7 @@ const fastify = Fastify({
   logger: {
     instance: logger
   },
-  bodyLimit: 1048576 // 1MB
+  bodyLimit: 1048576
 });
 
 fastify.addHook("onResponse", (req, reply, done) => {
@@ -43,7 +40,6 @@ fastify.addHook("onResponse", (req, reply, done) => {
   });
   done();
 });
-//////////////////////////////////////////////////////////////////////////////////////////////////
 
 await fastify.register(cors, {
   origin: true,
@@ -51,17 +47,8 @@ await fastify.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 });
 
-// await fastify.register(rateLimit, {
-//   max: 100,              // 100 requests per IP
-//   timeWindow: '1 minute', // per minute
-//   ban: 2,                // ban for 2 minutes if limit exceeded
-//   cache: 1000,          // cache 1000 IPs // is this necessary?
-//   skipOnError: true      // don't block on error
-// });
-
 await fastify.register(cookie);
 
-// Connect SQLite DB
 const db = new sqlite3.Database('sqlite.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
   if (err) {
     console.error('Could not connect to database', err);
@@ -70,7 +57,6 @@ const db = new sqlite3.Database('sqlite.db', sqlite3.OPEN_READWRITE | sqlite3.OP
   }
 });
 
-// Create tables
 db.serialize(() => {
 	db.run(`
 	  CREATE TABLE IF NOT EXISTS users (
@@ -181,14 +167,6 @@ db.serialize(() => {
 	  );
 	`);
 
-	// db.run(`
-	// 	CREATE TABLE IF NOT EXISTS rps (
-	// 		player1_id INTEGER,
-
-			
-	// 	);
-	// `)
-
 	db.run(`
 	  CREATE TABLE IF NOT EXISTS friends (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -212,15 +190,11 @@ db.serialize(() => {
 		
 	});
 
-// Register authentication middleware  
-// Note: Runs at preValidation, before body parsing
-// Middleware only checks headers/cookies, NOT req.body
 const authMiddleware = (await import('./middleware/auth.js')).default;
 fastify.addHook('preValidation', async (request, reply) => {
   await authMiddleware(request, reply, db);
 });
 	
-// Register routes on fastify
 const devRoute = (await import('./routes/devroute.js')).default;
 fastify.register(devRoute, { db });
 
@@ -248,13 +222,10 @@ fastify.register(gameApiRoute, { db });
 const notificationRoute = (await import('./routes/notificationroute.js')).default;
 fastify.register(notificationRoute, { db });
 
-// Register Google OAuth
 const googleAuth = (await import('./google-auth.js')).default;
 fastify.register(googleAuth, { db });
-// Create raw HTTP server from fastify's internal handler
 const httpServer = fastify.server;
 
-// Setup Socket.IO server on top of the HTTP server
 const io = new Server(httpServer, {
   cors: {
     origin: true,
@@ -262,9 +233,7 @@ const io = new Server(httpServer, {
     credentials: true,
   },
   connectionStateRecovery: {
-    // the backup duration of the sessions and the packets
     maxDisconnectionDuration: 2 * 60 * 1000,
-    // whether to skip middlewares upon successful recovery
     skipMiddlewares: true,
   }
 });
@@ -273,7 +242,6 @@ sockethandler(io, db);
 setupGameSocketIO(io, db);
 rpsHandler(io, db);
 
-// Register profile routes after Socket.IO is created so routes can access `io`
 const profileRoute = (await import('./routes/profileroute.js')).default;
 await fastify.register(profileRoute, { db, io });
 
@@ -286,18 +254,12 @@ fastify.register(blockRoute, { db });
 const uploadRoute = (await import('./routes/uploadroute.js')).default;
 fastify.register(uploadRoute, { db, io });
 
-
-///////////////////////////////////////////// devops /////////////////////////////////////////////
-// --- Prometheus Metrics Setup ---
 import client from "prom-client";
 
-// Create a Registry to register metrics
 const register = new client.Registry();
 
-// Collect default Node.js metrics (CPU, memory, event loop, etc.)
 client.collectDefaultMetrics({ register });
 
-// Optional: Add a custom metric for HTTP requests count
 const httpRequestsTotal = new client.Counter({
   name: "http_requests_total",
   help: "Total number of HTTP requests handled",
@@ -305,19 +267,16 @@ const httpRequestsTotal = new client.Counter({
 });
 register.registerMetric(httpRequestsTotal);
 
-// Middleware to track request counts
 fastify.addHook("onResponse", (request, reply, done) => {
   const route = request.routerPath || request.url;
   httpRequestsTotal.inc({ method: request.method, route, status: reply.statusCode });
   done();
 });
 
-// Metrics endpoint for Prometheus
 fastify.get("/metrics", async (req, reply) => {
   reply.header("Content-Type", register.contentType);
   return register.metrics();
 });
-//////////////////////////////////////////////////////////////////////////////////////////////////
 await fastify.ready();
 const PORT = 4000;
 httpServer.listen(PORT, (err) => {

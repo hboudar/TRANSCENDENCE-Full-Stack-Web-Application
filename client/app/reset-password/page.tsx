@@ -31,14 +31,12 @@ function ResetPasswordContent() {
         setMessage("");
         setError("");
 
-        // Validate passwords match
         if (newPassword !== confirmPassword) {
             setError("Passwords do not match");
             setLoading(false);
             return;
         }
 
-        // Validate password length
         if (newPassword.length < 6) {
             setError("Password must be at least 6 characters long");
             setLoading(false);
@@ -67,7 +65,6 @@ function ResetPasswordContent() {
                 setNewPassword("");
                 setConfirmPassword("");
                 
-                // Redirect to login after 2 seconds
                 setTimeout(() => {
                     window.location.href = "/login";
                 }, 2000);

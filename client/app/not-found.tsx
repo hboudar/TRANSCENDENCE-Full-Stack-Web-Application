@@ -239,7 +239,6 @@ export default function NotFound() {
                     ))}
                 </motion.div>
 
-                {/* Footer text */}
                 <motion.p
                     variants={itemVariants}
                     className="mt-12 text-gray-500 text-sm"
@@ -248,10 +247,8 @@ export default function NotFound() {
                 </motion.p>
             </motion.div>
 
-            {/* Particle effect */}
             <div className="absolute inset-0 pointer-events-none">
                 {Array.from({ length: 20 }).map((_, i) => {
-                    // Use deterministic values based on index for SSR compatibility
                     const left = ((i * 47) % 100);
                     const top = ((i * 73) % 100);
                     const duration = 3 + ((i % 5) * 0.5);

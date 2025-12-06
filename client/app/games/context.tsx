@@ -32,7 +32,6 @@ export type HomeContextType = {
 
 export const HomeContext = createContext<HomeContextType | undefined>(undefined);
 
-// Custom hook to use the HomeContext
 export function useHomeContext(): HomeContextType {
 	const context = useContext(HomeContext);
 	if (!context) {
