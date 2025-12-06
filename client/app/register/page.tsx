@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, EyeClosed } from 'lucide-react';
 import Link from 'next/link';
+import { showAlert } from '../components/Alert';
 
 export default function SignUpForm() {
     const [formData, setFormData] = useState({
@@ -41,8 +42,11 @@ export default function SignUpForm() {
             if (response.ok) {
                 const data = await response.json();
                 // Show success message telling user to check email
-                alert('✅ ' + data.message);
-                window.location.href = '/login';
+                showAlert(data.message, 'success');
+                // Wait 4 seconds to let user read the message before redirecting
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 4000);
             } else {
                 const data = await response.json();
                 setError(data.error || "Registration failed!");

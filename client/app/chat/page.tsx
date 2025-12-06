@@ -11,6 +11,7 @@ import Loading from "../components/loading";
 import { FaTableTennisPaddleBall } from "react-icons/fa6";
 import socket from "../socket";
 import { useRouter } from "next/navigation";
+import { showAlert } from "../components/Alert";
 
 type User = {
     id: number;
@@ -210,7 +211,7 @@ export default function Chat() {
         // Listen for confirmation
         socket.once("game_invite_sent", (data: { success: boolean }) => {
             if (data.success) {
-                alert(`Game invite sent to ${recipient.name}! 🎮`);
+                showAlert(`Game invite sent to ${recipient.name}! 🎮`, 'success');
             }
         });
     };

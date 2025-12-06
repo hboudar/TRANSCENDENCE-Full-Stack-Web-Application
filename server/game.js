@@ -1,5 +1,8 @@
 /** @format */
 
+import jwt from 'jsonwebtoken';
+const SECRET = process.env.JWT_SECRET;
+
 let players = [];
 const sessionsmap = new Map();
 
@@ -314,32 +317,78 @@ function game(gametype, socket, keysPressed, session) {
 export function setupGameSocketIO(io, db) {
 	const mainIo = io; // Store reference to main io instance
 	io.of("/game").use((socket, next) => {
-		const sessionId = socket.handshake.auth.sessionId;
-		const playerId = socket.handshake.auth.playerId;
-		// console.log(sessionsmap);
+		try {
+			// Extract JWT token
+			const token = socket.handshake.auth.token || 
+			              socket.handshake.headers.cookie?.match(/token=([^;]+)/)?.[1];
+			
+			if (!token) {
+				console.log('⚠️ Game connection rejected: No token');
+				return next(new Error('Authentication required'));
+			}
+			
+			// Check if token is blacklisted
+			db.get('SELECT token FROM blacklist_tokens WHERE token = ?', [token], (err, blacklisted) => {
+				if (err || blacklisted) {
+					console.log('⚠️ Game connection rejected: Token blacklisted');
+					return next(new Error('Token has been revoked'));
+				}
+				
+				// Verify JWT token
+				let decoded;
+				try {
+					decoded = jwt.verify(token, SECRET);
+				} catch (jwtError) {
+					console.log('⚠️ Game connection rejected: Invalid token');
+					return next(new Error('Invalid or expired token'));
+				}
+				
+				const authenticatedUserId = decoded.userId;
+				
+				// Verify user exists in database
+				db.get('SELECT id FROM users WHERE id = ?', [authenticatedUserId], (err, user) => {
+					if (err || !user) {
+						console.log(`⚠️ Game connection rejected: User ${authenticatedUserId} not found`);
+						return next(new Error('User not found'));
+					}
+					
+					const sessionId = socket.handshake.auth.sessionId;
+					const playerId = socket.handshake.auth.playerId;
+					
+					// SECURITY: Verify playerId matches authenticated user
+					if (authenticatedUserId != playerId) {
+						console.log(`🚫 Game connection rejected: User ${authenticatedUserId} attempted to play as ${playerId}`);
+						return next(new Error('Cannot play as another user'));
+					}
 
-		const session = sessionsmap.get(sessionId);
-		if (!session) return next(new Error("Invalid session ID"));
-		if (
-			session.players_info.p1_id != playerId &&
-			session.players_info.p2_id != playerId
-		) {
-			return next(new Error("Player not authorized for this session"));
+					const session = sessionsmap.get(sessionId);
+					if (!session) return next(new Error("Invalid session ID"));
+					if (
+						session.players_info.p1_id != playerId &&
+						session.players_info.p2_id != playerId
+					) {
+						return next(new Error("Player not authorized for this session"));
+					}
+
+					// Mark player as ready when connecting
+					if (session.players_info.p1_id === playerId) {
+						session.p1_ready = true;
+					} else if (session.players_info.p2_id === playerId) {
+						session.p2_ready = true;
+					}
+
+					socket.sessionId = sessionId;
+					socket.playerId = playerId;
+					socket.session = session;
+					console.log(`✅ Game authenticated: User ${authenticatedUserId} for session ${sessionId}`);
+
+					next();
+				});
+			});
+		} catch (error) {
+			console.log('⚠️ Game connection rejected:', error.message);
+			next(new Error('Authentication failed'));
 		}
-
-		// Mark player as ready when connecting
-		if (session.players_info.p1_id === playerId) {
-			session.p1_ready = true;
-		} else if (session.players_info.p2_id === playerId) {
-			session.p2_ready = true;
-		}
-
-		socket.sessionId = sessionId;
-		socket.playerId = playerId;
-		socket.session = session;
-		// console.log(session);
-
-		next();
 	});
 	io.of("/game").on("connection", (socket) => {
 		// console.log("Client connected to game namespace:", socket.id);
@@ -420,10 +469,32 @@ export function setupGameSocketIO(io, db) {
 		// });
 
 		socket.on("keydown", (data) => {
+			// Validate key input
+			if (!data || !data.key || typeof data.key !== 'string') {
+				console.log('🚫 Invalid keydown data');
+				return;
+			}
+			// Only allow valid game keys
+			const validKeys = ['w', 's', 'ArrowUp', 'ArrowDown'];
+			if (!validKeys.includes(data.key)) {
+				console.log(`🚫 Invalid game key: ${data.key}`);
+				return;
+			}
 			keysPressed[data.key] = true;
 		});
 
 		socket.on("keyup", (data) => {
+			// Validate key input
+			if (!data || !data.key || typeof data.key !== 'string') {
+				console.log('🚫 Invalid keyup data');
+				return;
+			}
+			// Only allow valid game keys
+			const validKeys = ['w', 's', 'ArrowUp', 'ArrowDown'];
+			if (!validKeys.includes(data.key)) {
+				console.log(`🚫 Invalid game key: ${data.key}`);
+				return;
+			}
 			keysPressed[data.key] = false;
 		});
 

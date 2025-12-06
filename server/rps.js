@@ -53,6 +53,9 @@ const PAPER = 1
 const SCISSOR = 2
 const NO_CHOICE = -1
 
+import jwt from 'jsonwebtoken';
+const SECRET = process.env.JWT_SECRET;
+
 let rooms = []
 
 // Helper function to get user info from DB
@@ -73,23 +76,72 @@ const getUserInfo = (db, userId, callback) => {
 
 // Socket.IO RPS handler
 const rpsHandler = (io, db) => {
+    // Authentication middleware for RPS namespace
+    io.use((socket, next) => {
+        try {
+            const token = socket.handshake.auth.token || 
+                          socket.handshake.headers.cookie?.match(/token=([^;]+)/)?.[1];
+            
+            if (!token) {
+                console.log('⚠️ RPS connection rejected: No token');
+                return next(new Error('Authentication required'));
+            }
+            
+            // Check blacklist
+            db.get('SELECT token FROM blacklist_tokens WHERE token = ?', [token], (err, blacklisted) => {
+                if (err || blacklisted) {
+                    console.log('⚠️ RPS connection rejected: Token blacklisted');
+                    return next(new Error('Token has been revoked'));
+                }
+                
+                // Verify JWT
+                let decoded;
+                try {
+                    decoded = jwt.verify(token, SECRET);
+                } catch (jwtError) {
+                    console.log('⚠️ RPS connection rejected: Invalid token');
+                    return next(new Error('Invalid or expired token'));
+                }
+                
+                const userId = decoded.userId;
+                
+                // Verify user exists
+                db.get('SELECT id FROM users WHERE id = ?', [userId], (err, user) => {
+                    if (err || !user) {
+                        console.log(`⚠️ RPS connection rejected: User ${userId} not found`);
+                        return next(new Error('User not found'));
+                    }
+                    
+                    socket.userId = userId;
+                    console.log(`✅ RPS authenticated for user ${userId}`);
+                    next();
+                });
+            });
+        } catch (error) {
+            console.log('⚠️ RPS connection rejected:', error.message);
+            next(new Error('Authentication failed'));
+        }
+    });
+    
     io.on('connection', (socket) => {
-        console.log("⚡ RPS player connected:", socket.id)
-        let userId = null
+        console.log("⚡ RPS player connected:", socket.id, "User:", socket.userId)
         let currentRoomId = null
-
-        // store userId when provided
-        socket.on('set_user', (data) => {
-            userId = data.userId
-            console.log(`👤 User ${userId} connected for RPS`)
-        })
 
         // Create a new room
         socket.on('create_room', (msg) => {
             console.log(`🎮 create_room received ${msg.roomId}`)
             
-            if (msg.userId) {
-                userId = msg.userId
+            // Use authenticated userId only
+            const userId = socket.userId;
+            if (!userId) {
+                socket.emit('rps_error', 'Authentication required');
+                return;
+            }
+            
+            // Validate roomId
+            if (!msg.roomId || typeof msg.roomId !== 'string') {
+                socket.emit('rps_error', 'Invalid room ID');
+                return;
             }
 
             // Check if room already exists
@@ -134,8 +186,17 @@ const rpsHandler = (io, db) => {
         socket.on('join_room', (msg) => {
             console.log(`🚪 join_room received ${msg.roomId}`)
             
-            if (msg.userId) {
-                userId = msg.userId
+            // Use authenticated userId only
+            const userId = socket.userId;
+            if (!userId) {
+                socket.emit('rps_error', 'Authentication required');
+                return;
+            }
+            
+            // Validate roomId
+            if (!msg.roomId || typeof msg.roomId !== 'string') {
+                socket.emit('rps_error', 'Invalid room ID');
+                return;
             }
 
             // Find the room
@@ -226,8 +287,22 @@ const rpsHandler = (io, db) => {
         socket.on('rps', (msg) => {
             console.log(`✊✋✌️ rps message received ${msg.roomId}, choice: ${msg.choice}`)
             
-            if (msg.userId) {
-                userId = msg.userId
+            // Use authenticated userId only
+            const userId = socket.userId;
+            if (!userId) {
+                socket.emit('rps_error', 'Authentication required');
+                return;
+            }
+            
+            // Validate input
+            if (!msg.roomId || typeof msg.roomId !== 'string') {
+                socket.emit('rps_error', 'Invalid room ID');
+                return;
+            }
+            
+            if (msg.choice !== ROCK && msg.choice !== PAPER && msg.choice !== SCISSOR) {
+                socket.emit('rps_error', 'Invalid choice');
+                return;
             }
 
             const room = rooms.find(r => r.room_id === msg.roomId)

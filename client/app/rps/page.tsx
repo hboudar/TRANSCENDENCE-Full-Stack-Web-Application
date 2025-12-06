@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '../Context/UserContext'
 import { io, Socket } from 'socket.io-client'
+import { showAlert } from '../components/Alert'
 
 interface gameStatsType {
     wins: number;
@@ -163,7 +164,7 @@ export default function Rps() {
         })
 
         socket.on('rps_error', (error: string) => {
-            alert(error)
+            showAlert(error, 'error')
             setWaiting(false)
         })
 
@@ -263,7 +264,7 @@ export default function Rps() {
                     {joined && opponentInfo && (
                         <div className="mt-4 mx-4 flex items-center gap-4 bg-gradient-to-r from-purple-900/50 to-blue-900/50 px-6 py-4 rounded-xl shadow-lg border border-purple-500/30">
                             <img 
-                                src={opponentInfo.avatar} 
+                                src={opponentInfo.avatar || '/profile.png'}
                                 className="w-16 h-16 rounded-full border-2 border-purple-400 object-cover shadow-md"
                                 alt="Opponent avatar"
                             />

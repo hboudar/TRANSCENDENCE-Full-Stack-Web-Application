@@ -4,6 +4,7 @@ import { Mail, Lock } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from "react";
+import { showAlert } from "../components/Alert";
 
 function LoginContent() {
     // Store email and password from form
@@ -22,13 +23,13 @@ function LoginContent() {
         const verified = searchParams.get('verified');
         
         if (verified === 'true') {
-            alert('✅ Email verified successfully! You can now login.');
+            showAlert('Email verified successfully! You can now login.', 'success');
             window.history.replaceState({}, '', '/login');
         } else if (error === 'invalid_token') {
-            alert('❌ Invalid verification link. Please request a new verification email.');
+            showAlert('Invalid verification link. Please request a new verification email.', 'error');
             window.history.replaceState({}, '', '/login');
         } else if (error === 'verification_failed') {
-            alert('❌ Email verification failed. Please try again or contact support.');
+            showAlert('Email verification failed. Please try again or contact support.', 'error');
             window.history.replaceState({}, '', '/login');
         } else if (error) {
             // Show user-friendly error messages for OAuth errors
@@ -39,7 +40,7 @@ function LoginContent() {
                 'insert_failed': 'Failed to create user account',
                 'oauth_failed': 'Google authentication failed'
             };
-            alert(errorMessages[error] || 'Authentication failed. Please try again.');
+            showAlert(errorMessages[error] || 'Authentication failed. Please try again.', 'error');
             // Clean up URL (remove error parameter)
             window.history.replaceState({}, '', '/login');
         }
@@ -62,11 +63,11 @@ function LoginContent() {
 
             } else {
                 const error = await response.json();
-                alert(error.error || "Invalid email or password!");
+                showAlert(error.error || "Invalid email or password!", 'error');
             }
         } catch (error) {
             console.error("Error during login:", error);
-            alert("An error occurred. Please try again later.");
+            showAlert("An error occurred. Please try again later.", 'error');
         }
     }
 

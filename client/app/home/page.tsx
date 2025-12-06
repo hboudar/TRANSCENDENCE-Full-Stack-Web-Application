@@ -10,6 +10,7 @@ import { Coins, Crown, Flame, Trophy, LucideIcon } from "lucide-react";
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from "react";
 import { Game } from "../types/game";
+import { showAlert } from "../components/Alert";
 
 // Type definition for tier levels
 type TierType = "gold" | "silver" | "bronze";
@@ -102,7 +103,7 @@ function HomeContent() {
                 'insert_failed': 'Failed to create user account',
                 'oauth_failed': 'Google authentication failed'
             };
-            alert(errorMessages[error] || 'Authentication failed. Please try again.');
+            showAlert(errorMessages[error] || 'Authentication failed. Please try again.', 'error');
             // Clean up URL (remove error parameter)
             window.history.replaceState({}, '', '/home');
         }

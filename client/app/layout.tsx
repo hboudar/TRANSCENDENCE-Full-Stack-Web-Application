@@ -6,6 +6,7 @@ import { LayoutComp } from "./components/layoutnavbar";
 import { UserProvider } from "./Context/UserContext";
 import { NotificationProvider } from "./Context/NotificationContext";
 import { PresenceProvider } from "./Context/PresenceContext";
+import { AlertContainer } from "./components/Alert";
 
 const chakra = Chakra_Petch({
   subsets: ["latin"],
@@ -43,6 +44,7 @@ export default function RootLayout({
             </PresenceProvider>
           </NotificationProvider>
         </UserProvider>
+        <AlertContainer />
       {/* </Suspense> */}
       </body>
     </html>

@@ -1,3 +1,5 @@
+import { showAlert } from "../components/Alert";
+
 export default async function BuyItem(
   userId: number,
   itemId: number,
@@ -13,12 +15,12 @@ export default async function BuyItem(
     const data = await res.json();
 
     if (res.ok) {
-      alert(`Purchase successful: ${data.message}`);
+      showAlert(`Purchase successful: ${data.message}`, 'success');
     } else {
-      alert(`Purchase failed: ${data.error}`);
+      showAlert(`Purchase failed: ${data.error}`, 'error');
     }
   } catch (err) {
     console.error(err);
-    alert("Something went wrong!");
+    showAlert("Something went wrong!", 'error');
   }
 }
