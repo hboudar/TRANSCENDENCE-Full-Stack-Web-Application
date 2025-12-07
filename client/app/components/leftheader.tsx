@@ -19,9 +19,9 @@ export default function Leftheader() {
     ];
 
     return (
-        <div className="h-full flex flex-col justify-around items-center text-white shadow-xl py-6 px-2">
-            {/* Logo */}
-            <div className="w-12 mb-4">
+        <div className="h-full flex flex-col items-center text-white shadow-xl py-6 px-2">
+            {/* Logo - Stays at top */}
+            <div className="w-12 mb-8 flex-shrink-0">
                 <img
                     src="/logo.png"
                     alt="Logo"
@@ -31,8 +31,11 @@ export default function Leftheader() {
                 />
             </div>
 
-            {/* Nav Items */}
-            <nav className="flex flex-col gap-6 items-center">
+            {/* Spacer to push nav items to center */}
+            <div className="flex-grow"></div>
+
+            {/* Nav Items - Centered */}
+            <nav className="flex flex-col gap-6 items-center flex-shrink-0">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
                     return (
@@ -53,9 +56,12 @@ export default function Leftheader() {
                 })}
             </nav>
 
-            {/* Logout */}
+            {/* Spacer to push logout to bottom */}
+            <div className="flex-grow"></div>
+
+            {/* Logout - At bottom */}
             <button
-                className="group flex flex-col items-center gap-1 transition-all duration-200 mt-4"
+                className="group flex flex-col items-center gap-1 transition-all duration-200 flex-shrink-0"
                 onClick={async () => {
                     try {
                         await fetch("/api/logout", {

@@ -29,12 +29,14 @@ export const LayoutComp = ({ children }: { children: React.ReactNode }) => {
                 <div className="flex h-screen overflow-hidden">
                     {isMobile ? (
                         <>
-                            <button
-                                className="fixed bottom-6 left-4 z-50 p-3 bg-gradient-to-br from-purple-600/90 to-blue-600/90 rounded-full text-white md:hidden shadow-2xl hover:shadow-purple-500/50 hover:scale-110 transition-all duration-200 backdrop-blur-md border border-purple-400/40"
-                                onClick={() => setIsOpen(!isOpen)}
-                            >
-                                <GiHamburgerMenu size={22} className="drop-shadow-lg" />
-                            </button>
+                            {!isOpen && (
+                                <button
+                                    className="fixed bottom-6 left-4 z-50 p-3 bg-gradient-to-br from-purple-600/90 to-blue-600/90 rounded-full text-white md:hidden shadow-2xl hover:shadow-purple-500/50 hover:scale-110 transition-all duration-200 backdrop-blur-md border border-purple-400/40"
+                                    onClick={() => setIsOpen(!isOpen)}
+                                >
+                                    <GiHamburgerMenu size={22} className="drop-shadow-lg" />
+                                </button>
+                            )}
                             {isOpen && (
                                 <>
                                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30" onClick={() => setIsOpen(false)} />

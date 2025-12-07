@@ -30,7 +30,7 @@ export async function middleware(req: NextRequest) {
   });
 
   const isPublic = PUBLIC_ROUTES.includes(pathname);
-  const isProtected = PROTECTED_ROUTES.includes(pathname) || pathname.startsWith('/profile');
+  const isProtected = PROTECTED_ROUTES.includes(pathname) || pathname.startsWith('/profile') || pathname.startsWith('/games');
 
   const hasValidToken = token ? await verifyToken(token) : false;
 
