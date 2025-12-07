@@ -45,7 +45,10 @@ export default async function authMiddleware(req, reply, db) {
   // Extract pathname without query parameters
   const pathname = req.url.split('?')[0];
   
-  if (publicRoutes.includes(pathname) || pathname.startsWith('/auth/')) {
+  // Allow public routes including CLI API endpoints
+  if (publicRoutes.includes(pathname) || 
+      pathname.startsWith('/auth/') || 
+      pathname.startsWith('/games/cli/')) {
     console.log('Allowing public route:', req.url);
     return; // Allow public routes
   }
