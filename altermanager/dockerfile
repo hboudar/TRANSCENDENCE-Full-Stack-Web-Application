@@ -1,0 +1,23 @@
+FROM debian:12-slim
+
+RUN apt-get update && \
+    apt-get install -y wget tar gettext ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV ALERT_VERSION=0.27.0
+
+RUN wget https://github.com/prometheus/alertmanager/releases/download/v${ALERT_VERSION}/alertmanager-${ALERT_VERSION}.linux-amd64.tar.gz && \
+    tar xvf alertmanager-${ALERT_VERSION}.linux-amd64.tar.gz && \
+    mv alertmanager-${ALERT_VERSION}.linux-amd64/alertmanager /bin/alertmanager && \
+    rm -rf alertmanager-${ALERT_VERSION}.linux-amd64*
+
+COPY alertmanager.yml /etc/alertmanager/alertmanager.yml
+
+COPY entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh
+
+
+WORKDIR /etc/alertmanager
+
+ENTRYPOINT ["/entrypoint.sh"]

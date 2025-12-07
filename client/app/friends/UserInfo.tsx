@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  UserX,
-  Gamepad2,
-  Trophy,
-  TrendingDown,
-} from "lucide-react";
+import { UserX, Gamepad2, Trophy, TrendingDown } from "lucide-react";
 import socket from "@/app/socket";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
@@ -26,36 +21,37 @@ type CurrentUser = {
   name: string;
 };
 
-export default function UserInfo({ user, currentUser, setUsers }: {
+export default function UserInfo({
+  user,
+  currentUser,
+  setUsers,
+}: {
   user: User;
   currentUser: CurrentUser | null;
   setUsers: Dispatch<SetStateAction<User[]>>;
 }) {
   const removeFriend = async () => {
     if (!currentUser) return;
-    
+
     const userId = currentUser.id;
     const friendId = user.id;
-    
+
     const res = await fetch(`/api/friends/remove`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, friendId }),
     });
-    
+
     if (res.ok) {
-      if (socket) {
-        socket.emit("friends:update", { userA: userId, userB: friendId });
-      }
-      setUsers((prev: User[]) => prev.filter((u: User) => u.id !== friendId));
+      socket.emit("friends:updated", { userA: userId, userB: friendId });
+      setUsers((prev: User[]) => prev.filter((u) => u.id !== friendId));
     }
   };
-  
+
   const router = useRouter();
   return (
     <div className="bg-purple-700/40 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between hover:bg-purple-700/50 transition-all">
       <div className="flex items-center gap-4">
-        {/* ONLY this div is clickable */}
         <div
           className="flex items-center gap-4 cursor-pointer"
           onClick={() => router.push(`/profile/${user.id}`)}

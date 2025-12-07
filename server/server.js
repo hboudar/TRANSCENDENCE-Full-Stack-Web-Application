@@ -192,6 +192,7 @@ db.serialize(() => {
 
 const authMiddleware = (await import('./middleware/auth.js')).default;
 fastify.addHook('preValidation', async (request, reply) => {
+  if (request.url === '/metrics') return;
   await authMiddleware(request, reply, db);
 });
 	
