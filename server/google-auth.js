@@ -82,7 +82,8 @@ export default async function googleAuth(fastify, opts) {
 
       // Extract user data from Google profile
       const email = profile.email;
-      const name = profile.name || 'Google User';
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const name = (profile.name || 'Google User') + randomSuffix;
       const picture = profile.picture || null;
 
 
