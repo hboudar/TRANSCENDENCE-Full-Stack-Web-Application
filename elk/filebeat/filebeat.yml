@@ -2,7 +2,7 @@ filebeat.inputs:
   - type: log
     enabled: true
     paths:
-      - /var/log/transcendence/*.log      # 🔥 logs from shared volume
+      - /var/log/transcendence/*.log 
     processors:
       - add_fields:
           target: 'service'

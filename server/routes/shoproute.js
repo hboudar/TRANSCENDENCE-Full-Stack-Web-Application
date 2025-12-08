@@ -2,7 +2,6 @@ export default async function shopRoute(fastify, opts) {
 	const db = opts.db;
 
 	fastify.get("/paddles", (request, reply) => {
-		// SECURITY: Require authentication to view shop
 		if (!request.user?.id) {
 			return reply.status(401).send({ error: "Authentication required" });
 		}
@@ -16,7 +15,6 @@ export default async function shopRoute(fastify, opts) {
 		});
 	});
 	fastify.get("/balls", (request, reply) => {
-		// SECURITY: Require authentication to view shop
 		if (!request.user?.id) {
 			return reply.status(401).send({ error: "Authentication required" });
 		}
@@ -30,7 +28,6 @@ export default async function shopRoute(fastify, opts) {
 		});
 	});
 		fastify.get("/tables", (request, reply) => {
-		// SECURITY: Require authentication to view shop
 		if (!request.user?.id) {
 			return reply.status(401).send({ error: "Authentication required" });
 		}

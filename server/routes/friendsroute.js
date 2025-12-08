@@ -5,7 +5,7 @@ export default async function friendRoutes(fastify, opts) {
 
   fastify.post("/friends", async (request, reply) => {
     const { friendId } = request.body;
-    const userId = request.user?.id; // Get userId from authenticated user
+    const userId = request.user?.id;
 
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
@@ -15,12 +15,10 @@ export default async function friendRoutes(fastify, opts) {
       return reply.status(400).send({ error: "Missing friendId" });
     }
 
-    // Prevent adding yourself as friend
     if (Number(userId) === Number(friendId)) {
       return reply.status(400).send({ error: "Cannot add yourself as a friend" });
     }
 
-    // Verify both users exist
     const userExists = await new Promise((resolve) => {
       db.get('SELECT id FROM users WHERE id = ?', [userId], (err, row) => {
         resolve(!!row && !err);
@@ -45,7 +43,6 @@ export default async function friendRoutes(fastify, opts) {
       const result = await handleAddFriend(db, Number(userId), Number(friendId));
 
       if (result.autoAccepted) {
-        // 🔥 Auto accept happened
         io.to(`user:${userId}`).emit("friends:updated");
         io.to(`user:${friendId}`).emit("friends:updated");
 
@@ -56,7 +53,6 @@ export default async function friendRoutes(fastify, opts) {
         });
       }
 
-      // Otherwise normal request
       io.to(`user:${friendId}`).emit("friends:request:incoming", {
         fromUserId: Number(userId),
       });
@@ -69,7 +65,7 @@ export default async function friendRoutes(fastify, opts) {
 
 
   fastify.get("/friends/accepted", (request, reply) => {
-    const userId = request.user?.id; // Get userId from authenticated user
+    const userId = request.user?.id;
     if (!userId) return reply.status(401).send({ error: "Unauthorized" });
 
     const query = `
@@ -113,7 +109,7 @@ export default async function friendRoutes(fastify, opts) {
   });
 
   fastify.get("/friends/request", (request, reply) => {
-    const userId = request.user?.id; // Get userId from authenticated user
+    const userId = request.user?.id;
     if (!userId) return reply.status(401).send({ error: "Unauthorized" });
     db.all(
       "SELECT * FROM friends WHERE user_id = ? AND is_request = 1",
@@ -127,8 +123,7 @@ export default async function friendRoutes(fastify, opts) {
 
   fastify.post("/friends/remove", (request, reply) => {
     const { friendId } = request.body;
-    const userId = request.user?.id; // Get userId from authenticated user
-
+    const userId = request.user?.id;
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
@@ -137,7 +132,6 @@ export default async function friendRoutes(fastify, opts) {
       return reply.status(400).send({ error: "Missing friendId" });
     }
 
-    // Prevent removing yourself
     if (Number(userId) === Number(friendId)) {
       return reply.status(400).send({ error: "Invalid operation" });
     }
@@ -161,7 +155,7 @@ export default async function friendRoutes(fastify, opts) {
   });
 
   fastify.get("/friends/myrequests", (request, reply) => {
-    const userId = request.user?.id; // Get userId from authenticated user
+    const userId = request.user?.id;
     if (!userId) return reply.status(401).send({ error: "Unauthorized" });
 
     const sql = `
@@ -179,8 +173,7 @@ export default async function friendRoutes(fastify, opts) {
 
   fastify.put("/friends/accept", (request, reply) => {
     const { friendId } = request.body;
-    const userId = request.user?.id; // Get userId from authenticated user
-
+    const userId = request.user?.id;
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
@@ -189,7 +182,6 @@ export default async function friendRoutes(fastify, opts) {
       return reply.status(400).send({ error: "Missing friendId" });
     }
 
-    // Prevent accepting yourself
     if (Number(userId) === Number(friendId)) {
       return reply.status(400).send({ error: "Invalid operation" });
     }

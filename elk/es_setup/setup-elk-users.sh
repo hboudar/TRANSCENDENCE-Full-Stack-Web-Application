@@ -6,7 +6,6 @@ ELASTIC_PASSWORD="${ELASTIC_PASSWORD}"
 
 CURL="curl -k -s -u elastic:${ELASTIC_PASSWORD} -H Content-Type:application/json"
 
-# --- WAIT FOR ELASTICSEARCH ---
 echo ">> Waiting for Elasticsearch to be ready..."
 
 until curl -k -s -u elastic:${ELASTIC_PASSWORD} "${ES_URL}" >/dev/null 2>&1; do
@@ -16,7 +15,6 @@ done
 
 echo ">> Elasticsearch is ready."
 
-# --- RUN PASSWORD + USER SETUP ---
 echo ">> Setting password for kibana_system"
 $CURL -X POST "${ES_URL}/_security/user/kibana_system/_password" -d "{
   \"password\": \"${KIBANA_SYSTEM_PASSWORD}\"

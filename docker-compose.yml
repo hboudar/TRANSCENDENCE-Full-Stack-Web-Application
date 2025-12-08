@@ -10,7 +10,7 @@ services:
       - transcendence
     restart: unless-stopped
     volumes:
-      - uploads_data:/app/public/uploads   # Shared uploads volume
+      - uploads_data:/app/public/uploads
 
   server:
     build:
@@ -25,9 +25,8 @@ services:
       - transcendence
     restart: unless-stopped
     volumes:
-      - server_logs:/var/log/transcendence   # logs only
-      - uploads_data:/usr/src/app/uploads    # Shared uploads volume
-
+      - server_logs:/var/log/transcendence
+      - uploads_data:/usr/src/app/uploads
   nginx:
     build:
       context: .
@@ -42,7 +41,7 @@ services:
       - transcendence
     restart: unless-stopped
     volumes:
-      - uploads_data:/usr/share/nginx/uploads   # Shared uploads volume for serving files
+      - uploads_data:/usr/share/nginx/uploads 
 
 
   prometheus:
@@ -99,13 +98,15 @@ services:
 
   alertmanager:
     build:
-      context: ./altermanager
+      context: ./alertmanager
       dockerfile: Dockerfile
     container_name: alertmanager
     volumes:
       - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
     environment:
-      - EXTERNAL_URL=https://localhost/api/alertmanager
+      - EXTERNAL_URL=${ALERTMANAGER_EXTERNAL_URL}
     env_file:
       - .env
     networks:
@@ -230,5 +231,5 @@ volumes:
   prometheus_data:
   transcendence_certs:
   server_logs:
-  uploads_data:    # Shared volume for user uploads
+  uploads_data:
   alertmanager_data:

@@ -12,7 +12,6 @@ export default function BottomButtons({ onRefreshFriends }: { onRefreshFriends: 
   const [pendingRequests, setPendingRequests] = useState(0);
   const { user } = useUser();
 
-  // Fetch number of pending friend requests
   const fetchRequestsCount = async () => {
     if (!user) return;
     try {
@@ -31,7 +30,6 @@ export default function BottomButtons({ onRefreshFriends }: { onRefreshFriends: 
 
     socket.emit("join", user.id);
 
-    // Listen for incoming requests or when friends list is updated
     socket.on("friends:request:incoming", fetchRequestsCount);
     socket.on("friends:updated", fetchRequestsCount);
 

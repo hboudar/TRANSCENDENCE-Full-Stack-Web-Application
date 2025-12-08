@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import UsersCard from "./UsersCard";
-import BottomButtons from "./BottomButtons";
+import BottomButtons from "./Buttons";
 import Loading from "../components/loading";
 import { useUser } from "../Context/UserContext";
 import socket from "@/app/socket";

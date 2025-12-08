@@ -9,17 +9,16 @@ scrape_configs:
 
   - job_name: "server"
     static_configs:
-      - targets: ["nginx:443"]   # <-- Scrape metrics through Nginx
-    metrics_path: /api/metrics  # <-- matches Nginx proxy path
-    scheme: https                # <-- if Nginx serves HTTPS
+      - targets: ["nginx:443"]  
+    metrics_path: /api/metrics  
+    scheme: https               
     tls_config:
-      insecure_skip_verify: true # <-- ignore self-signed SSL
+      insecure_skip_verify: true 
 
 alerting:
   alertmanagers:
     - static_configs:
         - targets: ['alertmanager:9093']
-      # path_prefix: /api/alertmanager
 
 rule_files:
   - "alert_rules.yml"

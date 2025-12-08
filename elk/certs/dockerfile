@@ -2,7 +2,6 @@ FROM docker.elastic.co/elasticsearch/elasticsearch:8.15.0
 
 USER root
 
-# CREATE THE EXACT DIRECTORY THAT docker-compose MOUNTS OVER
 RUN mkdir -p /usr/share/elasticsearch/config/certs
 
 COPY instances.yml /tmp/instances.yml
