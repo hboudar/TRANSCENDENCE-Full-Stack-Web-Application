@@ -12,4 +12,5 @@ COPY ./nginx/wait-for-upstreams.sh /usr/local/bin/wait-for-upstreams.sh
 RUN chmod +x /usr/local/bin/wait-for-upstreams.sh
 
 EXPOSE 80 443
-CMD ["/usr/local/bin/wait-for-upstreams.sh"]
+# CMD ["/usr/local/bin/wait-for-upstreams.sh"]
+CMD ["nginx", "-g", "daemon off;"]  

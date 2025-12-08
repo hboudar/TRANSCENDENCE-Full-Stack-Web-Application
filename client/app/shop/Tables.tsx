@@ -54,7 +54,7 @@ export default function Tables({ currentUser }: Props) {
             </div>
             <div className="w-full flex flex-col items-start p-4 gap-4">
               {/* Name */}
-              <span className="text-left text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white break-words">
+              <span className="text-left text-2xl sm:text-3xl font-bold text-gray-900 text-white break-words">
                 {item.name}
               </span>
               {/* Description */}
@@ -62,7 +62,7 @@ export default function Tables({ currentUser }: Props) {
                 {item.description}
               </span>
               {/* Price */}
-              <span className="text-left text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+              <span className="text-left text-xl sm:text-2xl font-bold text-gray-900 text-white">
                 ${item.price}
               </span>
             </div>
@@ -72,7 +72,7 @@ export default function Tables({ currentUser }: Props) {
                 onClick={() => BuyItem(currentUser.id, item.id)}
                 className="w-full text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-purple-300
                   font-medium rounded-lg text-xl py-2.5 flex items-center gap-2 justify-center
-                  dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800 transition-all duration-300 hover:scale-105"
+                  bg-purple-600 hover:bg-purple-700 focus:ring-purple-800 transition-all duration-300 hover:scale-105"
               >
                 <ShoppingCart /> Buy
               </button>

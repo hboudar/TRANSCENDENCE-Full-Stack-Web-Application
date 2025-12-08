@@ -21,7 +21,7 @@ export default function GamesCard({
 	const router = useRouter();
 
 	return (
-		<div className="h-full w-fit group flex-shrink-0">
+		<div className="h-full  aspect-3/4  group ">
 			<div
 				onClick={() => {
 					// if (type == "tournament") router.push("/games/tournament");
@@ -33,8 +33,8 @@ export default function GamesCard({
 						setGameType(gameType);
 					}
 				}}
-				className={`relative   overflow-hidden  cursor-pointer flex  h-full
-                                    aspect-[3/4] bg-white border 
+				className={`relative   overflow-hidden  cursor-pointer flex  h-full 
+                                    aspect-3/4 bg-white border 
                                     rounded-2xl shadow-md   transition-all duration-700  group-hover:rotate-y-180
                                     hover:shadow-lg hover:border-blue-500`}>
 				<Image
