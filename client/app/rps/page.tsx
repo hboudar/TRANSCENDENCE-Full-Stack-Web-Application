@@ -1,10 +1,10 @@
 
-
 "use client"
 import { useState, useEffect } from 'react'
 import { useUser } from '../Context/UserContext'
 import { io, Socket } from 'socket.io-client'
 import { showAlert } from '../components/Alert'
+import Loading from '../components/loading'
 
 interface gameStatsType {
     wins: number;
@@ -15,13 +15,11 @@ interface gameStatsType {
 export default function Rps() {
     const { user, loading } = useUser()
 
-    // opponent
     const [opponentInfo, setOpponentInfo] = useState<{
         username: string,
         avatar: string
     } | null>(null)
     
-    // Match stats (per-match, not total from DB)
     const [matchStats, setMatchStats] = useState<gameStatsType>({
         wins: 0,
         losses: 0,
@@ -35,18 +33,20 @@ export default function Rps() {
     const [waiting, setWaiting] = useState<boolean>(false)
     const [roomStatus, setRoomStatus] = useState<string>('')
     const [joined, setJoined] = useState<boolean>(false)
-    const [roomCreated, setRoomCreated] = useState<boolean>(false)
+    const [_roomCreated, setRoomCreated] = useState<boolean>(false)
     const [matchFinished, setMatchFinished] = useState<boolean>(false)
     const [timeLeft, setTimeLeft] = useState<number>(5)
     const [timerActive, setTimerActive] = useState<boolean>(false)
 
-    // for keeping the same socket
     const [socket, setSocket] = useState<Socket | null>(null)
-    console.log("roomcreated:", roomCreated);
+    
+    useEffect(() => {
+        console.log('Room created status:', _roomCreated);
+    }, [_roomCreated]);
+
     useEffect(() => {
         if (!user?.id) return
 
-        // connect to rps socket using Socket.IO
         let socket: Socket | null = null;
 
         if (typeof window !== "undefined") {
@@ -64,10 +64,8 @@ export default function Rps() {
         if (!socket) return;
 
         socket.on('connect', () => {
-            console.log("connected to rps socket")
             setSocket(socket)
             
-            // Send userId to server
             socket.emit('set_user', {
                 userId: user.id
             })
@@ -125,8 +123,6 @@ export default function Rps() {
             gamesPlayed: number,
             timeout?: boolean
         }) => {
-            console.log(`received result: ${data.result}`)
-
             setResult(data.result)
             setMatchStats(data.matchStats)
             setGamesPlayed(data.gamesPlayed)
@@ -139,7 +135,6 @@ export default function Rps() {
                 setTimeout(() => setRoomStatus(''), 2000)
             }
 
-            // Clear result after 2 seconds for next game
             setTimeout(() => {
                 setResult('')
             }, 2000)
@@ -150,7 +145,6 @@ export default function Rps() {
             setMatchFinished(true)
             setMatchStats(data.finalStats)
             
-            // Reset everything after 5 seconds
             setTimeout(() => {
                 setJoined(false)
                 setRoomCreated(false)
@@ -168,7 +162,6 @@ export default function Rps() {
             setWaiting(false)
         })
 
-        // generate 12 character alpha-numeric code
         const chars: string = 'abcdefghijklmnopqrstuvwxyz0123456789'
         let result: string = ''
 
@@ -183,7 +176,6 @@ export default function Rps() {
         }
     }, [user])
 
-    // Timer effect - show timer for both players once it starts
     useEffect(() => {
         if (timerActive) {
             const interval = setInterval(() => {
@@ -206,7 +198,6 @@ export default function Rps() {
                 roomId: roomId,
                 userId: user?.id
             })
-            console.log("create_room away!")
         }
     }
 
@@ -216,7 +207,6 @@ export default function Rps() {
                 roomId: roomId,
                 userId: user?.id
             })
-            console.log("join_room away!")
         }
     }
 
@@ -239,14 +229,12 @@ export default function Rps() {
         if (socket && socket.connected && !matchFinished) {
             setSelectedChoice(choice)
             setWaiting(true)
-            // Don't start timer here - server will notify both players via 'timer_started'
+            
             socket.emit('rps', {
                 roomId: roomId,
                 choice: choice,
                 userId: user?.id
             })
-
-            console.log("rps away!")
         }
     }
 
@@ -256,11 +244,11 @@ export default function Rps() {
         <div className="flex flex-col">
             {loading ? (
                 <div className="flex justify-center items-center h-screen">
-                    <div className="text-2xl">Loading...</div>
+                    <Loading />
                 </div>
             ) : (
                 <>
-                    {/* Opponent Widget */}
+                    {}
                     {joined && opponentInfo && (
                         <div className="mt-4 mx-4 flex items-center gap-4 bg-gradient-to-r from-purple-900/50 to-blue-900/50 px-6 py-4 rounded-xl shadow-lg border border-purple-500/30">
                             <img 
@@ -292,21 +280,21 @@ export default function Rps() {
                             )}
                         </div>
 
-                        {/* Room status indicator */}
+                        {}
                         {roomStatus && (
                             <div className="mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg text-base sm:text-lg md:text-xl font-semibold animate-pulse">
                                 {roomStatus}
                             </div>
                         )}
 
-                        {/* Timer Display - show for both players when active */}
+                        {}
                         {timerActive && (
                             <div className="mb-4 px-6 py-3 bg-red-600 text-white rounded-lg text-2xl font-bold animate-pulse">
                                 ⏰ {timeLeft}s
                             </div>
                         )}
 
-                        {/* Choice buttons */}
+                        {}
                         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full max-w-2xl">
                             <button 
                                 className={`px-6 sm:px-8 py-3 sm:py-4 rounded-lg text-lg sm:text-xl md:text-2xl cursor-pointer border transition-all duration-200 ${
@@ -343,7 +331,7 @@ export default function Rps() {
                             </button>
                         </div>
 
-                        {/* Match stats */}
+                        {}
                         <div className="flex flex-col sm:flex-row gap-6 sm:gap-10 md:gap-20 mt-6 sm:mt-8 px-6 sm:px-8 py-6 sm:py-8 bg-black/40 rounded-lg w-full max-w-3xl">
                             <div className="text-center flex-1">
                                 <div className="text-xl sm:text-2xl font-bold">WINS</div>
@@ -362,7 +350,7 @@ export default function Rps() {
                         </div>
                     </div>
 
-                    {/* Room controls */}
+                    {}
                     <div className="flex flex-col items-center justify-center mt-6 sm:mt-8 gap-4 px-4">
                         <input 
                             type="text" 
@@ -398,7 +386,7 @@ export default function Rps() {
                         )}
                     </div>
 
-                    {/* Result display */}
+                    {}
                     {result && (
                         <div className="mt-8 sm:mt-10 flex justify-center px-4">
                             <div className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-2xl sm:text-3xl font-bold shadow-xl transition-all duration-300

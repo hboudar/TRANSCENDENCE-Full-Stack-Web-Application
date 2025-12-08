@@ -13,7 +13,7 @@ export default function Games() {
 	return (
 		<div className="flex flex-col h-full w-full p-4 gap-4">
 
-			{/* ===== GAME CARDS SCROLL AREA ===== */}
+			{}
 			<div
 				className="
 					px-4 py-3 min-h-80
@@ -69,7 +69,7 @@ export default function Games() {
 				</div>
 			</div>
 
-			{/* ===== SKINS SECTION ===== */}
+			{}
 			<div className="flex gap-4 flex-col flex-1">
 				<div className="flex justify-center flex-none w-3/5 self-center relative">
 

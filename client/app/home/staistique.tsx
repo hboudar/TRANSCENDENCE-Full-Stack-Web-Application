@@ -7,7 +7,6 @@ import { useUser } from "../Context/UserContext";
 
 export default function Statistics() {
 
-
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user } = useUser();
@@ -24,7 +23,7 @@ export default function Statistics() {
 
                 if (!response.ok) {
                     console.error("Failed to fetch games");
-                    setGames([]); // Set empty array if failed
+                    setGames([]); 
                     return;
                 }
                 const data = await response.json();
@@ -50,7 +49,6 @@ export default function Statistics() {
             </div>
         );
     }
-    console.log("Fetched user:", user);
 
     return (
         <div className="flex-1/5 flex gap-2 m-5">

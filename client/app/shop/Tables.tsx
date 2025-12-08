@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import BuyItem from "./BuyFunction";
 import { ShoppingCart } from "lucide-react";
 
-
 interface Item {
   id: number;
   name: string;
@@ -43,7 +42,7 @@ export default function Tables({ currentUser }: Props) {
             relative bg-gradient-to-br from-black/40 to-purple-900/20 backdrop-blur-md cursor-pointer
             transition-all duration-300 hover:scale-102 hover:border-purple-400/40 justify-between items-start"
           >
-            {/* Image */}
+            {}
             <div className="w-full">
               <img
                 src={item.img}
@@ -53,20 +52,20 @@ export default function Tables({ currentUser }: Props) {
               />
             </div>
             <div className="w-full flex flex-col items-start p-4 gap-4">
-              {/* Name */}
+              {}
               <span className="text-left text-2xl sm:text-3xl font-bold text-gray-900 text-white break-words">
                 {item.name}
               </span>
-              {/* Description */}
+              {}
               <span className="text-left text-base sm:text-xl text-gray-500 break-words">
                 {item.description}
               </span>
-              {/* Price */}
+              {}
               <span className="text-left text-xl sm:text-2xl font-bold text-gray-900 text-white">
                 ${item.price}
               </span>
             </div>
-            {/* Buy Button */}
+            {}
             <div className="w-full px-4 pb-4">
               <button
                 onClick={() => BuyItem(currentUser.id, item.id)}

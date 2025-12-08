@@ -18,9 +18,9 @@ const schemaMarkAsRead = {
 export default async function notificationRoutes(fastify, options) {
   const { db } = options;
 
-  // GET /notifications - Fetch all notifications for a user
+  
   fastify.get("/notifications", { schema: schemaGetNotifications }, async (request, reply) => {
-    const userId = request.user?.id; // Get userId from authenticated user
+    const userId = request.user?.id; 
 
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
@@ -47,10 +47,10 @@ export default async function notificationRoutes(fastify, options) {
     });
   });
 
-  // PUT /notifications/:id/read - Mark notification as read
+  
   fastify.put("/notifications/:id/read", { schema: schemaMarkAsRead }, async (request, reply) => {
     const { id } = request.params;
-    const userId = request.user?.id; // Get userId from authenticated user
+    const userId = request.user?.id; 
 
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
@@ -72,10 +72,10 @@ export default async function notificationRoutes(fastify, options) {
     });
   });
 
-  // DELETE /notifications/:id - Delete a notification
+  
   fastify.delete("/notifications/:id", { schema: schemaMarkAsRead }, async (request, reply) => {
     const { id } = request.params;
-    const userId = request.user?.id; // Get userId from authenticated user
+    const userId = request.user?.id; 
 
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });

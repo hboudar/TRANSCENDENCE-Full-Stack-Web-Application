@@ -3,10 +3,9 @@ import { checkFriendship } from '../utils/friendshipHelper.js';
 export default async function blockRoutes(fastify, opts) {
     const { db } = opts;
 
-    // Block a user
     fastify.post('/blocks', async (request, reply) => {
         const { blocked_id } = request.body;
-        const blocker_id = request.user?.id; // Get blocker from authenticated user
+        const blocker_id = request.user?.id; 
 
         if (!blocker_id) {
             return reply.status(401).send({ error: 'Unauthorized' });
@@ -21,13 +20,10 @@ export default async function blockRoutes(fastify, opts) {
         }
 
         try {
-            // Check if users are friends first
             const areFriends = await checkFriendship(opts.db, blocker_id, blocked_id);
             if (!areFriends) {
                 return reply.status(403).send({ error: 'You can only block friends' });
             }
-
-            // Check if either user has already blocked the other
             const existingBlock = await new Promise((resolve, reject) => {
                 db.get(
                     `SELECT * FROM blocks WHERE 
@@ -48,8 +44,6 @@ export default async function blockRoutes(fastify, opts) {
                     return reply.status(403).send({ error: 'This user has already blocked you' });
                 }
             }
-
-            // Verify both users exist in database
             return new Promise((resolve, reject) => {
                 db.get(
                     `SELECT id FROM users WHERE id = ?`,
@@ -76,8 +70,6 @@ export default async function blockRoutes(fastify, opts) {
                                     reply.status(404).send({ error: 'User to block not found' });
                                     return resolve();
                                 }
-
-                                // Users are friends, proceed with blocking
                                 db.run(
                                     `INSERT OR IGNORE INTO blocks (blocker_id, blocked_id) VALUES (?, ?)`,
                                     [blocker_id, blocked_id],
@@ -109,11 +101,9 @@ export default async function blockRoutes(fastify, opts) {
             return reply.status(503).send({ error: 'Database error' });
         }
     });
-
-    // Unblock a user
     fastify.delete('/blocks', async (request, reply) => {
         const { blocked_id } = request.body;
-        const blocker_id = request.user?.id; // Get blocker from authenticated user
+        const blocker_id = request.user?.id; 
 
         if (!blocker_id) {
             return reply.status(401).send({ error: 'Unauthorized' });
@@ -127,7 +117,6 @@ export default async function blockRoutes(fastify, opts) {
             return reply.status(400).send({ error: 'Cannot unblock yourself' });
         }
 
-        // Verify both users exist in database
         return new Promise((resolve, reject) => {
             db.get(
                 `SELECT id FROM users WHERE id = ?`,
@@ -155,7 +144,6 @@ export default async function blockRoutes(fastify, opts) {
                                 return resolve();
                             }
 
-                            // Both users exist, proceed with unblocking
                             db.run(
                                 `DELETE FROM blocks WHERE blocker_id = ? AND blocked_id = ?`,
                                 [blocker_id, blocked_id],
@@ -184,7 +172,6 @@ export default async function blockRoutes(fastify, opts) {
         });
     });
 
-    // Check if user is blocked
     fastify.get('/blocks/check/:blocker_id/:blocked_id', async (request, reply) => {
         const { blocker_id, blocked_id } = request.params;
 
@@ -220,7 +207,6 @@ export default async function blockRoutes(fastify, opts) {
         });
     });
 
-    // Get all users blocked by a specific user
     fastify.get('/blocks/:user_id', async (request, reply) => {
         const { user_id } = request.params;
 

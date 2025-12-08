@@ -7,12 +7,10 @@ export default async function buySkin(fastify, opts) {
 		const { itemId } = request.body;
 		const authenticatedUserId = request.user?.id;
 
-		// SECURITY: Require authentication
 		if (!authenticatedUserId) {
 			return reply.status(401).send({ success: false, error: "Authentication required" });
 		}
 
-		// SECURITY: Use authenticated user ID directly, ignore any userId from request body
 		const userId = authenticatedUserId;
 
 		if (!itemId) {

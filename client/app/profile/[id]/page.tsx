@@ -25,31 +25,28 @@ type Game = {
 
 export default function Profile() {
     const [games, setGames] = useState<Game[]>([]);
-    const [user, setUser] = useState<User | null>(null); // Changed from array to null
+    const [user, setUser] = useState<User | null>(null); 
     const [loading, setLoading] = useState(true);
     const { id } = useParams();
     const router = useRouter();
     const { user: currentUser } = useUser();
     const [editMode, setEditMode] = useState(false);
 
-    // Keep local `user` in sync when the global currentUser changes (e.g., profile updates)
     useEffect(() => {
             if (!currentUser) return;
-            // If the fetched profile matches the currently logged in user, update the displayed user
+            
             try {
                 const currId = (currentUser as { id?: number }).id;
                 if (String(currId) === String(id)) {
                     setUser(currentUser);
                 }
             } catch {
-                // ignore
+                
             }
         }, [currentUser, id]);
 
-    // Chart component used on the right column (imported at top)
 
     useEffect(() => {
-        console.log("User ID from params:", id);
     }, [id]);
 
     useEffect(() => {
@@ -64,11 +61,11 @@ export default function Profile() {
 
                 if (!response.ok) {
                     console.error("Failed to fetch user");
-                    router.push("/404"); // Use router instead of window.location
+                    router.push("/404"); 
                     return;
                 }
                 const data = await response.json();
-                setUser(data); // This is a single object, not an array
+                setUser(data); 
             } catch (error) {
                 console.error("Error fetching user:", error);
                 router.push("/404");
@@ -92,7 +89,7 @@ export default function Profile() {
 
                 if (!response.ok) {
                     console.error("Failed to fetch games");
-                    setGames([]); // Set empty array if failed
+                    setGames([]); 
                     return;
                 }
                 const data = await response.json();
@@ -117,8 +114,6 @@ export default function Profile() {
             </div>
         );
     }
-    console.log("Current user from context:", currentUser);
-    console.log("Fetched user:", user);
 
     return (
         <div className="flex flex-col h-full relative">
@@ -129,7 +124,7 @@ export default function Profile() {
                 />
             )}
             <ProfileHeader user={user} games={games} setEditMode={setEditMode} />
-            {/* ////////////////////////////////////////////////////////// */}
+            {}
             <div className="flex flex-col gap-4 max-h-[40%] p-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <PingPongPerformanceChart user={user} games={games} />
@@ -139,7 +134,6 @@ export default function Profile() {
                     />
                 </div>
 
-                
             </div>
         </div>
     );

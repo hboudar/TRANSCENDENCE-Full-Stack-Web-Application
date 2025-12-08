@@ -5,19 +5,15 @@ import Link from "next/link";
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from "react";
 import { showAlert } from "../components/Alert";
+import Loading from "../components/loading";
 
 function LoginContent() {
-    // Store email and password from form
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
     const searchParams = useSearchParams();
     
-    // ========================================
-    // Handle Google OAuth Errors and Email Verification Success
-    // ========================================
-    // If Google authentication fails, user gets redirected here with error parameter
     useEffect(() => {
         const error = searchParams.get('error');
         const verified = searchParams.get('verified');
@@ -32,7 +28,6 @@ function LoginContent() {
             showAlert('Email verification failed. Please try again or contact support.', 'error');
             window.history.replaceState({}, '', '/login');
         } else if (error) {
-            // Show user-friendly error messages for OAuth errors
             const errorMessages: { [key: string]: string } = {
                 'no_code': 'Authorization code not received from Google',
                 'no_access_token': 'Failed to get access token from Google',
@@ -41,7 +36,6 @@ function LoginContent() {
                 'oauth_failed': 'Google authentication failed'
             };
             showAlert(errorMessages[error] || 'Authentication failed. Please try again.', 'error');
-            // Clean up URL (remove error parameter)
             window.history.replaceState({}, '', '/login');
         }
     }, [searchParams]);
@@ -51,7 +45,7 @@ function LoginContent() {
         try {
             const response = await fetch("/api/login", {
                 method: "POST",
-                credentials: 'include', // Include httpOnly cookies
+                credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -59,7 +53,7 @@ function LoginContent() {
             });
 
             if (response.ok) {
-                window.location.href = "/home"; // Redirect to chat page
+                window.location.href = "/home";
 
             } else {
                 const error = await response.json();
@@ -136,7 +130,7 @@ function LoginContent() {
                         Login
                     </button>
 
-                    {/* Google Sign-In Button - Redirects to server to start OAuth flow */}
+                    {}
                     <button
                         type="button"
                         onClick={() => window.location.href = '/auth/google'}
@@ -182,7 +176,7 @@ export default function LoginForm() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-white">Loading...</div>
+                <Loading />
             </div>
         }>
             <LoginContent />

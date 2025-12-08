@@ -6,7 +6,6 @@ import Loading from "../components/loading";
 import socket from "@/app/socket";
 import { useRouter } from "next/navigation";
 
-
 export async function CancelFriendRequest(userId: number, friendId: number) {
   try {
     const res = await fetch(`/api/friends/remove`, {

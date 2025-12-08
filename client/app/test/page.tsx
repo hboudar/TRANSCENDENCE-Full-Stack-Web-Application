@@ -6,11 +6,10 @@ export default function WebSocketTest() {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Connect to Fastify WebSocket server
+    
     const ws = new WebSocket("ws://localhost:3001");
 
     ws.onopen = () => {
-      console.log("✅ Connected to WebSocket");
       ws.send("Hello from Next.js client!");
     };
 

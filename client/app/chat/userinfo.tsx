@@ -23,7 +23,6 @@ export default function UserInfo({
     setSelected(user.id);
   };
 
-
   return (
     <div
       key={user.id}

@@ -4,6 +4,7 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import Loading from "../components/loading";
 
 function ResetPasswordContent() {
     const searchParams = useSearchParams();
@@ -182,7 +183,7 @@ export default function ResetPassword() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-white">Loading...</div>
+                <Loading    />
             </div>
         }>
             <ResetPasswordContent />

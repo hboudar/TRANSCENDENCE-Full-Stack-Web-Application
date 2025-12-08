@@ -14,7 +14,7 @@ export const LayoutComp = ({ children }: { children: React.ReactNode }) => {
         const handleResize = () => {
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
-            setIsOpen(!mobile); // show sidebar by default on desktop
+            setIsOpen(!mobile); 
         };
         handleResize();
         window.addEventListener("resize", handleResize);

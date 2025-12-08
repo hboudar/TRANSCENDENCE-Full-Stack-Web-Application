@@ -10,7 +10,7 @@ const {
     CLIENT_URL
 } = process.env;
 
-// Check if email configuration is present
+
 const isEmailConfigured = EMAIL_HOST && EMAIL_PORT && EMAIL_USER && EMAIL_PASSWORD && EMAIL_FROM;
 
 if (!isEmailConfigured) {
@@ -24,41 +24,41 @@ if (!isEmailConfigured) {
     console.warn('Emails will NOT be sent until configured!\n');
 }
 
-// Create reusable transporter
+
 const transporter = isEmailConfigured ? nodemailer.createTransport({
     host: EMAIL_HOST,
     port: parseInt(EMAIL_PORT),
-    secure: false, // true for 465, false for other ports
+    secure: false, 
     auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASSWORD,
     },
-    debug: true, // Enable debug output
-    logger: true // Log to console
+    debug: true, 
+    logger: true 
 }) : null;
 
-// Generate verification token with timestamp
+
 export function generateVerificationToken() {
     const token = crypto.randomBytes(32).toString('hex');
     const timestamp = Date.now();
-    // Combine token and timestamp: token.timestamp
+    
     return `${token}.${timestamp}`;
 }
 
-// Check if token is expired (5 minutes = 300000 ms)
+
 export function isTokenExpired(tokenWithTimestamp) {
     if (!tokenWithTimestamp || !tokenWithTimestamp.includes('.')) {
-        return true; // Invalid format
+        return true; 
     }
     
     const [token, timestamp] = tokenWithTimestamp.split('.');
     const tokenAge = Date.now() - parseInt(timestamp);
-    const FIVE_MINUTES = 60 * 60 * 1000; // 5 minutes in milliseconds
+    const FIVE_MINUTES = 60 * 60 * 1000;
     
     return tokenAge > FIVE_MINUTES;
 }
 
-// Send verification email
+
 export async function sendVerificationEmail(email, token, name) {
     if (!transporter) {
         console.error('❌ Cannot send verification email: Email service not configured');
@@ -107,7 +107,7 @@ export async function sendVerificationEmail(email, token, name) {
     }
 }
 
-// Send password reset email
+
 export async function sendPasswordResetEmail(email, token, name) {
     if (!transporter) {
         console.error('❌ Cannot send password reset email: Email service not configured');

@@ -13,10 +13,10 @@ export default async function uploadRoute(fastify, opts) {
     const db = opts.db;
     const io = opts.io;
 
-    // Register multipart plugin to handle file uploads
+    
     await fastify.register(fastifyMultipart, {
         limits: {
-            fileSize: 1 * 1024 * 1024, // 1MB max file size
+            fileSize: 1 * 1024 * 1024, 
         }
     });
 
@@ -24,7 +24,7 @@ export default async function uploadRoute(fastify, opts) {
         try {
             console.log('📤 Upload request received');
 
-            // Authenticate user from cookie
+            
             const token = request.cookies?.token;
             if (!token) {
                 console.error('❌ No authentication token');
@@ -40,7 +40,7 @@ export default async function uploadRoute(fastify, opts) {
                 return reply.status(401).send({ error: 'Unauthorized' });
             }
 
-            // Get the uploaded file
+            
             const data = await request.file();
             
             if (!data) {
@@ -54,27 +54,27 @@ export default async function uploadRoute(fastify, opts) {
                 encoding: data.encoding
             });
 
-            // Validate file type (images only)
+            
             if (!data.mimetype.startsWith('image/')) {
                 return reply.status(400).send({ error: 'Only image files are allowed' });
             }
 
-            // Read file buffer
+            
             const buffer = await data.toBuffer();
             
-            // Validate file size (1MB max)
+            
             if (buffer.length > 1 * 1024 * 1024) {
                 return reply.status(400).send({ error: 'File size exceeds 1MB limit' });
             }
 
-            // Create random filename with extension
+            
             const ext = data.filename.split('.').pop();
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
 
-            // Use the shared uploads volume mounted at /usr/src/app/uploads
+            
             const uploadDir = path.join(process.cwd(), 'uploads');
             
-            // Create uploads directory if it doesn't exist
+            
             try {
                 await fs.access(uploadDir);
             } catch {
@@ -82,13 +82,13 @@ export default async function uploadRoute(fastify, opts) {
                 await fs.mkdir(uploadDir, { recursive: true });
             }
 
-            // Save file to shared volume
+            
             const filePath = path.join(uploadDir, fileName);
             await fs.writeFile(filePath, buffer);
 
             console.log('✅ File saved successfully to shared volume:', fileName);
 
-            // Update user's picture in database
+            
             const fileUrl = `/uploads/${fileName}`;
             
             return new Promise((resolve, reject) => {
@@ -104,7 +104,7 @@ export default async function uploadRoute(fastify, opts) {
 
                         console.log('✅ Database updated for user:', userId);
 
-                        // Broadcast profile update via Socket.IO
+                        
                         if (io) {
                             io.emit('profileUpdated', {
                                 userId: userId,

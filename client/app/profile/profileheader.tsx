@@ -1,5 +1,4 @@
 
-
 import { Pencil } from "lucide-react";
 import Games_status from "../home/games_status";
 import { useUser } from "../Context/UserContext";
@@ -34,19 +33,19 @@ export default function ProfileHeader({ user, games, setEditMode }: { user: User
 
         <div className="relative w-full h-full flex flex-col items-center flex-1/6 justify-end">
 
-            {/* Background */}
+            {}
             <img
                 src="/profile.png"
                 alt="background"
                 className="absolute top-2 left-[2%] w-[96%] h-[85%] object-cover rounded-2xl z-0 bg-cover bg-center shadow-lg"
             />
 
-            {/* Main container */}
+            {}
             <div className="relative z-10 w-[90%] flex flex-col lg:flex-row justify-between items-center rounded-2xl p-2  bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20  border border-purple-500/30 shadow-2xl backdrop-blur-md gap-6">
 
-                {/* LEFT SIDE : Profile Info */}
+                {}
                 <div className="flex flex-col items-center lg:items-start gap-4 w-full lg:w-1/2">
-                    {/* Image and Name Row */}
+                    {}
                     <div className="flex items-center gap-4 w-full">
                         <div className={`relative inline-block overflow-visible flex-shrink-0`}>
                             <img
@@ -70,7 +69,7 @@ export default function ProfileHeader({ user, games, setEditMode }: { user: User
                         </div>
                     </div>
 
-                    {/* Gold, Level, XP, and Progress Bar */}
+                    {}
                     <div className="flex flex-col gap-2 w-full">
                         <div className="flex items-center justify-between w-full">
                             <span className="text-blue-400 font-bold animate-pulse text-sm sm:text-base">

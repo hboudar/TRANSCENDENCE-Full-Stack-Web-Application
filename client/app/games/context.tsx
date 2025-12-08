@@ -13,7 +13,7 @@ type Skin = {
 
 type Selected = {
 	types: Skin[];
-	type: number; // 0: table, 1: paddle, 2: ball
+	type: number; 
 };
 
 type MinimalUser = {

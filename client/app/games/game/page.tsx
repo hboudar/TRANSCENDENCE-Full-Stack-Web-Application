@@ -1,5 +1,5 @@
 
-/** @format */
+
 
 "use client";
 import { useSearchParams } from "next/navigation";
@@ -120,7 +120,7 @@ function GameContent() {
 
 	useEffect(() => {
 		if (gametype == "tournament" && tournamentplayers.gamestatus == 1) {
-			// Reset the transition flag when starting a new tournament game
+			
 			tournamentTransitionScheduled.current = false;
 			isTournamentTransitioning.current = false;
 			
@@ -132,30 +132,27 @@ function GameContent() {
 			const isIntentionalInvite = sessionStorage.getItem('creatingPrivateGame');
 			
 			if (!isIntentionalInvite) {
-				console.log("Private game reload detected - redirecting to chat");
 				router.push("/chat");
 				return;
 			}
 			sessionStorage.removeItem('creatingPrivateGame');
 		}
 		
-		async function newgame() {
-			if (isInitializing.current) {
-				console.log("Game already initializing, skipping duplicate request");
-				return;
+	async function newgame() {
+		if (isInitializing.current) {
+			return;
 			}
 
 			isInitializing.current = true;
 
 			try {
-				// Check for blocks if it's an online game with specific opponent
+				
 				if (gametype === "online" && oppid && oppid !== 0) {
 					const blockCheckRes = await fetch(`/api/blocks/check/${user.id}/${oppid}`);
 					const blockData = await blockCheckRes.json();
 					
-					if (blockData.blocked) {
-						console.log("Cannot start game - users have blocked each other");
-						showAlert(
+				if (blockData.blocked) {
+					showAlert(
 							blockData.is_blocker 
 								? "You cannot play with a user you have blocked. Please unblock them first."
 								: "This user has blocked you. You cannot play with them.",
@@ -185,11 +182,9 @@ function GameContent() {
 				}),
 				});
 				const res = await response.json();
-				console.log(res);
 
-				if (res.sessionNotFound == true) {
-					console.log("No game session found for invited player");
-					setSessionNotFound(true);
+			if (res.sessionNotFound == true) {
+				setSessionNotFound(true);
 					setTimeout(() => {
 						router.push("/games");
 					}, 5000);
@@ -197,11 +192,8 @@ function GameContent() {
 					return;
 				}
 
-				if (res.alreadyInGame == true) {
-					console.log("Player is already in an active game");
-					isInitializing.current = false;
-
-					setAlreadyInGame(true);
+                if (res.alreadyInGame == true) {
+                    isInitializing.current = false;					setAlreadyInGame(true);
 					setTimeout(() => {
 						router.push("/games");
 					}, 5000);
@@ -261,7 +253,6 @@ function GameContent() {
 											img: data.players_info.p2_img,
 											id: data.players_info.p2_id,
 									  };
-							console.log(winner);
 							
 							setWinnerData(winner);
 							setShowWinAnimation(true);
@@ -270,10 +261,10 @@ function GameContent() {
 								socket.disconnect();
 							}, 4000);
 						}
-					});
-					socket.on("disconnect", (reason) => {
-						console.log("Socket disconnected:", reason);
-						sessionStorage.removeItem("gameSessionId");
+				});
+				socket.on("disconnect", (reason) => {
+					console.log('Socket disconnected:', reason);
+					sessionStorage.removeItem("gameSessionId");
 						isInitializing.current = false;
 					});
 					const emitKey = (key: string, action: "keydown" | "keyup") => {
@@ -337,7 +328,6 @@ function GameContent() {
 						if (socket) socket.disconnect();
 					};
 				} else {
-					console.log(res.error);
 					isInitializing.current = false;
 				}
 			} catch (error) {
@@ -606,7 +596,7 @@ function GameContent() {
 	return (
 		<div className="bg-gray-400/30 backdrop-blur-sm flex justify-center items-center z-50  absolute top-0 bottom-0 left-0 right-0 p-4">
 			<div className="flex flex-col gap-5 w-full h-full max-w-7xl">
-				{/* Score and player info bar (always on top, not rotated) */}
+				{}
 				<div className="flex items-center justify-between px-2 md:px-5 mb-4">
 					<div className="flex items-center gap-2 md:gap-5">
 						<div className="rounded-full w-10 h-10 md:w-14 md:h-14 overflow-hidden border">
@@ -674,7 +664,7 @@ function GameContent() {
 						</button>
 					</div>
 
-					{/* Game Table */}
+					{}
 					<div className="flex-1 flex items-center justify-center">
 						<div
 							id="table"
@@ -712,7 +702,7 @@ function GameContent() {
 						</div>
 					</div>
 
-					{/* Player 2 Controls (right on desktop, top on mobile after rotation) */}
+					{}
 					{gametype === "local" && (
 						<div className="flex flex-col justify-center items-center gap-3">
 							<button

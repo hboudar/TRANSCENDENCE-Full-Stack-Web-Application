@@ -2,29 +2,25 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { generateVerificationToken, sendVerificationEmail, sendPasswordResetEmail, isTokenExpired } from '../utils/emailService.js';
 
-// Use same JWT secret as Google OAuth (IMPORTANT: must match!)
 const SECRET = process.env.JWT_SECRET;
-const {           // Where Google sends users back to
-    CLIENT_URL               // Our frontend URL
+const {           
+    CLIENT_URL              
 } = process.env;
-// Helper function to create JWT token for a user (valid for 7 days)
 function sign(id) {
     return jwt.sign({ userId: id }, SECRET, { expiresIn: '7d' });
 }
 
-// Validation schema for user registration
 const SchemaRegister =
 {
     type: 'object',
     required: ['name', 'email', 'password'],
     properties: {
-        name: { type: 'string', minLength: 1, maxLength: 16 },  // Max 50 characters
-        email: { type: 'string', format: 'email', maxLength: 50 },  // Must be valid email, max 100 chars
-        password: { type: 'string', minLength: 6, maxLength: 16 }   // 6-128 characters
+        name: { type: 'string', minLength: 1, maxLength: 16 },  
+        email: { type: 'string', format: 'email', maxLength: 50 },   
+        password: { type: 'string', minLength: 6, maxLength: 16 }   
     },
 }
 
-// Validation schema for forgot password request
 const SchemaForgotPassword = {
     type: 'object',
     required: ['email'],
@@ -33,7 +29,6 @@ const SchemaForgotPassword = {
     },
 }
 
-// Validation schema for reset password request
 const SchemaResetPassword = {
     type: 'object',
     required: ['token', 'newPassword'],
@@ -47,15 +42,12 @@ export default async function authRoutes(fastify, opts) {
 
     const db = opts.db;
 
-    // Traditional email/password login Endpoint (NOT for Google OAuth users)
     fastify.post('/login', async (req, reply) => {
         const { email, password } = req.body;
 
-        // Check if both email and password provided
         if (!email || !password) return reply.status(400).send({ error: 'Email and password are required' });
 
         return new Promise((resolve, reject) => {
-            // Find user by email
             db.get(`SELECT * FROM users WHERE email = ?`, [email], (err, row) => {
 
                 if (err) {
@@ -64,42 +56,32 @@ export default async function authRoutes(fastify, opts) {
                 }
 
                 if (row) {
-                    // IMPORTANT: Check if user signed up with Google
-                    // Google OAuth users have null password - they can't login with password
                     if (!row.password) {
                         reply.status(401).send({
                             error: 'This account uses Google sign-in. Please sign in with Google.'
                         });
                         return resolve();
                     }
-
-                    // Check if email is verified (only for email/password users)
                     if (row.email_verified === 0) {
                         reply.status(403).send({
                             error: 'Please verify your email before logging in. Check your inbox for the verification link.'
                         });
                         return resolve();
                     }
-
-                    // Verify password matches hashed password in database
                     const passwordMatch = bcrypt.compareSync(password, row.password);
                     if (!passwordMatch) {
                         reply.status(401).send({ error: 'Invalid credentials' });
                         return resolve();
                     }
-
-                    // Password correct - generate JWT token (valid for 7 days)
                     const token = sign(row.id.toString());
 
                     reply.setCookie('token', token, {
                         path: '/',
                         maxAge: 7 * 24 * 60 * 60,
                         httpOnly: true,
-                        secure: false,  // nginx handles HTTPS, backend is HTTP
+                        secure: false,  
                         sameSite: 'lax',
                     });
-
-                    // Send success response (frontend will handle redirect)
                     reply.send({ 
                         success: true,
                         message: 'Login successful',
@@ -113,7 +95,6 @@ export default async function authRoutes(fastify, opts) {
                     resolve(row);
                 }
                 else {
-                    // No user found with this email
                     reply.status(404).send({ error: 'User not found' });
                     resolve();
                 }
@@ -121,25 +102,16 @@ export default async function authRoutes(fastify, opts) {
         });
     });
 
-    // Token Verification Endpoint (/me)
-    // Used by UserContext to verify JWT token and get user data
-    // Checks both Authorization header and cookies for token
+   
     fastify.get('/me', async (request, reply) => {
-        // Try to get token from Authorization header first, then from cookies
         let token = request.headers.authorization?.split(' ')[1];
         if (!token && request.cookies) {
             token = request.cookies.token;
         }
-
-        // No token found - user not authenticated
         if (!token) return reply.status(401).send({ error: 'Unauthorized' });
-
         try {
-            // Verify token signature and check if not expired
             const decoded = jwt.verify(token, SECRET);
-
             return new Promise((resolve, reject) => {
-                // Get user data from database using ID from token
                 db.get(`SELECT * FROM users WHERE id = ?`, [decoded.userId || decoded.id], (err, row) => {
                     if (err) {
                         reply.status(503).send({ error: 'Database error' });
@@ -147,7 +119,6 @@ export default async function authRoutes(fastify, opts) {
                     }
 
                     if (row) {
-                        // User found - send data back to client
                         reply.send({
                             id: row.id,
                             name: row.name,
@@ -160,28 +131,20 @@ export default async function authRoutes(fastify, opts) {
                         });
                         resolve(row);
                     } else {
-                        // User ID in token doesn't exist in database (orphaned token)
                         reply.status(404).send({ error: 'User not found' });
                     }
                 });
             });
         } catch (err) {
-            // Token signature invalid or token expired
             console.error('JWT verification error:', err);
             reply.status(401).send({ error: 'Unauthorized' });
         }
     });
-
-    // Logout Endpoint
-    // Clears the authentication cookie and blacklists the token
     fastify.post('/logout', async (request, reply) => {
-        // Get token from Authorization header or cookies
         let token = request.headers.authorization?.split(' ')[1];
         if (!token && request.cookies) {
             token = request.cookies.token;
         }
-
-        // If token exists, add it to blacklist
         if (token) {
             return new Promise((resolve, reject) => {
                 db.run('INSERT OR IGNORE INTO blacklist_tokens (token) VALUES (?)', [token], (err) => {
@@ -190,8 +153,6 @@ export default async function authRoutes(fastify, opts) {
                         reply.status(503).send({ error: 'Failed to logout' });
                         return reject(err);
                     }
-
-                    // Clear the token cookie
                     reply.setCookie('token', '', {
                         path: '/',
                         maxAge: 0,
@@ -205,8 +166,6 @@ export default async function authRoutes(fastify, opts) {
                 });
             });
         }
-
-        // No token to blacklist, just clear cookie
         reply.setCookie('token', '', {
             path: '/',
             maxAge: 0,
@@ -217,15 +176,10 @@ export default async function authRoutes(fastify, opts) {
 
         reply.send({ success: true, message: 'Logged out successfully' });
     });
-
-    // User Registration Endpoint
-    // Creates new user account with email/password (NOT for Google OAuth)
     fastify.post("/users", SchemaRegister, async (req, reply) => {
         const { name, email, password } = req.body;
         if (!name || !email || !password)
             return reply.status(400).send({ error: " Name, email and password are required" });
-
-        // Check if name already exists
         const nameExists = await new Promise((resolve) => {
             db.get('SELECT id FROM users WHERE name = ?', [name], (err, row) => {
                 resolve(!!row && !err);
@@ -235,8 +189,6 @@ export default async function authRoutes(fastify, opts) {
         if (nameExists) {
             return reply.status(409).send({ error: 'Username already taken' });
         }
-
-        // Check if email already exists
         const emailExists = await new Promise((resolve) => {
             db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
                 resolve(!!row && !err);
@@ -246,15 +198,10 @@ export default async function authRoutes(fastify, opts) {
         if (emailExists) {
             return reply.status(409).send({ error: 'Email already registered' });
         }
-
-        // Hash password before storing (never store plain text passwords!)
         const hashedPassword = await bcrypt.hash(password, 8);
-
-        // Generate verification token
         const verificationToken = generateVerificationToken();
 
         return new Promise((resolve, reject) => {
-            // Create new user in database with 100 starting gold and verification token
             db.run(
                 `INSERT INTO users (name, email, password, gold, email_verified, verification_token) VALUES (?, ?, ?, ?, ?, ?)`,
                 [name, email, hashedPassword, 100, 0, verificationToken],
@@ -264,10 +211,7 @@ export default async function authRoutes(fastify, opts) {
                         reply.status(503).send({ error: "Database error" });
                         return reject(err);
                     }
-                    // Give new user default skins (3 selected, 3 locked)
                     const userId = this.lastID;
-
-                    // Send verification email
                     sendVerificationEmail(email, verificationToken, name)
                         .catch((err) => {
                             console.error('Failed to send verification email:', err.message);
@@ -278,14 +222,10 @@ export default async function authRoutes(fastify, opts) {
 
                         freeSkins.forEach((skin) => {
                             let selected = 0;
-                        
-                            // Select the first skin of each type (table, paddle, ball)
                             if (!selectedTypes.has(skin.type)) {
                                 selectedTypes.add(skin.type);
                                 selected = 1;
                             }
-                        
-                            // Insert each skin directly
                             db.run(`INSERT OR IGNORE INTO player_skins (player_id, skin_id, selected) VALUES (?, ?, ?)`, 
                                 [userId, skin.id, selected], 
                                 function(err) {
@@ -297,8 +237,6 @@ export default async function authRoutes(fastify, opts) {
                             );
                         });
                     });
-                    
-                    // Return success message telling user to check email
                     reply.status(201).send({
                         success: true,
                         message: 'Registration successful! Please check your email to verify your account before logging in.',
@@ -309,9 +247,6 @@ export default async function authRoutes(fastify, opts) {
             );
         });
     });
-
-    // Email Verification Endpoint
-    // Verifies user email using token sent in verification email
     fastify.get("/verify-email", async (req, reply) => {
         const { token } = req.query;
 
@@ -320,10 +255,9 @@ export default async function authRoutes(fastify, opts) {
         }
 
         return new Promise((resolve, reject) => {
-            // Find user with matching verification token
             db.get(
                 `SELECT id, name, email, verification_token FROM users WHERE verification_token LIKE ?`,
-                [token.split('.')[0] + '.%'], // Match token part before timestamp, .% is wildcard for timestamp
+                [token.split('.')[0] + '.%'], 
                 (err, user) => {
                     if (err) {
                         console.error("Database error:", err.message);
@@ -335,12 +269,10 @@ export default async function authRoutes(fastify, opts) {
                         return reply.status(400).send({ error: 'Invalid or expired verification token' });
                     }
 
-                    // Check if token is expired (5 minutes)
                     if (isTokenExpired(user.verification_token)) {
                         return reply.status(400).send({ error: 'Verification token has expired. Please request a new one.' });
                     }
 
-                    // Mark email as verified and clear token
                     db.run(
                         `UPDATE users SET email_verified = 1, verification_token = NULL WHERE id = ?`,
                         [user.id],
@@ -364,9 +296,6 @@ export default async function authRoutes(fastify, opts) {
         });
     });
 
-    // Forgot Password Endpoint
-    // Generates a password reset token and sends email to user
-    // Note: Google OAuth users cannot reset password as they don't have one
     fastify.post('/forgot-password', { schema: { body: SchemaForgotPassword } }, async (req, reply) => {
         const { email } = req.body;
 
@@ -375,7 +304,6 @@ export default async function authRoutes(fastify, opts) {
         }
 
         return new Promise((resolve, reject) => {
-            // Find user by email
             db.get(`SELECT id, name, password FROM users WHERE email = ?`, [email], async (err, user) => {
                 if (err) {
                     console.error('Database error:', err);
@@ -384,32 +312,23 @@ export default async function authRoutes(fastify, opts) {
                 }
 
                 if (!user) {
-                    // Email doesn't exist in database
                     return reply.status(404).send({ 
                         error: 'No account found with this email address.'
                     });
                 }
-
-                // Check if user signed up with Google (password is null)
                 if (!user.password) {
                     return reply.status(400).send({
                         error: 'This account was created with Google Sign-In, so no password exists. Please sign in with Google.'
                     });
                 }
-
-                // Generate a secure reset token
                 const resetToken = jwt.sign({ userId: user.id }, SECRET, { expiresIn: '1h' });
-                const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
-
-                // Delete any existing reset tokens for this user
+                const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); 
                 db.run(`DELETE FROM password_reset_tokens WHERE user_id = ?`, [user.id], async (err) => {
                     if (err) {
                         console.error('Error deleting old tokens:', err);
                         reply.status(503).send({ error: 'Database error' });
                         return reject(err);
                     }
-
-                    // Store the reset token in database
                     db.run(
                         `INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`,
                         [user.id, resetToken, expiresAt],
@@ -419,8 +338,6 @@ export default async function authRoutes(fastify, opts) {
                                 reply.status(503).send({ error: 'Database error' });
                                 return reject(err);
                             }
-
-                            // Send password reset email
                             const emailSent = await sendPasswordResetEmail(email, resetToken, user.name);
                             
                             if (emailSent) {
@@ -441,8 +358,6 @@ export default async function authRoutes(fastify, opts) {
         });
     });
 
-    // Reset Password Endpoint
-    // Verifies the reset token and updates the user's password
     fastify.post('/reset-password', { schema: { body: SchemaResetPassword } }, async (req, reply) => {
         const { token, newPassword } = req.body;
 
@@ -451,12 +366,9 @@ export default async function authRoutes(fastify, opts) {
         }
 
         try {
-            // Verify the JWT token
             const decoded = jwt.verify(token, SECRET);
             const userId = decoded.userId;
-
             return new Promise((resolve, reject) => {
-                // Check if token exists in database and hasn't expired
                 db.get(
                     `SELECT * FROM password_reset_tokens WHERE token = ? AND user_id = ? AND expires_at > datetime('now')`,
                     [token, userId],
@@ -473,7 +385,6 @@ export default async function authRoutes(fastify, opts) {
                             });
                         }
 
-                        // Verify user still exists and check if Google OAuth account
                         db.get(`SELECT id, password FROM users WHERE id = ?`, [userId], async (err, user) => {
                             if (err) {
                                 console.error('Database error:', err);
@@ -487,17 +398,14 @@ export default async function authRoutes(fastify, opts) {
                                 });
                             }
 
-                            // Prevent setting password on Google OAuth accounts
                             if (user.password === null) {
                                 return reply.status(400).send({
                                     error: 'This account was created with Google Sign-In, so no password exists. Please sign in with Google.'
                                 });
                             }
 
-                            // Hash the new password
                             const hashedPassword = await bcrypt.hash(newPassword, 8);
 
-                            // Update user's password
                             db.run(
                                 `UPDATE users SET password = ? WHERE id = ?`,
                                 [hashedPassword, userId],
@@ -508,14 +416,12 @@ export default async function authRoutes(fastify, opts) {
                                         return reject(err);
                                     }
 
-                                    // Verify update actually affected a row
                                     if (this.changes === 0) {
                                         console.error('Password update affected 0 rows');
                                         reply.status(422).send({ error: 'Failed to update password' });
                                         return reject(new Error('No rows updated'));
                                     }
 
-                                    // Delete the used reset token
                                     db.run(
                                         `DELETE FROM password_reset_tokens WHERE token = ?`,
                                         [token],

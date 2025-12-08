@@ -23,15 +23,14 @@ type Props = {
 };
 
 export default function RPSSummary({ user }: Props) {
-    // Use database-backed stats from user object, fallback to calculating from games if not available
+    
     const rpsWins = user?.rps_wins ?? 0;
     const rpsLosses = user?.rps_losses ?? 0;
     const rpsDraws = user?.rps_draws ?? 0;
 
-    const active = rpsWins + rpsLosses; // exclude draws for win %
+    const active = rpsWins + rpsLosses; 
     const winPct = active > 0 ? Math.round((rpsWins / active) * 100) : 0;
 
-    // Circle geometry
     const size = 160;
     const stroke = 14;
     const radius = (size - stroke) / 2;
@@ -63,13 +62,12 @@ export default function RPSSummary({ user }: Props) {
             transition={{ duration: 0.45 }}
             className="relative rounded-2xl p-6 bg-gradient-to-r from-[#160c27]/70 to-[#241635]/60 border border-[#6b3be033] shadow-lg text-white flex flex-col xl:flex-row items-center gap-6"
         >
-            {/* top-right small badge image */}
+            {}
 
-            {/* Header (match chart style) */}
+            {}
             <div className="flex-1">
 
-
-                {/* Stats */}
+                {}
                 <div className="mt-2 flex items-center gap-3">
                     <motion.div whileHover={{ scale: 1.04 }} className={statClass}>
                         <div className="text-xs text-[#bfb8e7] font-medium">Wins</div>
@@ -112,7 +110,7 @@ export default function RPSSummary({ user }: Props) {
                 </div>
             </div>
 
-            {/* percentage circle */}
+            {}
             <div className="w-44 h-44 flex items-center justify-center">
                 <div className="relative w-full h-full flex items-center justify-center">
                     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>

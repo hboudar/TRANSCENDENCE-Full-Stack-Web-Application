@@ -1,4 +1,4 @@
-/** @format */
+
 
 type LocalGameWinAnimationProps = {
 	winnerName: string;

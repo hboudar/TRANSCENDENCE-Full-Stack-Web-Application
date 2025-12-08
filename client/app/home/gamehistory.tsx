@@ -19,7 +19,7 @@ export default function GameHistory({ user, games }: { user: User | null; games:
                 <div>Gold</div>
             </div>
 
-            {/* Scrollable table body takes all remaining space */}
+            {}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-2 space-y-2 h-100 ">
                 {games.length > 0 ? (
                     games.map((game: Game) => {

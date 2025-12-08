@@ -6,21 +6,19 @@ type Props = {
   userId?: number;
   src: string;
   alt?: string;
-  sizeClass?: string; // e.g. 'w-12 h-12'
+  sizeClass?: string; 
   imgClass?: string;
 };
 
 export default function AvatarWithPresence({ userId, src, alt = "User", sizeClass = "w-12 h-12", imgClass = "" }: Props) {
   const { isOnline } = usePresence();
   const online = userId ? isOnline(userId) : false;
-  // compute numeric width from sizeClass (e.g. 'w-12') to derive dot size
+  
   const widthMatch = sizeClass.match(/w-(\d+)/);
   const numericWidth = widthMatch ? Number(widthMatch[1]) : 12;
 
-  // choose dot size based on avatar width
   const dotSizeClass = numericWidth >= 20 ? 'w-3 h-3' : 'w-2 h-2';
 
-  // wrapper uses inline-block and overflow-visible so the status dot can sit outside the avatar cleanly
   return (
     <div className={`relative inline-block overflow-visible ${sizeClass}`}>
       <img

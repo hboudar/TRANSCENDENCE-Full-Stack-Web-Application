@@ -1,4 +1,3 @@
-/** @format */
 
 "use client";
 import Image from "next/image";
@@ -41,8 +40,7 @@ function win(
 ) {
 	const res = Math.floor(Number(id) / 10) + 1;
 	const winerid = res + "" + Math.floor(((Number(id) % 10) + 1) / 2);
-	// console.log("win", winerid);
-
+	
 	setfinals(
 		[...finals, { name: name, id: winerid }].sort(
 			(a, b) => Number(a.id) - Number(b.id)
@@ -83,7 +81,7 @@ function Tournamentbracket({
 		let index = 1;
 
 		while (s % 2 != 0 && s > 1 && players.length % 2 == 1) {
-			// console.log(s);
+			
 			const existingplayer = finals?.find(
 				(p) => p?.id == players[players.length - 1]?.id
 			);
@@ -102,16 +100,14 @@ function Tournamentbracket({
 			setfinals(newfinals);
 		}
 		return () => {
-			console.log("cleanup");
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [players]);
 	useEffect(() => {
 		let playstate = true;
 		if (index == 2 && box % 2 != 1 && box <= players.length) {
 			const nextbox = count + "" + Math.floor((box + 1) / 2);
-			// console.log("here", nextbox);
-
+			
 			if (finals.find((f) => f.id == nextbox)) playstate = false;
 		}
 		if (index > 2 && box <= size) {
@@ -122,7 +118,7 @@ function Tournamentbracket({
 			if (finals.find((f) => f.id == nextbox) || !p1 || !p2) playstate = false;
 		}
 		setplay(playstate);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [finals]);
 	let count = 0;
 	let number = index * 2;
@@ -132,10 +128,9 @@ function Tournamentbracket({
 	}
 	if (count == Math.floor((players.length + 1) / 2) && players.length > 1) {
 		const winer = finals.find((p) => p.id == count + "1");
-		// console.log(winer);
-
+		
 		if (winer) {
-			// console.log("win");
+			
 			setTimeout(() => {
 				if (userId) {
 					router.push("/games");
@@ -176,12 +171,9 @@ function Tournamentbracket({
 									gamestatus: 1,
 								});
 
-								// router.push(
-								// 	`/games/game?gametype=tournament&p1=${
-								// 		players[box - 1].name
-								// 	}&p1id=${box}&p2=${players[box - 2].name}&p2id=${box - 1}`
-								// );
-								// }, 100);
+								
+								
+								
 							}
 							if (index > 2 && box <= size) {
 								const nextbox = count + "" + Math.floor((box + 1) / 2);
@@ -191,7 +183,7 @@ function Tournamentbracket({
 								const p2 = finals.find((f) => f.id == count - 1 + "" + box);
 
 								if (finals.find((f) => f.id == nextbox) || !p1 || !p2) return;
-								// setTimeout(() => {
+								
 								settournamentplayers({
 									p1: p1.name,
 									p1_id: p1.id,
@@ -200,10 +192,8 @@ function Tournamentbracket({
 									winer: 0,
 									gamestatus: 1,
 								});
-								// router.push(
-								// 	`/games/game?gametype=tournament&p1=${p1.name}&p1id=${p1.id}&p2=${p2.name}&p2id=${p2.id}`
-								// );
-								// }, 100);
+								
+								
 							}
 						}}
 						className="absolute -translate-1/2 top-1/2 left-1/2 ">
@@ -272,7 +262,6 @@ function Localtournament({
 	const [name, setname] = useState("");
 	const [message, setMessage] = useState("");
 
-	// Function to shuffle players array
 	const shufflePlayers = (playerList: Player[]) => {
 		const shuffled = [...playerList];
 		for (let i = shuffled.length - 1; i > 0; i--) {
@@ -282,25 +271,21 @@ function Localtournament({
 		return shuffled;
 	};
 
-	// Check if player count is valid for tournament
 	const validPlayerCounts = [2, 4, 8];
 	const canStartTournament = validPlayerCounts.includes(players.length);
 
-	// Handle form submission
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		addPlayer();
 	};
 
-	// Add player function
 	const addPlayer = () => {
-		// Check if maximum players reached
+		
 		if (players.length == 8) {
 			setMessage("Maximum 8 players allowed for tournament");
 			return;
 		}
 
-		// Check if player already exists
 		const existingPlayer = players.find(
 			(p) => p.name.toLowerCase() == name.toLowerCase()
 		);
@@ -309,7 +294,6 @@ function Localtournament({
 			return;
 		}
 
-		// Add new player and shuffle
 		if (name != "") {
 			const newPlayers = [
 				...players,
@@ -318,7 +302,7 @@ function Localtournament({
 			const shuffledPlayers = shufflePlayers(newPlayers);
 			setplayers(shuffledPlayers);
 			setname("");
-			setMessage(""); // Clear message on successful add
+			setMessage(""); 
 		}
 		setfinals([]);
 	};
@@ -340,7 +324,7 @@ function Localtournament({
 								onChange={(e) => {
 									if (e.target.value.length <= 10) {
 										setname(e.target.value.trim());
-										setMessage(""); // Clear message when typing
+										setMessage(""); 
 									}
 								}}
 								className={`focus:outline-0 px-2 h-full py-2`}
@@ -353,10 +337,10 @@ function Localtournament({
 						</form>
 					</div>
 
-					{/* Show message if exists */}
+					{}
 					{message && <div className="text-red-500 font-medium">{message}</div>}
 
-					{/* Show message about valid player counts */}
+					{}
 					{players.length > 0 && !canStartTournament && (
 						<div className="text-red-500 font-medium">
 							Tournament requires exactly 2, 4, or 8 players (currently:{" "}
@@ -373,7 +357,7 @@ function Localtournament({
 				</>
 			)}
 
-			{/* Only show bracket if player count is valid */}
+			{}
 			{canStartTournament ? (
 				<div className="flex flex-col gap-4 w-fit">
 					{players.map((player, index) => {
@@ -425,9 +409,8 @@ export default function Tournament({
 	const [tournamentWinner, setTournamentWinner] = useState<string>("");
 	const [isBlocked, setIsBlocked] = useState(false);
 
-	// Load from sessionStorage after mount to avoid hydration mismatch
 	useEffect(() => {
-		if (!user?.id) return; // Wait for user to be loaded
+		if (!user?.id) return; 
 
 		const userId = user.id;
 		const savedFinals = localStorage.getItem(`tournament_finals_${userId}`);
@@ -436,7 +419,6 @@ export default function Tournament({
 	const savedTournamentId = localStorage.getItem(`tournament_id_${userId}`);
 	const savedWindowId = sessionStorage.getItem("currentWindowId");
 
-	// Generate unique window ID if not exists
 	if (!savedWindowId) {
 		const newWindowId = crypto.randomUUID();
 		sessionStorage.setItem("currentWindowId", newWindowId);
@@ -444,9 +426,8 @@ export default function Tournament({
 
 	const thisWindowId = sessionStorage.getItem("currentWindowId") || "";
 
-		// Check if there's an active tournament in another tab
 		if (savedTournamentId && savedTournamentId !== thisWindowId) {
-			// Another tab has the tournament open, block this one
+			
 			setIsBlocked(true);
 			setTimeout(() => {
 				router.push("/games");
@@ -454,7 +435,6 @@ export default function Tournament({
 			return;
 		}
 
-		// Claim tournament ownership for this tab
 		localStorage.setItem(`tournament_id_${userId}`, thisWindowId);
 
 		if (savedFinals) setfinals(JSON.parse(savedFinals));
@@ -463,7 +443,6 @@ export default function Tournament({
 
 		setIsLoaded(true);
 
-		// Heartbeat to maintain ownership (update every 2 seconds)
 		const heartbeatInterval = setInterval(() => {
 			const currentOwner = localStorage.getItem(`tournament_id_${userId}`);
 			if (currentOwner === thisWindowId) {
@@ -474,25 +453,22 @@ export default function Tournament({
 			}
 		}, 2000);
 
-		// Cleanup tournament ownership when navigating away or closing tab
 		const handleBeforeUnload = () => {
 			const currentWindowId = sessionStorage.getItem("currentWindowId");
 			const savedTournamentId = localStorage.getItem(`tournament_id_${userId}`);
 
-			// Only remove if this window owns the tournament
 			if (savedTournamentId === currentWindowId) {
 				localStorage.removeItem(`tournament_id_${userId}`);
 				localStorage.removeItem(`tournament_heartbeat_${userId}`);
 			}
 		};
 
-		// Handle visibility change (tab switching)
 		const handleVisibilityChange = () => {
 			if (!document.hidden) {
-				// Tab became visible, check if we still own the tournament
+				
 				const currentOwner = localStorage.getItem(`tournament_id_${userId}`);
 				if (currentOwner && currentOwner !== thisWindowId) {
-					// Someone else took over, redirect this tab
+					
 					setIsBlocked(true);
 					setTimeout(() => {
 						router.push("/games");
@@ -508,7 +484,7 @@ export default function Tournament({
 			clearInterval(heartbeatInterval);
 			window.removeEventListener("beforeunload", handleBeforeUnload);
 			document.removeEventListener("visibilitychange", handleVisibilityChange);
-			handleBeforeUnload(); // Also cleanup on component unmount
+			handleBeforeUnload(); 
 		};
 	}, [user, router]);
 
@@ -520,7 +496,6 @@ export default function Tournament({
 		);
 		if (players.length == 0) setstarted(false);
 
-		// Check if tournament is complete
 		const count = Math.floor((players.length + 1) / 2);
 		const tournamentWinnerEntry = finals.find(
 			(p: FinalEntry) => p.id == count + "1"
@@ -533,11 +508,11 @@ export default function Tournament({
 			fetch(`/api/tournament_win`, {
 				method: "POST",
 			});
-			// Auto-close after 5 seconds
+			
 			setTimeout(() => {
 				setShowWinnerAnimation(false);
 				if (user?.id) {
-					// Clear tournament data on completion
+					
 					localStorage.removeItem(`tournament_id_${user.id}`);
 					localStorage.removeItem(`tournament_heartbeat_${user.id}`);
 					localStorage.removeItem(`tournament_finals_${user.id}`);
@@ -577,11 +552,10 @@ export default function Tournament({
 
 	useEffect(() => {
 		if (winer && id && isLoaded) {
-			// Calculate the winner's next position
+			
 			const res = Math.floor(Number(id) / 10) + 1;
 			const winerid = res + "" + Math.floor(((Number(id) % 10) + 1) / 2);
 
-			// Only add winner if they're not already in finals at this position
 			const alreadyExists = finals.find(
 				(f: FinalEntry) => f.id === winerid && f.name === winer
 			);
@@ -591,13 +565,12 @@ export default function Tournament({
 				win(id, winer, finals, setfinals);
 			}
 
-			// Clear the tournament players after processing
 			settournamentplayers({});
 		}
 	}, [winer, id, isLoaded, finals, settournamentplayers]);
 	return (
 		<div className="bg-gray-400/30 backdrop-blur-sm flex justify-center items-center z-50 absolute top-0 bottom-0 left-0 right-0">
-			{/* Blocked Screen - Tournament open in another tab */}
+			{}
 			{isBlocked && (
 				<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md">
 					<div className="bg-gray-800 p-8 rounded-lg text-center max-w-md border-2 border-red-500">
@@ -614,7 +587,7 @@ export default function Tournament({
 				</div>
 			)}
 
-			{/* Winner Animation */}
+			{}
 			{showWinnerAnimation && (
 				<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md">
 					<div className="text-center animate-bounce">
@@ -640,7 +613,7 @@ export default function Tournament({
 				<div className="flex gap-4 mb-8">
 					<button
 						onClick={() => {
-							// Release ownership before going back
+							
 							if (user?.id) {
 								const thisWindowId = sessionStorage.getItem("currentWindowId");
 								const savedTournamentId = localStorage.getItem(

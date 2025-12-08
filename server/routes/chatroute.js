@@ -15,7 +15,7 @@ const schemasendmessage = {
     type: "object",
     properties: {
       receiver_id: { type: "integer" },
-      content: { type: "string", minLength: 1, maxLength: 400 },  // Max 400 characters
+      content: { type: "string", minLength: 1, maxLength: 400 },  
     },
     required: ["receiver_id", "content"],
   },
@@ -45,17 +45,14 @@ const schemalastmessage = {
 export default async function chatRoutes(fastify, opts) {
   const db = opts.db;
 
-  // Search all users (for top header global search)
   fastify.get("/search",schemasearch, async (req, reply) => {
     const { search } = req.query;
     const userId = req.user?.id;
     
-    // Authorization check
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
     
-    // Input validation
     if (!search || typeof search !== 'string') {
       return reply.status(400).send({ error: "Invalid search query" });
     }
@@ -64,11 +61,9 @@ export default async function chatRoutes(fastify, opts) {
       return reply.status(400).send({ error: "Search query too long" });
     }
     
-    // Sanitize input - remove special SQL characters
     const sanitizedSearch = search.replace(/[%_\\]/g, '');
     
     return new Promise((resolve, reject) => {
-      // Search all users (for global search in header)
       db.all(
         `SELECT u.id, u.name, u.picture 
          FROM users u
@@ -88,17 +83,14 @@ export default async function chatRoutes(fastify, opts) {
     });
   });
 
-  // Search only friends (for chat sidebar search)
   fastify.get("/search/friends",schemasearch, async (req, reply) => {
     const { search } = req.query;
     const userId = req.user?.id;
     
-    // Authorization check
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
     
-    // Input validation
     if (!search || typeof search !== 'string') {
       return reply.status(400).send({ error: "Invalid search query" });
     }
@@ -107,11 +99,9 @@ export default async function chatRoutes(fastify, opts) {
       return reply.status(400).send({ error: "Search query too long" });
     }
     
-    // Sanitize input - remove special SQL characters
     const sanitizedSearch = search.replace(/[%_\\]/g, '');
     
     return new Promise((resolve, reject) => {
-      // Search only among user's accepted friends
       db.all(
         `SELECT u.id, u.name, u.picture 
          FROM users u
@@ -135,24 +125,19 @@ export default async function chatRoutes(fastify, opts) {
     });
   });
 
-  
-
-  // Insert message
   fastify.post("/messages",schemasendmessage, async (req, reply) => {
     const { receiver_id, content } = req.body;
-    const sender_id = req.user?.id; // Get sender from authenticated user
+    const sender_id = req.user?.id; 
 
     if (!sender_id) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
 
-    // Check if user is trying to send message to themselves
     if (sender_id === receiver_id) {
       return reply.status(400).send({ error: "Cannot send messages to yourself" });
     }
 
     try {
-      // Check if either user has blocked the other
       const block = await checkBlock(db, sender_id, receiver_id);
       if (block) {
         const message = block.blocker_id === sender_id 
@@ -161,13 +146,11 @@ export default async function chatRoutes(fastify, opts) {
         return reply.status(403).send({ error: message });
       }
 
-      // Check if users are friends
       const areFriends = await checkFriendship(db, sender_id, receiver_id);
       if (!areFriends) {
         return reply.status(403).send({ error: "You can only send messages to friends" });
       }
 
-      // Verify both users exist and insert message
       return new Promise((resolve, reject) => {
         db.get(
           `SELECT id FROM users WHERE id = ?`,
@@ -195,7 +178,6 @@ export default async function chatRoutes(fastify, opts) {
                   return resolve();
                 }
 
-                // Both users exist, are friends, and no blocks - insert message
                 db.run(
                   `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
                   [sender_id, receiver_id, content],
@@ -217,26 +199,10 @@ export default async function chatRoutes(fastify, opts) {
       return reply.status(503).send({ error: "Database error" });
     }
   });
-
-  // // Get all messages
-  // fastify.get("/messages", async (req, reply) => {
-  //   return new Promise((resolve, reject) => {
-  //     db.all(`SELECT * FROM messages`, [], (err, rows) => {
-  //       if (err) {
-  //         reply.status(503).send({ error: "Database error" });
-  //         return reject(err);
-  //       }
-  //       resolve(rows);
-  //     });
-  //   });
-  // });
-
-  // Get messages between two users
   fastify.get("/messages/:sender_id/:receiver_id",schemagetmessages, async (req, reply) => {
     const { sender_id, receiver_id } = req.params;
     const userId = req.user?.id;
     
-    // Authorization check - user must be part of this conversation
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
@@ -260,12 +226,10 @@ export default async function chatRoutes(fastify, opts) {
     });
   });
 
-  // Get last message between two users
   fastify.get("/lastmessage/:sender_id/:receiver_id",schemalastmessage, async (req, reply) => {
     const { sender_id, receiver_id } = req.params;
     const userId = req.user?.id;
     
-    // Authorization check - user must be part of this conversation
     if (!userId) {
       return reply.status(401).send({ error: "Unauthorized" });
     }
@@ -288,12 +252,10 @@ export default async function chatRoutes(fastify, opts) {
           }
 
           if (!row) {
-            // 👇 Always send a JSON object, even if empty
             reply.send({ content: "" });
             return resolve();
           }
 
-          // ✅ Message found, send it
           reply.send({ content: row.content });
           resolve();
         }

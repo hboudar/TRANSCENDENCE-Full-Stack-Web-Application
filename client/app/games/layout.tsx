@@ -1,4 +1,4 @@
-/** @format */
+
 
 "use client";
 import { useEffect, useState } from "react";
@@ -17,7 +17,7 @@ type Skin = {
 
 type Selected = {
 	types: Skin[];
-	type: number; // 0: table, 1: paddle, 2: ball
+	type: number; 
 };
 
 type MinimalUser = {
@@ -34,7 +34,7 @@ export default function Games({
 	const [selected, setselected] = useState<Selected>({ types: [], type: 0 });
 	const [skins, setSkins] = useState<Skin[]>([]);
 	const { user } = useUser() as { user: MinimalUser; loading: boolean };
-	// console.log(user);
+	
 	useEffect(() => {
 		if (user) {
 			async function fetchOwnedSkins() {

@@ -16,13 +16,11 @@ if (typeof window !== 'undefined') {
     reconnectionAttempts: 5
   });
 
-  // Add connection logging
   socket.on("connect", () => {
-    console.log("✅ Socket connected:", socket!.id);
   });
 
   socket.on("disconnect", (reason) => {
-    console.log("❌ Socket disconnected:", reason);
+    console.log('Socket disconnected:', reason);
   });
 
   socket.on("connect_error", (error) => {

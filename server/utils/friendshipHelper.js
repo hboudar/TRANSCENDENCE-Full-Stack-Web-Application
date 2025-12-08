@@ -1,4 +1,4 @@
-// Helper function to check if two users are friends
+
 export function checkFriendship(db, userId1, userId2) {
     return new Promise((resolve, reject) => {
         db.get(
@@ -10,14 +10,14 @@ export function checkFriendship(db, userId1, userId2) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(!!friendship); // Returns true if friends, false otherwise
+                    resolve(!!friendship); 
                 }
             }
         );
     });
 }
 
-// Helper function to check if one user has blocked another
+
 export function checkBlock(db, userId1, userId2) {
     return new Promise((resolve, reject) => {
         db.get(
@@ -29,7 +29,7 @@ export function checkBlock(db, userId1, userId2) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(block || null); // Returns block object or null
+                    resolve(block || null); 
                 }
             }
         );

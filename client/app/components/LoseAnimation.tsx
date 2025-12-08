@@ -1,4 +1,4 @@
-/** @format */
+
 
 type LoseAnimationProps = {
 	message?: string;

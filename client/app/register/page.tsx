@@ -41,9 +41,9 @@ export default function SignUpForm() {
             });
             if (response.ok) {
                 const data = await response.json();
-                // Show success message telling user to check email
+                
                 showAlert(data.message, 'success');
-                // Wait 4 seconds to let user read the message before redirecting
+                
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 4000);
@@ -68,7 +68,6 @@ export default function SignUpForm() {
 
     return (
         <div className="min-h-screen relative flex items-center justify-center px-4 py-8 overflow-auto">
-
 
             <div className="relative z-10 bg-[#3d2977]/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 sm:p-8 md:p-10 w-full max-w-md shadow-2xl my-auto">
                 <h1 className="text-3xl sm:text-4xl font-bold text-white text-center mb-6 sm:mb-8">
@@ -162,7 +161,6 @@ export default function SignUpForm() {
                             }
                             }
 
-
                         />
                     </div>
 
@@ -173,7 +171,7 @@ export default function SignUpForm() {
                         Create account
                     </button>
 
-                    {/* Google Sign-In Button - Redirects to server to start OAuth flow */}
+                    {}
                     <button
                         type="button"
                         className="w-full bg-white hover:bg-gray-100 text-gray-800 font-medium py-3 sm:py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 text-sm sm:text-base"

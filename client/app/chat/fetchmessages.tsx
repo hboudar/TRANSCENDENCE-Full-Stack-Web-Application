@@ -22,7 +22,7 @@ export default function FetchMessages({
     setMessages: Dispatch<SetStateAction<Message[]>>;
     messages: Message[];
 }) {
-    const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for the end of the messages container
+    const messagesEndRef = useRef<HTMLDivElement>(null); 
     const fetchMessages = async () => {
         try {
             const res = await fetch(`/api/messages/${selected}/${me}`);
@@ -36,14 +36,12 @@ export default function FetchMessages({
 
     useEffect(() => {
         fetchMessages();
-    }, [selected]); // Fetch messages when update changes or selected/me change
+    }, [selected]); 
 
-    // Scroll to the bottom whenever messages change
     useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
-
 
     }, [messages]);
 

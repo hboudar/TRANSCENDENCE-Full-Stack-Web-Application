@@ -2,7 +2,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import socket from "../socket";
 
-// User interface with proper typing
 interface User {
   id: number;
   name: string;
@@ -11,38 +10,31 @@ interface User {
   [key: string]: unknown;
 }
 
-// Context type definition
 interface UserContextType {
   user: User | null;
   loading: boolean;
   setUser: (u: User | null) => void;
 }
 
-// Create context for sharing user data across components
 export const UserContext = createContext<UserContextType>({
   user: null,
   loading: true,
-  // expose a setter so components can update user immediately after mutations
+  
   setUser: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);      // Store user data (name, email, picture, etc)
-  const [loading, setLoading] = useState(true); // Track if we're still fetching user data
+  const [user, setUser] = useState<User | null>(null);      
+  const [loading, setLoading] = useState(true); 
 
-  // Fetch User Data on App Load
-  // Runs once when app starts to verify token and get user info
+  
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        console.log('🔍 UserContext: Fetching user data from /api/me');
         
-        // Verify token with backend /me endpoint (token is in httpOnly cookie)
         const res = await fetch("/api/me", {
-          credentials: 'include',  // Automatically sends httpOnly cookie
+          credentials: 'include',  
         });
-        
-        console.log('📡 UserContext: Response status:', res.status);
         
         if (!res.ok) {
           console.warn('⚠️ UserContext: Failed to fetch user, status:', res.status);
@@ -51,14 +43,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        // Token valid - save user data
         const data = await res.json();
-        console.log('✅ UserContext: User data fetched successfully:', data);
         setUser(data);
         
-        // Join socket room for real-time chat/notifications
         if (data?.id && socket) {
-          console.log('🔌 UserContext: Joining socket room for user:', data.id);
           socket.emit("join", data.id);
         }
       } catch (error) {
@@ -71,15 +59,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     fetchMe();
   }, []);
 
-  // Real-time Profile Updates
-  // Listen for profile updates from other clients and sync user data
+  
   useEffect(() => {
     if (!socket) return;
 
     const handler = (payload: Partial<User> & { userId?: number }) => {
       try {
         if (!payload || !payload.userId) return;
-        // Only update if the update is for current user
+        
         setUser((prev: User | null) => {
           if (!prev) return prev;
           if (prev.id === payload.userId) {
@@ -100,7 +87,6 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  // Make user data available to all child components
   return (
     <UserContext.Provider value={{ user, loading, setUser }}>
       {children}

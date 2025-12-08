@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import socket from '../socket'
 
 export function useOnlineStatus() {
-  // initialize from current socket connection state so UI is correct immediately
+  
   const [isOnline, setIsOnline] = useState<boolean>(socket?.connected ?? false)
 
   useEffect(() => {

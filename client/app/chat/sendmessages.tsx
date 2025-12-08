@@ -19,11 +19,9 @@ export default function SendMessage({
     if (!socket) return;
 
     socket.on("connect", () => {
-      console.log("✅ Socket connected");
       socket.emit("join", me);
     });
     socket.on("disconnect", () => {
-      console.log("🔌 Socket disconnected");
     });
 
     return () => {
@@ -38,21 +36,16 @@ export default function SendMessage({
     if (!message.trim() || !socket || isBlocked) return;
     const isSocketReady = socket.connected && navigator.onLine;
     const payload = {
-      id: Date.now(), // Use timestamp as a simple unique ID
+      id: Date.now(),
       content: message,
       sender_id: me,
-      status: isSocketReady, // Check if the user is online
+      status: isSocketReady,
       receiver_id: selected,
-      created_at: new Date().toISOString(), // Add timestamp for message creation
+      created_at: new Date().toISOString(),
     };
 
-    // setMessages((prev) => [...prev, payload]);
-
-    // if (isSocketReady) {
-      socket.emit("chat message", payload);
-    // }
-    // setMessages((prevMessages: any[]) => [...prevMessages, payload]);
-    setMessage(""); // Clear the input field after sending
+    socket.emit("chat message", payload);
+    setMessage("");
   };
 
   return (

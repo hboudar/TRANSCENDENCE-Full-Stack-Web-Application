@@ -17,7 +17,6 @@ type User = {
     id: number;
     name: string;
     picture?: string;
-    // add other properties as needed
 };
 
 type Message = {
@@ -34,7 +33,7 @@ export default function Chat() {
     const [users, setUsers] = useState<User[]>([]);
     const [selected, setSelected] = useState(0);
     const [isMobile, setIsMobile] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]); // Initialize messages as an empty array
+    const [messages, setMessages] = useState<Message[]>([]);
     const [isBlocked, setIsBlocked] = useState(false);
     const [isBlocker, setIsBlocker] = useState(false);
     const [blockLoading, setBlockLoading] = useState(false);
@@ -71,14 +70,13 @@ export default function Chat() {
             setIsMobile(window.innerWidth < 768);
         };
         checkMobile();
-        window.addEventListener("resize", checkMobile); // Update isMobile on resize
-        return () => window.removeEventListener("resize", checkMobile); // Cleanup listener on unmount
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
     useEffect(() => {
         async function fetchUsers() {
             try {
-                // Fetch friends instead of all users
                 if (!user?.id) return;
                 const res = await fetch(`/api/friends/accepted?userId=${user.id}`);
                 const data = await res.json();
@@ -92,11 +90,8 @@ export default function Chat() {
         }
     }, [user?.id]);
 
-
-    // Listen for real-time block/unblock events globally
     useEffect(() => {
         const handleUserBlocked = (data: { blocker_id: number; blocked_id: number }) => {
-            console.log('Block event received:', data);
             if ((data.blocker_id === selected && data.blocked_id === user?.id) ||
                 (data.blocker_id === user?.id && data.blocked_id === selected)) {
                 checkBlockStatus();
@@ -104,7 +99,6 @@ export default function Chat() {
         };
 
         const handleUserUnblocked = (data: { blocker_id: number; blocked_id: number }) => {
-            console.log('Unblock event received:', data);
             if ((data.blocker_id === selected && data.blocked_id === user?.id) ||
                 (data.blocker_id === user?.id && data.blocked_id === selected)) {
                 checkBlockStatus();
@@ -120,7 +114,6 @@ export default function Chat() {
         };
     }, [selected, user]);
 
-    // Fetch block status when user is selected
     useEffect(() => {
         if (selected && user?.id) {
             checkBlockStatus();
@@ -139,7 +132,6 @@ export default function Chat() {
     const handleBlockToggle = async () => {
         if (!user?.id || !selected || blockLoading) return;
 
-        // Only the blocker can unblock
         if (isBlocked && !isBlocker) {
             return;
         }
@@ -147,7 +139,6 @@ export default function Chat() {
         setBlockLoading(true);
         try {
             if (isBlocked && isBlocker) {
-                // Unblock (only if you are the blocker)
                 const res = await fetch('/api/blocks', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
@@ -161,12 +152,9 @@ export default function Chat() {
                     setIsBlocked(false);
                     setIsBlocker(false);
                     setBlockMessage("");
-                    // Emit unblock event via socket
-                    console.log('Emitting user_unblocked event:', { blocker_id: user.id, blocked_id: selected });
                     socket.emit('user_unblocked', { blocker_id: user.id, blocked_id: selected });
                 }
             } else if (!isBlocked) {
-                // Block
                 const res = await fetch('/api/blocks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -180,8 +168,6 @@ export default function Chat() {
                     setIsBlocked(true);
                     setIsBlocker(true);
                     setBlockMessage("You have blocked this user. Unblock to send messages.");
-                    // Emit block event via socket
-                    console.log('Emitting user_blocked event:', { blocker_id: user.id, blocked_id: selected });
                     socket.emit('user_blocked', { blocker_id: user.id, blocked_id: selected });
                 }
             }
@@ -195,7 +181,6 @@ export default function Chat() {
     const handleSendGameInvite = () => {
         if (!socket) return;
         
-        // Check if users are blocked
         if (isBlocked) {
             showAlert(
                 isBlocker 
@@ -208,25 +193,20 @@ export default function Chat() {
 
         const recipient = users.find((u: User) => u.id === selected);
         if (!recipient) return;
-        // Set flag to indicate this is an intentional private game creation
         sessionStorage.setItem('creatingPrivateGame', 'true');
         rout.push(`/games/game?gametype=online&oppid=${selected}`);
-        console.log(selected, user.id);
 
-        // Emit Socket.io event to send game invite
         socket.emit("send_game_invite", {
             recipientId: selected,
             gameType: "Pingpong"
         });
 
-        // Listen for confirmation
         socket.once("game_invite_sent", (data: { success: boolean }) => {
             if (data.success) {
                 showAlert(`Game invite sent to ${recipient.name}! 🎮`, 'success');
             }
         });
     };
-
 
     const showSidebar = !isMobile || (isMobile && selected === 0);
     const showChat = !isMobile || (isMobile && selected !== 0);

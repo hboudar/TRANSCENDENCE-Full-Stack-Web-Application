@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../Context/UserContext";
 import socket from "@/app/socket";
 import { useRouter } from "next/navigation";
-
+import Loading from "../components/loading";
 
 type UserType = {
   id: number;
@@ -92,7 +92,7 @@ export default function Requests({ onClose, onFriendAccepted }: {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Loading />;
 
     return (
     <div

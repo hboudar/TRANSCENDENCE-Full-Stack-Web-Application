@@ -93,12 +93,12 @@ export default function PingPongAchievements({ games, user }: { games: Game[]; u
     };
     const wins = games.filter((game: Game) => game.winner_id === user?.id).length;
     const draw = games.filter((game: Game) => game.winner_id === 0).length;
-    const progress = (wins + (draw / 2)) % 10; // Assuming 10 wins + 5 draws = 1 level
-    const xp = (wins * 100) + draw * 50; // Assuming each win gives 100 XP and each draw gives 50 XP
-    const level = Math.floor((wins + (draw / 2)) / 10); // 10 wins or 5 draws = 1 level
+    const progress = (wins + (draw / 2)) % 10; 
+    const xp = (wins * 100) + draw * 50; 
+    const level = Math.floor((wins + (draw / 2)) / 10); 
     return (
         <div className="flex-1/2 flex  flex-col gap-3 h-full justify-around border-[#7b5ddf3d] shadow-[0_0_10px_#7b5ddf22] backdrop-blur-sm rounded-lg p-6 border bg-[#2b24423d]">
-            {/* Stats */}
+            {}
             <div className="flex items-center gap-2">
                 <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg">
                     <BarChart3 className="w-5 h-5 text-white" />
@@ -115,7 +115,7 @@ export default function PingPongAchievements({ games, user }: { games: Game[]; u
                 <StatCard icon={Star} label="Skill Rating" value={skillRating()} subtitle="Performance score" color="from-violet-500 to-purple-600" />
                 <StatCard icon={Clock} label="Peak Hours" value={favoriteTimeSlot()} subtitle="Most active time" color="from-blue-400 to-indigo-600" />
             </div>
-            {/* Level and XP */}
+            {}
             < div className="flex flex-col  justify-center p-2">
                 <div className="flex items-center gap-2 mb-4">
                     <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg shadow-lg">
@@ -136,7 +136,7 @@ export default function PingPongAchievements({ games, user }: { games: Game[]; u
                     <span className="text-gray-100 font-semibold">{xp} XP</span>
                 </div>
 
-                {/* Progress bar */}
+                {}
                 <div className="relative w-full h-3 mt-3 rounded-full overflow-hidden bg-gray-700/50 shadow-inner">
                     <div
                         className="absolute top-0 left-0 h-full rounded-full 
@@ -147,9 +147,7 @@ export default function PingPongAchievements({ games, user }: { games: Game[]; u
                 </div>
             </div>
 
-
         </div>
     );
 }
-
 

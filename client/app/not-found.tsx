@@ -10,7 +10,6 @@ export default function NotFound() {
     const router = useRouter();
     const { user, loading } = useUser();
 
-
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -64,7 +63,7 @@ export default function NotFound() {
     }
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20 flex items-center justify-center p-4 overflow-hidden relative">
-            {/* Animated background elements */}
+            {}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
                     className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl"
@@ -108,7 +107,7 @@ export default function NotFound() {
                 animate="visible"
                 className="relative z-10 max-w-2xl w-full text-center"
             >
-                {/* 404 Text */}
+                {}
                 <motion.div
                     variants={floatingVariants}
                     animate="animate"
@@ -125,7 +124,7 @@ export default function NotFound() {
                         404
                     </motion.h1>
 
-                    {/* Floating game icons */}
+                    {}
                     <motion.div
                         className="absolute -top-10 -left-10"
                         animate={{
@@ -155,7 +154,7 @@ export default function NotFound() {
                     </motion.div>
                 </motion.div>
 
-                {/* Error Message */}
+                {}
                 <motion.div variants={itemVariants} className="space-y-4 mb-12">
                     <h2 className="text-3xl md:text-4xl font-bold text-white font-chakra">
                         Page Not Found
@@ -165,7 +164,7 @@ export default function NotFound() {
                     </p>
                 </motion.div>
 
-                {/* Action Buttons */}
+                {}
                 <motion.div
                     variants={itemVariants}
                     className="flex flex-col sm:flex-row gap-4 justify-center items-center"
@@ -190,7 +189,7 @@ export default function NotFound() {
                     </motion.button>
                 </motion.div>
 
-                {/* Decorative elements */}
+                {}
                 <motion.div
                     variants={itemVariants}
                     className="mt-16 flex justify-center gap-8"
@@ -212,7 +211,7 @@ export default function NotFound() {
                     ))}
                 </motion.div>
 
-                {/* Quick Links */}
+                {}
                 <motion.div
                     variants={itemVariants}
                     className="mt-12 grid grid-cols-1 sm:grid-cols-5  gap-4 text-sm"

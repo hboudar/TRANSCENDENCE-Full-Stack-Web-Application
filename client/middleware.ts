@@ -23,26 +23,12 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get('token')?.value;
   const pathname = req.nextUrl.pathname;
 
-  console.log('[Middleware]', {
-    pathname,
-    hasToken: !!token,
-    tokenPreview: token ? `${token.substring(0, 20)}...` : 'none'
-  });
-
   const isPublic = PUBLIC_ROUTES.includes(pathname);
   const isProtected = PROTECTED_ROUTES.includes(pathname) || pathname.startsWith('/profile') || pathname.startsWith('/games');
 
   const hasValidToken = token ? await verifyToken(token) : false;
 
-  console.log('[Middleware]', {
-    pathname,
-    isPublic,
-    isProtected,
-    hasValidToken
-  });
-
   if (!hasValidToken && isProtected) {
-    console.log('[Middleware] Redirecting to /login - no valid token for protected route');
     const response = NextResponse.redirect(new URL('/login', req.url));
     if (token) {
       response.cookies.delete('token');
@@ -51,11 +37,9 @@ export async function middleware(req: NextRequest) {
   }
 
   if (hasValidToken && isPublic && pathname !== '/') {
-    console.log('[Middleware] Redirecting to /home - valid token on public route');
     return NextResponse.redirect(new URL('/home', req.url));
   }
 
-  console.log('[Middleware] Allowing request to proceed');
   return NextResponse.next();
 }
 

@@ -82,16 +82,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user?.id || !socket) return;
 
-    // Fetch initial notifications
     fetchNotifications();
 
-    // Listen for new notifications via Socket.io
     const handleNewNotification = (notification: Notification) => {
-      console.log("🔔 New notification received:", notification);
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
       
-      // Show browser notification if supported
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('New Game Invite!', {
           body: notification.message,
@@ -100,10 +96,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    // Listen for expired game invitations
     const handleGameInviteExpired = (data: { senderId: number }) => {
-      console.log("⏰ Game invite expired from sender:", data.senderId);
-      // Remove all game invites from that sender and update unread count
+      
       setNotifications((prev) => {
         const expiredUnread = prev.filter(
           (n: Notification) => n.type === 'game_invite' && n.sender_id === data.senderId && !n.is_read
@@ -115,23 +109,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    console.log("🎧 Setting up notification listener for user:", user.id);
     socket.on("new_notification", handleNewNotification);
     socket.on("game_invite_expired", handleGameInviteExpired);
 
-    // Request notification permission if not granted
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
 
     return () => {
-      console.log("🔇 Cleaning up notification listener");
       if (socket) {
         socket.off("new_notification", handleNewNotification);
         socket.off("game_invite_expired", handleGameInviteExpired);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [user?.id]);
 
   return (

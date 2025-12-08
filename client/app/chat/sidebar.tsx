@@ -29,7 +29,6 @@ export default function Sidebar({
 
     useEffect(() => {
         if (!value || value.trim() === "") {
-            // setSearchResults([]);
             return;
         }
         const fectusers = async () => {
@@ -43,8 +42,7 @@ export default function Sidebar({
         }
         fectusers();
     }
-        , [value]); // Fetch users when value changes
-
+        , [value]);
 
     return (
         <div className={` ${isMobile ? "flex-1" : ""} w-[320px] min-w-[280px] border-r border-[#a0a0a0] flex flex-col`}>
@@ -87,8 +85,6 @@ export default function Sidebar({
                 ))}
             </div>
 
-
-            {/* Users List */}
         </div>
     )
 }

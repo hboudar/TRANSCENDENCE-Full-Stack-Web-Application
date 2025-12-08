@@ -1,4 +1,4 @@
-// Simple script to verify test users - runs in Docker container
+
 import sqlite3 from 'sqlite3';
 
 const db = new sqlite3.Database('/usr/src/app/sqlite.db');

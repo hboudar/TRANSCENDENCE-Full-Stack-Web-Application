@@ -3,14 +3,14 @@ import { checkFriendship, checkBlock } from './utils/friendshipHelper.js';
 
 const SECRET = process.env.JWT_SECRET;
 
-// Track connections per user (max 5 per user)
+
 const userConnections = new Map();
 
 const sockethandler = (io, db) => {
-  // Authentication middleware - verify JWT before allowing connection
+  
   io.use((socket, next) => {
     try {
-      // Extract token from auth or cookies
+      
       const token = socket.handshake.auth.token || 
                     socket.handshake.headers.cookie?.match(/token=([^;]+)/)?.[1];
       
@@ -19,7 +19,7 @@ const sockethandler = (io, db) => {
         return next(new Error('Authentication required'));
       }
       
-      // SECURITY: Check if token is blacklisted (logout/revoked tokens)
+      
       db.get('SELECT token FROM blacklist_tokens WHERE token = ?', [token], (err, blacklisted) => {
         if (err) {
           console.log('⚠️ Socket connection rejected: Database error checking blacklist');
@@ -31,7 +31,7 @@ const sockethandler = (io, db) => {
           return next(new Error('Token has been revoked'));
         }
         
-        // Verify JWT token
+        
         let decoded;
         try {
           decoded = jwt.verify(token, SECRET);
@@ -42,7 +42,7 @@ const sockethandler = (io, db) => {
         
         const userId = decoded.userId;
         
-        // SECURITY: Verify user exists in database (prevent deleted users from connecting)
+        
         db.get('SELECT id FROM users WHERE id = ?', [userId], (err, user) => {
           if (err) {
             console.log('⚠️ Socket connection rejected: Database error');
@@ -56,14 +56,14 @@ const sockethandler = (io, db) => {
           
           socket.userId = userId;
           
-          // Check connection limit BEFORE allowing connection (prevents race conditions)
+          
           const connections = userConnections.get(socket.userId) || 0;
           if (connections >= 5) {
             console.log(`🚫 User ${socket.userId} exceeded connection limit (${connections})`);
             return next(new Error('Too many concurrent connections'));
           }
           
-          // Track this connection immediately
+          
           userConnections.set(socket.userId, connections + 1);
           console.log(`✅ Socket authenticated for user ${socket.userId} (connections: ${connections + 1})`);
           next();
@@ -79,7 +79,7 @@ const sockethandler = (io, db) => {
     console.log("⚡ Socket.IO client connected:", socket.id, "User:", socket.userId);
 
     socket.on("join", (userId) => {
-      // Verify userId matches authenticated user
+      
       if (socket.userId != userId) {
         console.log(`🚫 User ${socket.userId} attempted to join room for user ${userId}`);
         socket.emit('error', { message: 'Cannot join another user\'s room' });
@@ -90,7 +90,7 @@ const sockethandler = (io, db) => {
       socket.join(room);
       console.log(`🔗 User ${userId} joined room ${room}`);
       
-      // Broadcast presence to all clients
+      
       try {
         io.emit('user_presence', { userId, status: 'online' });
       } catch (e) {
@@ -101,21 +101,21 @@ const sockethandler = (io, db) => {
     socket.on("chat message", async (msg) => {
       const { content, sender_id, receiver_id, status } = msg;
 
-      // SECURITY: Verify sender_id matches authenticated user (prevent impersonation)
+      
       if (socket.userId != sender_id) {
         console.log(`🚫 Message rejected: User ${socket.userId} attempted to send as ${sender_id}`);
         socket.emit('error', { message: 'Unauthorized: Cannot send messages as another user' });
         return;
       }
 
-      // Validate required fields
+      
       if (!sender_id || !receiver_id || !content) {
         console.log("🚫 Message rejected: Missing required fields");
         socket.emit('error', { message: 'Missing required fields' });
         return;
       }
 
-      // Validate content length (prevent spam/abuse)
+      
       if (typeof content !== 'string' || content.length > 10000) {
         console.log("🚫 Message rejected: Invalid content");
         socket.emit('error', { message: 'Invalid message content' });
@@ -124,13 +124,13 @@ const sockethandler = (io, db) => {
 
       if (!status) {
         console.log("🚫 Skipping offline message attempt:", msg);
-        return; // Ignore messages sent without connection
+        return; 
       }
 
       console.log("📩 Received message:", msg);
 
       try {
-        // Check if sender is blocked by receiver OR receiver is blocked by sender
+        
         const block = await checkBlock(db, sender_id, receiver_id);
         if (block) {
           const isBlocker = block.blocker_id == sender_id;
@@ -149,7 +149,7 @@ const sockethandler = (io, db) => {
           return;
         }
 
-        // Check if users are friends
+        
         const areFriends = await checkFriendship(db, sender_id, receiver_id);
         if (!areFriends) {
           console.log("🚫 Users are not friends", sender_id, receiver_id);
@@ -162,7 +162,7 @@ const sockethandler = (io, db) => {
           return;
         }
 
-        // Users are friends and not blocked, insert message
+        
         db.run(
           `INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
           [sender_id, receiver_id, content],
@@ -190,14 +190,14 @@ const sockethandler = (io, db) => {
       }
     });
 
-    // Respond with list of currently connected user IDs
+    
     socket.on('request_online_users', () => {
       try {
         const sockets = Array.from(io.sockets.sockets.values());
         const userIds = sockets
           .map(s => s.userId)
           .filter(id => typeof id !== 'undefined' && id !== null);
-        // unique
+        
         const unique = Array.from(new Set(userIds));
         socket.emit('online_users', unique);
       } catch (err) {
@@ -215,21 +215,21 @@ const sockethandler = (io, db) => {
         return;
       }
 
-      // Validate input
+      
       if (!recipientId || !gameType) {
         console.log("🚫 Game invite rejected: Missing required fields");
         socket.emit('error', { message: 'Missing required fields' });
         return;
       }
 
-      // Validate recipientId is a number
+      
       if (typeof recipientId !== 'number' && isNaN(parseInt(recipientId))) {
         console.log("🚫 Game invite rejected: Invalid recipient ID");
         socket.emit('error', { message: 'Invalid recipient ID' });
         return;
       }
 
-      // SECURITY: Check if users are friends before allowing game invite
+      
       try {
         const areFriends = await checkFriendship(db, senderId, recipientId);
         if (!areFriends) {
@@ -238,7 +238,7 @@ const sockethandler = (io, db) => {
           return;
         }
 
-        // Check if sender is blocked
+        
         const block = await checkBlock(db, senderId, recipientId);
         if (block) {
           console.log(`🚫 Game invite rejected: User blocked`);
@@ -262,7 +262,7 @@ const sockethandler = (io, db) => {
         const message = `${sender.name} invited you to play ${gameType}!`;
         const data = JSON.stringify({ gameType, senderId });
 
-        // Save notification to database
+        
         db.run(
           `INSERT INTO notifications (user_id, sender_id, type, message, data) 
            VALUES (?, ?, 'game_invite', ?, ?)`,
@@ -286,11 +286,11 @@ const sockethandler = (io, db) => {
               sender_picture: sender.picture,
             };
 
-            // Send real-time notification to recipient
+            
             io.to(`user:${recipientId}`).emit("new_notification", notification);
             console.log(`✅ Notification sent to user ${recipientId}`);
 
-            // Confirm to sender
+            
             socket.emit("game_invite_sent", { success: true, recipientId });
           }
         );
@@ -300,7 +300,7 @@ const sockethandler = (io, db) => {
     socket.on("disconnect", () => {
       console.log("❌ Disconnected:", socket.id, "User:", socket.userId);
       
-      // Decrease connection count for this user
+      
       if (socket.userId) {
         const connections = userConnections.get(socket.userId) || 1;
         const newCount = connections - 1;
@@ -308,7 +308,7 @@ const sockethandler = (io, db) => {
         if (newCount <= 0) {
           userConnections.delete(socket.userId);
           console.log(`📊 User ${socket.userId} has no more connections`);
-          // Broadcast offline presence
+          
           io.emit('user_presence', { userId: socket.userId, status: 'offline' });
         } else {
           userConnections.set(socket.userId, newCount);
@@ -317,12 +317,12 @@ const sockethandler = (io, db) => {
       }
     });
 
-    // Re-broadcast profile updates received from clients so other sockets can update UI
+    
     socket.on('profile_updated', (payload) => {
       try {
         const { userId, name, picture } = payload || {};
         
-        // SECURITY: Verify userId matches authenticated user (prevent profile spoofing)
+        
         if (socket.userId != userId) {
           console.log(`🚫 Profile update rejected: User ${socket.userId} attempted to update profile for ${userId}`);
           socket.emit('error', { message: 'Unauthorized: Cannot update another user\'s profile' });
@@ -330,9 +330,9 @@ const sockethandler = (io, db) => {
         }
         
         console.log('🔁 Received profile_updated from client:', payload);
-        // Broadcast to all other clients so they can refresh headers/avatars
+        
         socket.broadcast.emit('user_profile_updated', { userId, name, picture });
-        // Also emit to the user's own room so their other sessions/devices receive it
+        
         if (userId) {
           io.to(`user:${userId}`).emit('user_profile_updated', { userId, name, picture });
         }
@@ -341,16 +341,16 @@ const sockethandler = (io, db) => {
       }
     });
 
-    // Send friend request
+    
     socket.on("friends:request:send", ({ fromUserId, toUserId }) => {
-      // SECURITY: Verify fromUserId matches authenticated user
+      
       if (socket.userId != fromUserId) {
         console.log(`🚫 Friend request rejected: User ${socket.userId} attempted to send as ${fromUserId}`);
         socket.emit('error', { message: 'Unauthorized: Cannot send friend request as another user' });
         return;
       }
 
-      // Validate input
+      
       if (!toUserId) {
         console.log("🚫 Friend request rejected: Missing recipient");
         socket.emit('error', { message: 'Missing recipient' });
@@ -364,9 +364,9 @@ const sockethandler = (io, db) => {
       });
     });
 
-    // When friend request accepted or removed
+    
     socket.on("friends:update", ({ userA, userB }) => {
-      // SECURITY: Verify authenticated user is one of the parties
+      
       if (socket.userId != userA && socket.userId != userB) {
         console.log(`🚫 Friends update rejected: User ${socket.userId} not involved in ${userA} & ${userB}`);
         socket.emit('error', { message: 'Unauthorized: Not part of this friendship' });
@@ -378,18 +378,18 @@ const sockethandler = (io, db) => {
       io.to(`user:${userB}`).emit("friends:updated");
     });
 
-    // Handle block event and broadcast to both users
+    
     socket.on('user_blocked', (data) => {
       const { blocker_id, blocked_id } = data;
       
-      // SECURITY: Verify blocker_id matches authenticated user
+      
       if (socket.userId != blocker_id) {
         console.log(`🚫 Block rejected: User ${socket.userId} attempted to block as ${blocker_id}`);
         socket.emit('error', { message: 'Unauthorized: Cannot block as another user' });
         return;
       }
 
-      // Validate input
+      
       if (!blocked_id) {
         console.log("🚫 Block rejected: Missing blocked user ID");
         socket.emit('error', { message: 'Missing blocked user ID' });
@@ -397,23 +397,23 @@ const sockethandler = (io, db) => {
       }
 
       console.log(`🚫 User ${blocker_id} blocked user ${blocked_id}`);
-      // Notify both users
+      
       io.to(`user:${blocker_id}`).emit('user_blocked', data);
       io.to(`user:${blocked_id}`).emit('user_blocked', data);
     });
 
-    // Handle unblock event and broadcast to both users
+    
     socket.on('user_unblocked', (data) => {
       const { blocker_id, blocked_id } = data;
       
-      // SECURITY: Verify blocker_id matches authenticated user
+      
       if (socket.userId != blocker_id) {
         console.log(`🚫 Unblock rejected: User ${socket.userId} attempted to unblock as ${blocker_id}`);
         socket.emit('error', { message: 'Unauthorized: Cannot unblock as another user' });
         return;
       }
 
-      // Validate input
+      
       if (!blocked_id) {
         console.log("🚫 Unblock rejected: Missing blocked user ID");
         socket.emit('error', { message: 'Missing blocked user ID' });
@@ -421,7 +421,7 @@ const sockethandler = (io, db) => {
       }
 
       console.log(`✅ User ${blocker_id} unblocked user ${blocked_id}`);
-      // Notify both users
+      
       io.to(`user:${blocker_id}`).emit('user_unblocked', data);
       io.to(`user:${blocked_id}`).emit('user_unblocked', data);
     });

@@ -15,7 +15,6 @@ export function PresenceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!socket) return;
 
-    // Request current online users
     socket.emit('request_online_users');
 
     const handleOnlineUsers = (list: number[]) => {

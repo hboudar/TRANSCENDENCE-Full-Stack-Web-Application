@@ -17,11 +17,8 @@ type EditProfileProps = {
 };
 
 export default function EditProfile({ setEditMode, user }: EditProfileProps) {
-    // stores the new uploaded img, initially set to user.picture
-    // which is the current picture supplied by server
     const [previewPic, setPreviewPic] = useState(user.picture)
-    const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null) // Store uploaded image URL
-
+    const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null)
 
 
     const [formData, setFormData] = useState({
@@ -45,21 +42,16 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
         confirm: false
     })
 
-    // access global user setter so we can update header in real-time
     const { setUser } = useUser();
 
 
-
     const handleInputChange = (field: string, value: string) => {
-        // enforce max length for name
         if (field === 'name') {
             const max = 16
             if (value.length > max) value = value.slice(0, max)
         }
-        // clear submit messages on change
         setSubmitError('')
         setSubmitSuccess('')
-        // clear field-specific error while editing
         setErrors(prev => ({ ...prev, [field]: '' }))
         setFormData(prev => ({ ...prev, [field]: value }))
     }
@@ -71,12 +63,10 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
     const validatePassword = () => {
         const errs: { name: string; newPassword: string; confirmPassword: string } = { name: '', newPassword: '', confirmPassword: '' }
 
-        // name validation
         if (!formData.name || formData.name.trim().length < 2) {
             errs.name = 'Name must be at least 2 characters.'
         }
 
-        // password validation only if changing
         if (formData.newPassword) {
             const strong = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/
             if (!strong.test(formData.newPassword)) {
@@ -95,12 +85,10 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
         e.preventDefault()
         if (!validatePassword()) return
 
-        // Check if anything changed
         const nameChanged = formData.name !== user.name
         const pictureChanged = uploadedImageUrl !== null
         const passwordChanged = formData.newPassword.trim() !== ''
 
-        // If nothing changed, just close the modal with success
         if (!nameChanged && !pictureChanged && !passwordChanged) {
             setSubmitSuccess('No changes to save')
             setTimeout(() => setEditMode(false), 400)
@@ -108,15 +96,12 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
         }
 
         try {
-            // Prepare data to send
             const updateData = {
                 userid: user.id,
                 name: formData.name,
-                picture: uploadedImageUrl || user.picture, // Use uploaded image or keep current
+                picture: uploadedImageUrl || user.picture,
                 newPassword: formData.newPassword
             }
-
-            console.log("📤 Sending update data:", updateData)
 
             const response = await fetch('/api/profile', {
                 method: 'POST',
@@ -135,9 +120,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
             }
 
             const result = await response.json()
-            console.log('✅ Profile updated successfully:', result)
             setSubmitSuccess('Profile updated successfully')
-            // If server returned the updated user object, update global user immediately
             if (result && result.id) {
                 try {
                     setUser(result)
@@ -147,12 +130,8 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
             } else if (result && result.user) {
                 try { setUser(result.user) } catch { }
             } else {
-                // Fallback: Server didn't return full user object, skip global update
-                console.log('Server response incomplete, skipping global user update')
             }
-            // Update local preview so the modal shows the saved picture instantly
             setPreviewPic(updateData.picture)
-            // emit socket event
             try {
                 socket.emit('profile_updated', {
                     userId: user.id,
@@ -162,7 +141,6 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
             } catch {
                 console.error('Failed to emit socket event', e)
             }
-            // close modal after slight delay so user sees success message
             setTimeout(() => setEditMode(false), 700)
         } catch (err) {
             console.error("❌ Error updating profile:", err)
@@ -176,7 +154,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
             console.error("No file selected");
             return;
         }
-        const formData = new FormData(); // Create a new FormData object
+        const formData = new FormData();
         formData.append("file", file);
 
         try {
@@ -185,8 +163,6 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                 body: formData,
             });
 
-            console.log("Response status:", res.status);
-
             if (!res.ok) {
                 const errorText = await res.text();
                 console.error("Upload failed. Server said:", errorText);
@@ -194,9 +170,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
             }
 
             const data = await res.json();
-            console.log("✅ Image uploaded successfully:", data.url);
 
-            // Only update preview and store the URL, don't save to DB yet
             setPreviewPic(data.url);
             setUploadedImageUrl(data.url);
         } catch (err) {
@@ -204,12 +178,11 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
         }
     };
 
-
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
             <div className="bg-gradient-to-br from-gray-900 via-purple-900/20 to-blue-900/20 rounded-xl border border-purple-500/30 shadow-2xl w-full max-w-4xl">
 
-                {/* Header */}
+                {}
                 <div className="relative p-6 border-b border-purple-500/20">
                     <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                         Edit Profile
@@ -221,7 +194,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                         <X size={24} />
                     </button>
                 </div>
-                {/* Profile Picture */}
+                {}
                 <div className="flex flex-col items-center gap-4">
                     <div className="relative">
                         <img
@@ -247,13 +220,13 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                     </label>
                 </div>
 
-                {/* Two-column layout */}
+                {}
                 <form onSubmit={handleSubmit} className="space-y-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-                        {/* LEFT COLUMN */}
+                        {}
                         <div className="space-y-6">
 
-                            {/* Name */}
+                            {}
                             <div className="space-y-2">
                                 <label className="text-gray-300 font-medium">Name</label>
                                 <input
@@ -268,13 +241,12 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                                 )}
                             </div>
 
-
                         </div>
 
-                        {/* RIGHT COLUMN - Password Section */}
+                        {}
                         <div className="space-y-6">
 
-                            {/* New Password */}
+                            {}
                             <div className="space-y-2">
                                 <label className="text-gray-300 font-medium flex items-center gap-2">
                                     <Lock size={18} /> New Password
@@ -296,7 +268,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                                 )}
                             </div>
 
-                            {/* Confirm Password */}
+                            {}
                             <div className="space-y-2">
                                 <label className="text-gray-300 font-medium flex items-center gap-2">
                                     <Lock size={18} /> Confirm Password
@@ -320,7 +292,7 @@ export default function EditProfile({ setEditMode, user }: EditProfileProps) {
                         </div>
                     </div>
 
-                    {/* Footer Messages and Buttons inside form */}
+                    {}
                     <div className="p-4">
                         {submitError && <div className="text-sm text-red-500 mb-3">{submitError}</div>}
                         {submitSuccess && <div className="text-sm text-green-400 mb-3">{submitSuccess}</div>}

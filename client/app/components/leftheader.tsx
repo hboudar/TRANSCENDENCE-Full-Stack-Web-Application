@@ -4,7 +4,7 @@ import { GoHomeFill } from "react-icons/go";
 import { IoChatbubbleSharp, IoGameController } from "react-icons/io5";
 import { FaShoppingCart } from "react-icons/fa";
 import { IoLogOut } from "react-icons/io5";
-// game icon
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -20,7 +20,7 @@ export default function Leftheader() {
 
     return (
         <div className="h-full flex flex-col items-center text-white shadow-xl py-6 px-2">
-            {/* Logo - Stays at top */}
+            {}
             <div className="w-12 mb-8 flex-shrink-0">
                 <img
                     src="/logo.png"
@@ -31,10 +31,10 @@ export default function Leftheader() {
                 />
             </div>
 
-            {/* Spacer to push nav items to center */}
+            {}
             <div className="flex-grow"></div>
 
-            {/* Nav Items - Centered */}
+            {}
             <nav className="flex flex-col gap-6 items-center flex-shrink-0">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
@@ -56,10 +56,10 @@ export default function Leftheader() {
                 })}
             </nav>
 
-            {/* Spacer to push logout to bottom */}
+            {}
             <div className="flex-grow"></div>
 
-            {/* Logout - At bottom */}
+            {}
             <button
                 className="group flex flex-col items-center gap-1 transition-all duration-200 flex-shrink-0"
                 onClick={async () => {

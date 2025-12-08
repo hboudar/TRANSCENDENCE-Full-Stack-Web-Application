@@ -94,13 +94,11 @@ export default function Topheader() {
   const handleAcceptGameInvite = async (e: React.MouseEvent, notificationId: number, senderId: number) => {
     e.preventDefault();
     
-    // Check if users have blocked each other
     try {
       const res = await fetch(`/api/blocks/check/${user.id}/${senderId}`);
       const data = await res.json();
       
       if (data.blocked) {
-        // Show alert and delete notification
         showAlert(
           data.is_blocker 
             ? "You cannot play with a user you have blocked. Please unblock them first."
@@ -111,7 +109,6 @@ export default function Topheader() {
         return;
       }
       
-      // If not blocked, proceed with game
       deleteNotification(notificationId);
       window.location.href = `/games/game?gametype=online&oppid=${senderId}&invited_player=true`;
     } catch (error) {

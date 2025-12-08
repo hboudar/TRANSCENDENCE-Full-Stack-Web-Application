@@ -38,14 +38,13 @@ export default function LandingPage() {
         type: "spring" as const,
         stiffness: 100,
         damping: 10,
-        delay: 1.2, // Delay button animation
+        delay: 1.2, 
       },
     },
   }
 
   return (
     <div className="fixed inset-0 flex flex-col items-center overflow-x-hidden overflow-y-auto text-white">
-      {/* Background Frames/Shapes - UNCHANGED */}
       <motion.div
         className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#7b5ddf44] rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"
         initial={{ scale: 0 }}
@@ -65,7 +64,7 @@ export default function LandingPage() {
         transition={{ duration: 2, ease: "easeOut", delay: 1 }}
       />
 
-      {/* Logo in top-left corner */}
+      {}
       <motion.div
         className="fixed top-4 left-4 z-20"
         initial={{ x: -50, opacity: 0 }}
@@ -81,14 +80,14 @@ export default function LandingPage() {
         />
       </motion.div>
 
-      {/* Main content (Hero and Features) - Centered */}
+      {}
       <motion.div
         className="relative z-10 flex flex-col items-center w-full max-w-4xl px-4 py-6 my-auto"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        {/* Hero Section */}
+        {}
         <div className="flex flex-col text-center items-center justify-center mb-8">
           <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight">
             Ping Pong, Anytime, <br /> Anywhere
@@ -106,7 +105,7 @@ export default function LandingPage() {
           </motion.div>
         </div>
 
-        {/* Features Section (Placeholder) */}
+        {}
         <motion.div
           className="mt-8 w-full text-center pb-8"
           initial={{ opacity: 0, y: 50 }}

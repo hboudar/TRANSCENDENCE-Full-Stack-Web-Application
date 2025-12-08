@@ -11,7 +11,7 @@ export function useSocket(): Socket | null {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    // Socket is initialized on client-side, so we're ready
+    
     setIsReady(true)
   }, [])
 

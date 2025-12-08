@@ -34,8 +34,7 @@ const SimplePerformanceChart: React.FC<{ games?: Game[]; user?: User | null }> =
     const today = new Date();
     const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date(today);
-        date.setDate(date.getDate() - (6 - i)); // this ensures we start from today and go back 6 days
-        console.log("Generating data for  today :", date.getDate());
+        date.setDate(date.getDate() - (6 - i)); 
         return {
             day: daysOfWeek[date.getDay()],
             date: date.toISOString().split('T')[0],
@@ -44,7 +43,6 @@ const SimplePerformanceChart: React.FC<{ games?: Game[]; user?: User | null }> =
         };
     });
 
-    // Normalize and accumulate games into the last7Days buckets.
     games.forEach((g: Game) => {
         try {
             const rawDate = g.date || g.created_at || g.timestamp || g.played_at || g.createdAt;
@@ -57,20 +55,19 @@ const SimplePerformanceChart: React.FC<{ games?: Game[]; user?: User | null }> =
                 else if (Number(winner_id) !== 0) dayData.losses++;
             }
         } catch {
-            // ignore malformed dates
+            
             return;
         }
     });
 
-    // If all buckets are empty, chart will still render axes; log for debugging
     const allZero = last7Days.every((d: { wins: number; losses: number }) => d.wins === 0 && d.losses === 0);
     if (allZero) {
-        // console.debug('PerformanceChart: no activity in last 7 days for user', user?.id);
+        
     }
 
     return (
         <div className="flex-1/2 flex flex-col justify-between  border-[#7b5ddf3d] shadow-[0_0_10px_#7b5ddf22] backdrop-blur-sm rounded-lg p-6 border bg-[#2b24423d]">
-            {/* Header */}
+            {}
             <div className="mb-6">
                 <h3 className="flex items-center gap-2 text-xl font-bold text-white mb-2">
                     <TrendingUp className="w-5 h-5 text-green-400" />
@@ -79,7 +76,7 @@ const SimplePerformanceChart: React.FC<{ games?: Game[]; user?: User | null }> =
                 <p className="text-gray-400 text-sm">Weekly wins vs losses</p>
             </div>
 
-            {/* Chart */}
+            {}
             <div className="flex-1 min-h-[250px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={last7Days} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -93,8 +90,7 @@ const SimplePerformanceChart: React.FC<{ games?: Game[]; user?: User | null }> =
                 </ResponsiveContainer>
             </div>
 
-
-            {/* Legend */}
+            {}
             <div className="flex items-center justify-center gap-6 mt-4">
                 {[
                     { label: 'Wins', color: 'bg-blue-400' },
@@ -106,7 +102,6 @@ const SimplePerformanceChart: React.FC<{ games?: Game[]; user?: User | null }> =
                     </div>
                 ))}
             </div>
-
 
 
         </div>

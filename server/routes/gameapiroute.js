@@ -1,4 +1,4 @@
-/** @format */
+
 
 import fastify from "fastify";
 import { sessionsmap } from "../game.js";
@@ -8,7 +8,6 @@ const gameApiRoute = async (fastify, options) => {
 	const { db } = options;
 
 	
-	// Public: Get all active games (read-only, safe for CLI)
 	fastify.get("/games/cli/active", async (request, reply) => {
 		try {
 			const activeSessions = Array.from(sessionsmap.entries()).map(
@@ -49,7 +48,7 @@ const gameApiRoute = async (fastify, options) => {
 		}
 	});
 
-	// Public: Get specific game session state (read-only, safe for CLI)
+	
 	fastify.get("/games/cli/session/:sessionId", async (request, reply) => {
 		try {
 			const { sessionId } = request.params;
@@ -91,7 +90,7 @@ const gameApiRoute = async (fastify, options) => {
 		}
 	});
 
-	// Public: Get game statistics (read-only, safe for CLI)
+	
 	fastify.get("/games/cli/stats", async (request, reply) => {
 		try {
 			const stats = await new Promise((resolve, reject) => {
@@ -128,7 +127,7 @@ const gameApiRoute = async (fastify, options) => {
 	});
 	fastify.post("/games/start", async (request, reply) => {
 		try {
-		// Get authenticated user from middleware
+		
 		const authenticatedUserId = request.user?.id;
 		
 		if (!authenticatedUserId) {
@@ -156,10 +155,10 @@ const gameApiRoute = async (fastify, options) => {
 			});
 		}
 
-		// SECURITY: Use authenticated user ID directly, never trust client input
+		
 		const player_id = authenticatedUserId;
 
-		// SECURITY: Fetch player name and image from database, never trust client
+		
 		const playerData = await new Promise((resolve, reject) => {
 			db.get('SELECT name, picture FROM users WHERE id = ?', [player_id], (err, row) => {
 				if (err) return reject(err);
@@ -195,7 +194,7 @@ const gameApiRoute = async (fastify, options) => {
 						session.players_info.p1_id == player2_id
 				);
 				if (!invitedSession) {
-					// Session not found - host may have disconnected
+					
 					return reply.status(404).send({
 						success: false,
 						sessionNotFound: true,
@@ -208,7 +207,7 @@ const gameApiRoute = async (fastify, options) => {
 					session.players_info.p2_name = player_name;
 					session.players_info.p2_img = player_img;
 					session.p2_ready = true;
-					// console.log("player 2", sessionsmap);
+					
 					return reply.status(201).send({
 						success: true,
 						message: "player added successfully",
@@ -227,7 +226,7 @@ const gameApiRoute = async (fastify, options) => {
 					session.players_info.p2_name = player_name;
 					session.players_info.p2_img = player_img;
 					session.p2_ready = true;
-					// console.log("player 2", sessionsmap);
+					
 
 					return reply.status(201).send({
 						success: true,
@@ -236,7 +235,7 @@ const gameApiRoute = async (fastify, options) => {
 					});
 				}
 			}
-			// console.log("new session flow");
+			
 
 			sessionsmap.set(sessionId, {
 				players_info: {
@@ -273,10 +272,10 @@ const gameApiRoute = async (fastify, options) => {
 			return reply.status(401).send({ success: false, error: "Authentication required" });
 		}
 
-		// SECURITY: Use authenticated user ID directly
+		
 		const userId = authenticatedUserId;
 
-		// Verify user exists
+		
 		const userExists = await new Promise((resolve) => {
 			db.get('SELECT id FROM users WHERE id = ?', [userId], (err, row) => {
 				resolve(!!row && !err);

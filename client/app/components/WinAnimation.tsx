@@ -1,4 +1,4 @@
-/** @format */
+
 
 type WinAnimationProps = {
 	winnerName: string;

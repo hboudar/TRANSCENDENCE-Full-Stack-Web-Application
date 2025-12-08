@@ -1,4 +1,4 @@
-/** @format */
+
 
 "use client";
 import { useEffect } from "react";
@@ -30,10 +30,8 @@ export default function SkinContainer({
 	selected: Selected;
 	setselected: React.Dispatch<React.SetStateAction<Selected>>;
 }) {
-	// useEffect(()=>{
-	//     setSkins(data)
-	// const {skins} = useHomeContext();
-
+	
+	
 	const { user } = useHomeContext();
 	useEffect(() => {
 		async function fetchSkin() {
@@ -57,7 +55,7 @@ export default function SkinContainer({
 			const typeindex = alltypes.indexOf(skinType);
 			setselected((prev) => ({ ...prev, type: typeindex }));
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		
 	}, [skinType, skins]);
 	function changeselected(skin: Skin) {
 		async function postselect() {
@@ -76,7 +74,7 @@ export default function SkinContainer({
 				}
 			);
 			const data = await response.json();
-			console.log(data);
+			console.log('Skin selection response:', data);
 		}
 		postselect();
 		const newtypes = selected.types;
@@ -111,24 +109,7 @@ export default function SkinContainer({
                   shadow-md
                   transition hover:scale-105 
                   `}>
-							{/* {skinType == "table" && skin.img[0] != "#" ? (
-								<img
-									fill
-									className=" object-cover object-center"
-									src={skin.img}
-									alt="profile"></Image>
-							) : (
-								<></>
-							)}
-							{skinType != "table" && selected.types[0].img[0] != "#" ? (
-								<img
-									fill
-									className=" object-cover object-center"
-									src={selected.types[0].img}
-									alt="profile"></Image>
-							) : (
-								<></>
-							)} */}
+							
 							<div className=" absolute border left-1/2 border-dashed h-full "></div>
 							<div
 								id="paddle1"
@@ -139,24 +120,7 @@ export default function SkinContainer({
 								}}
 								className={`h-1/3 top-1/4 -translate-y-1/2  aspect-[1/6] rounded-full 
                     absolute left-1`}>
-								{/* {skinType == "paddle" && skin.img[0] != "#" ? (
-									<img
-										fill
-										className=" object-cover object-center"
-										src={skin.img}
-										alt="profile"></Image>
-								) : (
-									<></>
-								)}
-								{skinType != "paddle" && selected.types[1].img[0] != "#" ? (
-									<img
-										fill
-										className=" object-cover object-center"
-										src={selected.types[1].img}
-										alt="profile"></Image>
-								) : (
-									<></>
-								)} */}
+								
 							</div>
 							<div
 								id="paddle2"
@@ -167,24 +131,7 @@ export default function SkinContainer({
 								}}
 								className={`h-1/3 top-1/2 -translate-y-1/2 aspect-[1/6]
                      rounded-full absolute right-1`}>
-								{/* {skinType == "paddle" && skin.img[0] != "#" ? (
-									<img
-										fill
-										className=" object-cover object-center"
-										src={skin.img}
-										alt="profile"></Image>
-								) : (
-									<></>
-								)}
-								{skinType != "paddle" && selected.types[1].img[0] != "#" ? (
-									<img
-										fill
-										className=" object-cover object-center"
-										src={selected.types[1].img}
-										alt="profile"></Image>
-								) : (
-									<></>
-								)} */}
+								
 							</div>
 							<div
 								id="ball"
@@ -196,24 +143,7 @@ export default function SkinContainer({
 								className={` top-1/3 left-3/5 h-[10%]
                     ${skinType == "ball" ? skin.color : selected.types[2].color}
                     -translate-1/2 aspect-square   rounded-full absolute`}>
-								{/* {skinType == "ball" && skin.img[0] != "#" ? (
-									<img
-										fill
-										className=" object-cover object-center"
-										src={skin.img}
-										alt="profile"></Image>
-								) : (
-									<></>
-								)}
-								{skinType != "ball" && selected.types[2].img[0] != "#" ? (
-									<img
-										fill
-										className=" object-cover object-center"
-										src={selected.types[2].img}
-										alt="profile"></Image>
-								) : (
-									<></>
-								)} */}
+								
 							</div>
 							<div className="absolute  h-full w-full ">
 								<div

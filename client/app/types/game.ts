@@ -1,5 +1,5 @@
-// Canonical Game type definition
-// Used across all game-related components
+
+
 export type Game = {
     id: number;
     player1_id?: number;
@@ -9,8 +9,8 @@ export type Game = {
     player1_gold_earned?: number;
     player2_gold_earned?: number;
     winner_id?: number;
-    winnerId?: number; // Alias for backward compatibility
-    winner?: number; // Alias for backward compatibility
+    winnerId?: number; 
+    winner?: number; 
     date?: string;
     created_at?: string;
     timestamp?: string;

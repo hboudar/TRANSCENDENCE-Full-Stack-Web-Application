@@ -1,9 +1,9 @@
-/** @format */
+
 
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-//fix type script error
+
 export default function GamesCard({
 	setGameType,
 	title,
@@ -15,19 +15,18 @@ export default function GamesCard({
 	title: string;
 	description: string;
 	GameType: string;
-	type: string;
+    type: string;
 }) {
-	console.log(GameType);
-	const router = useRouter();
-
+    const router = useRouter();
+    console.log('Game type:', GameType);
 	return (
 		<div className="h-full  aspect-3/4  group ">
 			<div
 				onClick={() => {
-					// if (type == "tournament") router.push("/games/tournament");
+					
 					if (type == "rps") router.push("/rps");
 					else {
-						// Map "bot" to "localvsbot" for game type
+						
 						const gameType = type === "bot" ? "localvsbot" : type;
 						router.push("/games/game?gametype=" + gameType);
 						setGameType(gameType);

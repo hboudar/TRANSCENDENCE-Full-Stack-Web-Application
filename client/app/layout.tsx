@@ -27,7 +27,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${chakra.variable} font-chakra min-h-screen`} >
-      {/* <Suspense fallback={<div className="flex justify-center items-center h-screen text-white">Loading...</div>}> */}
         <UserProvider>
           <NotificationProvider>
             <PresenceProvider>
@@ -37,7 +36,6 @@ export default function RootLayout({
               className="absolute w-full h-full object-cover -z-10"
               style={{ filter: "brightness(0.5) blur(10px)" }}
             />
-            {/* Ensure children is rendered */}
               <LayoutComp>
                 {children}
               </LayoutComp>
@@ -45,7 +43,6 @@ export default function RootLayout({
           </NotificationProvider>
         </UserProvider>
         <AlertContainer />
-      {/* </Suspense> */}
       </body>
     </html>
   );

@@ -91,7 +91,6 @@ export function Alert({ message, type = "info", duration = 4000, onClose }: Aler
   );
 }
 
-// Alert Manager for programmatic alerts
 let alertId = 0;
 const alertListeners: Array<(alert: AlertConfig) => void> = [];
 

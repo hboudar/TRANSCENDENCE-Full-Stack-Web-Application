@@ -12,10 +12,8 @@ import { Suspense } from "react";
 import { Game } from "../types/game";
 import { showAlert } from "../components/Alert";
 
-// Type definition for tier levels
 type TierType = "gold" | "silver" | "bronze";
 
-// Props interface for AchievementCard component
 interface AchievementCardProps {
     icon: LucideIcon;
     name: string;
@@ -28,7 +26,6 @@ interface AchievementCardProps {
 const AchievementCard = ({ icon: Icon, name, progress, total, completed = false, tier = "bronze" }: AchievementCardProps) => {
     const progressPercentage = total ? (progress / total) * 100 : 100;
     let displayTier: TierType = tier;
-    console.log("AchievementCard - completed:",name, completed, "tier:", tier);
     if (completed) displayTier = "gold";
     const tierStyles: Record<TierType, string> = {
         gold: "border-yellow-400/50 shadow-lg shadow-yellow-400/30 bg-gradient-to-br from-yellow-600/20 to-purple-600/20",
@@ -87,15 +84,14 @@ const AchievementCard = ({ icon: Icon, name, progress, total, completed = false,
 function HomeContent() {
     const { user, loading } = useUser();
     const [games, setGames] = useState<Game[]>([]);
-    const searchParams = useSearchParams();    // Type assertion for user to access properties safely
+    const searchParams = useSearchParams();    
     const typedUser = user as { id: number; username?: string; email?: string } | null;
 
-    // Handle Google OAuth Errors (if any)
     useEffect(() => {
         const error = searchParams.get('error');
         
         if (error) {
-            // Map error codes to user-friendly messages
+            
             const errorMessages: { [key: string]: string } = {
                 'no_code': 'Authorization code not received from Google',
                 'no_access_token': 'Failed to get access token from Google',
@@ -104,12 +100,11 @@ function HomeContent() {
                 'oauth_failed': 'Google authentication failed'
             };
             showAlert(errorMessages[error] || 'Authentication failed. Please try again.', 'error');
-            // Clean up URL (remove error parameter)
+            
             window.history.replaceState({}, '', '/home');
         }
     }, [searchParams]);
 
-    // Redirect to login if no user after loading completes
     useEffect(() => {
         if (!loading && !user) {
             window.location.href = '/login';
@@ -118,7 +113,7 @@ function HomeContent() {
 
     useEffect(() => {
         const fetch_user = async () => {
-            // Safety check: only fetch if user exists and has an id
+            
             if (!typedUser || !typedUser.id) return;
             
             try {
@@ -153,16 +148,15 @@ function HomeContent() {
 
     const totalGold = (user as { gold?: number })?.gold ?? 0;
     
-    // Calculate wins for First Victory achievement
     const winCount = (() => {
         if (!(user as { id?: number })?.id) return 0;
         const wins = games.filter(game => game?.winner_id === (user as { id?: number })?.id).length;
-        // Cap at 1 for First Victory achievement (don't exceed 1/1)
+        
         return Math.min(wins, 1);
     })();
     
     const streak = (() => {
-        // If we don't have a user yet, there's no streak to compute
+        
         if (!(user as { id?: number })?.id) return 0;
         let maxStreak = 0, current = 0;
         for (let i = 0; i < games.length; i++) {
@@ -215,4 +209,3 @@ export default function HomePage() {
         </Suspense>
     );
 }
-

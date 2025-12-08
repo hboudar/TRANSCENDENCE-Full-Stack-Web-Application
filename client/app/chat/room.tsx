@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import socket from '../socket'; // Make sure this is your initialized socket.io-client
+import socket from '../socket'; 
 import SendMessage from './sendmessages';
 import FetchMessages from './fetchmessages';
 
@@ -33,23 +33,20 @@ export default function Room({
     useEffect(() => {
         if (!socket) return;
         
-        // Join personal room for this user
-        socket.emit("join", me); // This ensures the user is in their own room
+        socket.emit("join", me); 
 
         const handleIncomingMessage = (msg: Message) => {
-            // Only refresh messages if it's relevant
+            
             if (
                 (msg.sender_id === selected && msg.receiver_id === me) ||
                 (msg.sender_id === me && msg.receiver_id === selected)
             ) {
-                console.log("📥 Received live message:", msg);
-                // insert the new message at the end of the messages array
+                
                 setMessages((prevMessages: Message[]) => [...prevMessages, msg]);
             }
         };
 
         const handleMessageBlocked = (data: { message: string }) => {
-            console.log("🚫 Message blocked:", data);
             setErrorMessage(data.message);
             setTimeout(() => setErrorMessage(""), 3000);
         };
