@@ -53,7 +53,7 @@ export function isTokenExpired(tokenWithTimestamp) {
     
     const [token, timestamp] = tokenWithTimestamp.split('.');
     const tokenAge = Date.now() - parseInt(timestamp);
-    const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const FIVE_MINUTES = 60 * 60 * 1000; // 5 minutes in milliseconds
     
     return tokenAge > FIVE_MINUTES;
 }
