@@ -103,8 +103,8 @@ services:
     container_name: alertmanager
     volumes:
       - alertmanager_data:/alertmanager
-    ports:
-      - "9093:9093"
+    expose:
+      - "9093"
     environment:
       - EXTERNAL_URL=${ALERTMANAGER_EXTERNAL_URL}
     env_file:

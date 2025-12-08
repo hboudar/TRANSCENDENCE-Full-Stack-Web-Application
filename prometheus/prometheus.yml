@@ -19,6 +19,7 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets: ['alertmanager:9093']
+      path_prefix: /alertmanager
 
 rule_files:
   - "alert_rules.yml"
