@@ -194,6 +194,17 @@ export default function Chat() {
 
     const handleSendGameInvite = () => {
         if (!socket) return;
+        
+        // Check if users are blocked
+        if (isBlocked) {
+            showAlert(
+                isBlocker 
+                    ? "You cannot send game invites to users you have blocked. Please unblock them first."
+                    : "This user has blocked you. You cannot send them game invites.",
+                'error'
+            );
+            return;
+        }
 
         const recipient = users.find((u: User) => u.id === selected);
         if (!recipient) return;
@@ -280,8 +291,14 @@ export default function Chat() {
                                             </span>
                                         </button>
                                         <button
-                                            className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white shadow-lg bg-gradient-to-r from-blue-700 via-purple-700 to-black border border-blue-900 hover:from-blue-500 hover:via-purple-600 hover:to-black hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-white shadow-lg transition-all duration-200 focus:outline-none ${
+                                                isBlocked
+                                                    ? "bg-gray-600 cursor-not-allowed opacity-60"
+                                                    : "bg-gradient-to-r from-blue-700 via-purple-700 to-black border border-blue-900 hover:from-blue-500 hover:via-purple-600 hover:to-black hover:scale-105 active:scale-95 focus:ring-2 focus:ring-blue-400"
+                                            }`}
                                             onClick={handleSendGameInvite}
+                                            disabled={isBlocked}
+                                            title={isBlocked ? "Cannot play with blocked users" : "Play with user"}
                                         >
                                             <span className="flex items-center justify-center text-xl">
                                                 <FaTableTennisPaddleBall />

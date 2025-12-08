@@ -11,6 +11,7 @@ import AvatarWithPresence from './AvatarWithPresence';
 import { formatDistanceToNow } from 'date-fns';
 import { useOnlineStatus } from './useOnlineStatus';
 import { useSocket } from '../hooks/useSocket';
+import { showAlert } from './Alert';
 
 export default function Topheader() {
   const { user } = useUser();
@@ -90,8 +91,33 @@ export default function Topheader() {
     deleteNotification(notificationId);
   };
 
-  const handleAcceptGameInvite = (e: React.MouseEvent, notificationId: number) => {
-    deleteNotification(notificationId);
+  const handleAcceptGameInvite = async (e: React.MouseEvent, notificationId: number, senderId: number) => {
+    e.preventDefault();
+    
+    // Check if users have blocked each other
+    try {
+      const res = await fetch(`/api/blocks/check/${user.id}/${senderId}`);
+      const data = await res.json();
+      
+      if (data.blocked) {
+        // Show alert and delete notification
+        showAlert(
+          data.is_blocker 
+            ? "You cannot play with a user you have blocked. Please unblock them first."
+            : "This user has blocked you. You cannot play with them.",
+          'error'
+        );
+        deleteNotification(notificationId);
+        return;
+      }
+      
+      // If not blocked, proceed with game
+      deleteNotification(notificationId);
+      window.location.href = `/games/game?gametype=online&oppid=${senderId}&invited_player=true`;
+    } catch (error) {
+      console.error("Error checking block status:", error);
+      showAlert("Failed to check block status. Please try again.", 'error');
+    }
   };
 
   if (!user) {
@@ -191,9 +217,9 @@ export default function Topheader() {
                             <p className="text-xs text-gray-400">{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</p>
                             {notification.type === 'game_invite' && (
                               <div className="flex gap-2 mt-2">
-                                <Link href={`/games/game?gametype=online&oppid=${notification.sender_id}&invited_player=true`} className="flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:shadow-lg transition-all" onClick={(e) => { e.stopPropagation(); handleAcceptGameInvite(e, notification.id); }}>
+                                <button className="flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:shadow-lg transition-all" onClick={(e) => { e.stopPropagation(); handleAcceptGameInvite(e, notification.id, notification.sender_id); }}>
                                   <IoCheckmark size={14} /> Accept
-                                </Link>
+                                </button>
                                 <button onClick={(e) => handleDeleteNotification(e, notification.id)} className="flex items-center gap-1 bg-gradient-to-r from-red-500 to-pink-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:shadow-lg transition-all">
                                   <IoClose size={14} /> Decline
                                 </button>
@@ -257,9 +283,9 @@ export default function Topheader() {
                               <p className="text-xs text-gray-400">{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</p>
                               {notification.type === 'game_invite' && (
                                 <div className="flex gap-2 mt-2">
-                                  <Link href={`/games/game?gametype=online&oppid=${notification.sender_id}&invited_player=true`} className="flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:shadow-lg transition-all" onClick={(e) => { e.stopPropagation(); handleAcceptGameInvite(e, notification.id); }}>
+                                  <button className="flex items-center gap-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:shadow-lg transition-all" onClick={(e) => { e.stopPropagation(); handleAcceptGameInvite(e, notification.id, notification.sender_id); }}>
                                     <IoCheckmark size={14} /> Accept
-                                  </Link>
+                                  </button>
                                   <button onClick={(e) => handleDeleteNotification(e, notification.id)} className="flex items-center gap-1 bg-gradient-to-r from-red-500 to-pink-600 text-white px-3 py-1 rounded-lg text-xs font-semibold hover:shadow-lg transition-all">
                                     <IoClose size={14} /> Decline
                                   </button>

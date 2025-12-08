@@ -17,10 +17,23 @@ async function verifyTokenAndUser(token, db) {
 
     const decoded = jwt.verify(token, SECRET);
     const userId = decoded.userId || decoded.id;
+    const tokenName = decoded.name;
+    const tokenEmail = decoded.email;
 
     return new Promise((resolve) => {
-      db.get('SELECT id FROM users WHERE id = ?', [userId], (err, row) => {
+      db.get('SELECT id, name, email FROM users WHERE id = ?', [userId], (err, row) => {
         if (err || !row) return resolve(null);
+        
+        // Verify that name and email in token match database (if they exist in token)
+        if (tokenName && row.name !== tokenName) {
+          console.log(`⚠️ Token name mismatch for user ${userId}: token="${tokenName}" db="${row.name}"`);
+          return resolve(null);
+        }
+        if (tokenEmail && row.email !== tokenEmail) {
+          console.log(`⚠️ Token email mismatch for user ${userId}: token="${tokenEmail}" db="${row.email}"`);
+          return resolve(null);
+        }
+        
         resolve(userId);
       });
     });

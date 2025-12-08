@@ -13,6 +13,7 @@ import WinAnimation from "@/app/components/WinAnimation";
 import LoseAnimation from "@/app/components/LoseAnimation";
 import LocalGameWinAnimation from "@/app/components/LocalGameWinAnimation";
 import { Suspense } from "react";
+import { showAlert } from "@/app/components/Alert";
 
 // Extend Window interface for game-specific properties
 declare global {
@@ -157,6 +158,25 @@ function GameContent() {
 			isInitializing.current = true;
 
 			try {
+				// Check for blocks if it's an online game with specific opponent
+				if (gametype === "online" && oppid && oppid !== 0) {
+					const blockCheckRes = await fetch(`/api/blocks/check/${user.id}/${oppid}`);
+					const blockData = await blockCheckRes.json();
+					
+					if (blockData.blocked) {
+						console.log("Cannot start game - users have blocked each other");
+						showAlert(
+							blockData.is_blocker 
+								? "You cannot play with a user you have blocked. Please unblock them first."
+								: "This user has blocked you. You cannot play with them.",
+							'error'
+						);
+						router.push("/chat");
+						isInitializing.current = false;
+						return;
+					}
+				}
+
 				const sessionid = crypto.randomUUID();
 
 				const response = await fetch("/api/games/start", {
