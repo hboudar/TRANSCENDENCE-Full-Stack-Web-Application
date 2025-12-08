@@ -7,9 +7,125 @@ import { randomUUID } from "crypto";
 const gameApiRoute = async (fastify, options) => {
 	const { db } = options;
 
-	// === GAME INITIALIZATION ===
+	
+	// Public: Get all active games (read-only, safe for CLI)
+	fastify.get("/games/cli/active", async (request, reply) => {
+		try {
+			const activeSessions = Array.from(sessionsmap.entries()).map(
+				([sessionId, session]) => ({
+					sessionId,
+					players: {
+						player1: {
+							id: session.players_info.p1_id,
+							name: session.players_info.p1_name,
+							ready: session.p1_ready,
+						},
+						player2: session.players_info.p2_id
+							? {
+									id: session.players_info.p2_id,
+									name: session.players_info.p2_name,
+									ready: session.p2_ready,
+							  }
+							: null,
+					},
+					gameType: session.gametype,
+					status: session.startgame ? "active" : "waiting",
+					score: session.positions?.score || { p1: 0, p2: 0 },
+				})
+			);
 
-	// Start a new game session
+			return {
+				success: true,
+				count: activeSessions.length,
+				sessions: activeSessions,
+				timestamp: new Date().toISOString(),
+			};
+		} catch (error) {
+			console.error("Error fetching active games:", error);
+			return reply.status(500).send({
+				success: false,
+				error: "Failed to fetch active games",
+			});
+		}
+	});
+
+	// Public: Get specific game session state (read-only, safe for CLI)
+	fastify.get("/games/cli/session/:sessionId", async (request, reply) => {
+		try {
+			const { sessionId } = request.params;
+			const session = sessionsmap.get(sessionId);
+
+			if (!session) {
+				return reply.status(404).send({
+					success: false,
+					error: "Game session not found",
+				});
+			}
+
+			return {
+				success: true,
+				session: {
+					sessionId,
+					players: session.players_info,
+					gameType: session.gametype,
+					p1_ready: session.p1_ready,
+					p2_ready: session.p2_ready,
+					startgame: session.startgame,
+					score: session.positions?.score || { p1: 0, p2: 0 },
+					positions: {
+						p1: session.positions?.p1,
+						p2: session.positions?.p2,
+						ballx: session.positions?.ballx,
+						bally: session.positions?.bally,
+						win: session.positions?.win,
+					},
+				},
+				timestamp: new Date().toISOString(),
+			};
+		} catch (error) {
+			console.error("Error fetching game session:", error);
+			return reply.status(500).send({
+				success: false,
+				error: "Failed to fetch game session",
+			});
+		}
+	});
+
+	// Public: Get game statistics (read-only, safe for CLI)
+	fastify.get("/games/cli/stats", async (request, reply) => {
+		try {
+			const stats = await new Promise((resolve, reject) => {
+				db.all(
+					`SELECT 
+						COUNT(*) as total_games,
+						COUNT(DISTINCT player1_id) + COUNT(DISTINCT player2_id) as total_players,
+						AVG(player1_score + player2_score) as avg_total_score,
+						MAX(player1_score) as highest_score
+					FROM games`,
+					[],
+					(err, rows) => {
+						if (err) return reject(err);
+						resolve(rows[0] || {});
+					}
+				);
+			});
+
+			return {
+				success: true,
+				stats: {
+					...stats,
+					active_sessions: sessionsmap.size,
+				},
+				timestamp: new Date().toISOString(),
+			};
+		} catch (error) {
+			console.error("Error fetching stats:", error);
+			return reply.status(500).send({
+				success: false,
+				error: "Failed to fetch statistics",
+			});
+		}
+	});
 	fastify.post("/games/start", async (request, reply) => {
 		try {
 		// Get authenticated user from middleware
@@ -150,99 +266,6 @@ const gameApiRoute = async (fastify, options) => {
 			});
 		}
 	});
-	fastify.get("/games/active", async (request, reply) => {
-		// SECURITY: Require authentication to view active games
-		if (!request.user?.id) {
-			return reply.status(401).send({ success: false, error: "Authentication required" });
-		}
-
-		try {
-			const activeSessions = Array.from(sessionsmap.entries()).map(
-				([sessionId, session]) => ({
-					sessionId,
-					players: {
-						player1: {
-							id: session.players_info.p1_id,
-							name: session.players_info.p1_name,
-							ready: session.p1_ready,
-						},
-						player2: session.players_info.p2_id
-							? {
-									id: session.players_info.p2_id,
-									name: session.players_info.p2_name,
-									ready: session.p2_ready,
-							  }
-							: null,
-					},
-					gameType: session.gametype,
-					status: session.startgame ? "active" : "waiting",
-					score: session.positions?.score || { p1: 0, p2: 0 },
-				})
-			);
-
-			return {
-				success: true,
-				count: activeSessions.length,
-				sessions: activeSessions,
-			};
-		} catch (error) {
-			console.error("Error fetching active games:", error);
-			return reply.status(503).send({
-				success: false,
-				error: "Failed to fetch active games",
-			});
-		}
-	});
-
-	// Get specific game session details
-	fastify.get("/games/session/:sessionId", async (request, reply) => {
-		// SECURITY: Require authentication
-		const authenticatedUserId = request.user?.id;
-		if (!authenticatedUserId) {
-			return reply.status(401).send({ success: false, error: "Authentication required" });
-		}
-
-		try {
-			const { sessionId } = request.params;
-			const session = sessionsmap.get(sessionId);
-
-			if (!session) {
-				return reply.status(404).send({
-					success: false,
-					error: "Game session not found",
-				});
-			}
-
-			// SECURITY: Verify user is a participant in this session
-			if (session.players_info.p1_id !== authenticatedUserId && 
-			    session.players_info.p2_id !== authenticatedUserId) {
-				return reply.status(403).send({
-					success: false,
-					error: "Forbidden: You are not a participant in this game",
-				});
-			}
-
-			return {
-				success: true,
-				session: {
-					sessionId,
-					players: session.players_info,
-					gameType: session.gametype,
-					p1_ready: session.p1_ready,
-					p2_ready: session.p2_ready,
-					startgame: session.startgame,
-					score: session.positions?.score || { p1: 0, p2: 0 },
-					positions: session.positions,
-				},
-			};
-		} catch (error) {
-			console.error("Error fetching game session:", error);
-			return reply.status(503).send({
-				success: false,
-				error: "Failed to fetch game session",
-			});
-		}
-	});
 	fastify.post("/tournament_win", async (request, reply) => {
 		const authenticatedUserId = request.user?.id;
 
@@ -288,54 +311,6 @@ const gameApiRoute = async (fastify, options) => {
 			return reply.status(503).send({
 				success: false,
 				error: "Failed to update tournaments won",
-			});
-		}
-	});
-	// End a game session
-	fastify.post("/games/session/:sessionId/end", async (request, reply) => {
-		try {
-			const { sessionId } = request.params;
-			const authenticatedUserId = request.user?.id;
-
-			if (!authenticatedUserId) {
-				return reply.status(401).send({
-					success: false,
-					error: "Authentication required",
-				});
-			}
-
-			const session = sessionsmap.get(sessionId);
-
-			if (!session) {
-				return reply.status(404).send({
-					success: false,
-					error: "Game session not found",
-				});
-			}
-
-			// SECURITY: Verify that the authenticated user is one of the players
-			const isPlayer1 = Number(session.players_info.p1_id) === Number(authenticatedUserId);
-			const isPlayer2 = Number(session.players_info.p2_id) === Number(authenticatedUserId);
-			
-			if (!isPlayer1 && !isPlayer2) {
-				return reply.status(403).send({
-					success: false,
-					error: "You can only end your own game sessions",
-				});
-			}
-
-			// Clean up game session
-			sessionsmap.delete(sessionId);
-
-			return {
-				success: true,
-				message: "Game session ended successfully",
-			};
-		} catch (error) {
-			console.error("Error ending game session:", error);
-			return reply.status(503).send({
-				success: false,
-				error: "Failed to end game session",
 			});
 		}
 	});

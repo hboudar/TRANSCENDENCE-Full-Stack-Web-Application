@@ -7,6 +7,5 @@ server/.envserver
 server/.env
 sqlite.db
 .env
-.env.elk
 client/.next
 client/.envlocal

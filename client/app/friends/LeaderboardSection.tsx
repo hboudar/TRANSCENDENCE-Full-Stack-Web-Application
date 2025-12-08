@@ -12,6 +12,10 @@ type Friend = {
   name: string;
   picture?: string;
   gold?: number;
+  level?: number;
+  games?: number;
+  win?: number;
+  lose?: number;
 };
 
 const LeaderboardSection = () => {
@@ -20,31 +24,24 @@ const LeaderboardSection = () => {
 
   const fetchFriends = useCallback(async () => {
     if (!user) return;
-
     try {
-      const res = await fetch(
-        `/api/friends/accepted?userId=${user.id}`
-      );
+      const res = await fetch(`/api/friends/accepted?userId=${user.id}`);
+      if (!res.ok) throw new Error("Failed to fetch friends");
       const data = await res.json();
-      setFriends(data.data); // 🔥 favorite removed
+      setFriends(data.data || []);
     } catch (err) {
       console.error("Failed to fetch friends:", err);
     }
   }, [user]);
 
   useEffect(() => {
-    if (!user || !socket) return;
-
-    socket.emit("join", user.id);
+    if (!user) return;
 
     fetchFriends();
 
     socket.on("friends:updated", fetchFriends);
-
     return () => {
-      if (socket) {
-        socket.off("friends:updated", fetchFriends);
-      }
+      socket.off("friends:updated", fetchFriends);
     };
   }, [user, fetchFriends]);
 

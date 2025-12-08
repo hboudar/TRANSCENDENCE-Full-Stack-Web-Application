@@ -9,9 +9,16 @@ type Friend = {
   name: string;
   picture?: string;
   gold?: number;
+  level?: number;
+  games?: number;
+  win?: number;
+  lose?: number;
 };
 
-export default function UsersCard({ friends, setUsers }: {
+export default function UsersCard({
+  friends,
+  setUsers,
+}: {
   friends: Friend[];
   setUsers: Dispatch<SetStateAction<Friend[]>>;
 }) {

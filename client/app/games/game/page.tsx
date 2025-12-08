@@ -15,7 +15,6 @@ import LocalGameWinAnimation from "@/app/components/LocalGameWinAnimation";
 import { Suspense } from "react";
 import { showAlert } from "@/app/components/Alert";
 
-// Extend Window interface for game-specific properties
 declare global {
 	interface Window {
 		gameSocket?: Socket;
@@ -111,8 +110,6 @@ function GameContent() {
 	let oppid = Number(serchParams.get("oppid"));
 	const invited_player = serchParams.get("invited_player");
 	if (!oppid) oppid = 0;
-
-	// Validate game type on mount
 	useEffect(() => {
 		const validGameTypes = ["localvsbot", "local", "online", "tournament", "localvsbot"];
 		if (gametype && !validGameTypes.includes(gametype)) {
@@ -122,34 +119,27 @@ function GameContent() {
 	}, [gametype, router]);
 
 	useEffect(() => {
-		// console.log(gametype, Positions, tournamentplayers);
-
 		if (gametype == "tournament" && tournamentplayers.gamestatus == 1) {
-			// console.log("touuurlocal");
-
+			// Reset the transition flag when starting a new tournament game
+			tournamentTransitionScheduled.current = false;
+			isTournamentTransitioning.current = false;
+			
 			setgametype("local");
 			return;
 		}
 		if (!user || gametype == "tournament") return;
-		
-		// Check if this is a private game reload (host reloading while waiting)
-		// Use sessionStorage flag to distinguish fresh invite from reload
 		if (gametype === "online" && oppid && oppid !== 0 && !invited_player) {
 			const isIntentionalInvite = sessionStorage.getItem('creatingPrivateGame');
 			
 			if (!isIntentionalInvite) {
-				// This is a reload, not a fresh invite - redirect to chat
 				console.log("Private game reload detected - redirecting to chat");
 				router.push("/chat");
 				return;
 			}
-			
-			// Clear the flag after checking - it's only valid for initial load
 			sessionStorage.removeItem('creatingPrivateGame');
 		}
 		
 		async function newgame() {
-			// Prevent duplicate initialization in React Strict Mode (dev mode)
 			if (isInitializing.current) {
 				console.log("Game already initializing, skipping duplicate request");
 				return;
@@ -234,14 +224,23 @@ function GameContent() {
 					if (!socket) return;
 					socketRef.current = socket;
 
-					socket.on("gameState", (data) => {
+				socket.on("gameState", (data) => {
+					if (tournamentplayers.p1 && tournamentplayers.p2) {
+						setplayersdata({
+							p1_name: tournamentplayers.p1,
+							p2_name: tournamentplayers.p2,
+							p1_img: data.players_info.p1_img,
+							p2_img: data.players_info.p2_img,
+							p1_id: tournamentplayers.p1_id,
+							p2_id: tournamentplayers.p2_id,
+						} as PlayersData);
+					} else {
 						setplayersdata(data.players_info as PlayersData);
-						setPositions({
-							...data.positions,
-							Curentplayer: data.Curentplayer,
-						} as PositionsType);
-
-						// Check if waiting for player 2
+					}
+					setPositions({
+						...data.positions,
+						Curentplayer: data.Curentplayer,
+					} as PositionsType);
 						if (gametype === "online" && data.players_info.p2_id === 0) {
 							setIsWaitingForPlayer(true);
 							setCanExit(true);
@@ -249,10 +248,7 @@ function GameContent() {
 							setIsWaitingForPlayer(false);
 							setCanExit(false);
 						}
-
-						// Handle game end with animation
 						if (data.positions.win !== 0) {
-							// Determine winner
 							const winner =
 								data.positions.win === 1
 									? {
@@ -269,30 +265,23 @@ function GameContent() {
 							
 							setWinnerData(winner);
 							setShowWinAnimation(true);
-
-							// Clear session and disconnect after animation
 							setTimeout(() => {
 								sessionStorage.removeItem("gameSessionId");
 								socket.disconnect();
 							}, 4000);
 						}
 					});
-
-					// Handle server-initiated disconnect
 					socket.on("disconnect", (reason) => {
 						console.log("Socket disconnected:", reason);
 						sessionStorage.removeItem("gameSessionId");
 						isInitializing.current = false;
 					});
-
-					// Helper function to emit key events
 					const emitKey = (key: string, action: "keydown" | "keyup") => {
 						socket.emit(action, { key });
 					};
 
 					function handleKeyDown(event: KeyboardEvent) {
 						let key = event.key;
-						// Map mobile keys to game keys
 						if (key === "a") key = "w";
 						if (key === "d") key = "s";
 						if (key === "ArrowLeft") key = "ArrowUp";
@@ -310,7 +299,6 @@ function GameContent() {
 
 					function handleKeyUp(event: KeyboardEvent) {
 						let key = event.key;
-						// Map mobile keys to game keys
 						if (key === "a") key = "w";
 						if (key === "d") key = "s";
 						if (key === "ArrowLeft") key = "ArrowUp";
@@ -328,17 +316,12 @@ function GameContent() {
 
 					window.gameSocket = socket;
 					window.emitKey = emitKey;
-
-					// Handle intentional navigation away (back button, route change)
 					const handleRouteChange = () => {
 						isInitializing.current = false;
 						if (socket) {
 							socket.disconnect();
 						}
 					};
-
-					// Don't remove session on page reload (beforeunload)
-					// Session will be kept for reconnection
 					window.addEventListener("popstate", handleRouteChange);
 
 					document.addEventListener("keydown", handleKeyDown);
@@ -350,8 +333,6 @@ function GameContent() {
 						document.removeEventListener("keyup", handleKeyUp);
 						delete window.gameSocket;
 						delete window.emitKey;
-						
-						// Cleanup on unmount
 						isInitializing.current = false;
 						if (socket) socket.disconnect();
 					};
@@ -370,7 +351,6 @@ function GameContent() {
 				cleanup();
 			}
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [gametype, tournamentplayers.gamestatus, invited_player, oppid, user]);
 
 	useEffect(() => {
@@ -390,9 +370,6 @@ function GameContent() {
 		}
 	}, [user, setselected]);
 	async function tournamentstates() {
-		// console.log("tournament win", playersdata, Positions, tournamentplayers);
-
-		// Clear win animation states before transitioning
 		setShowWinAnimation(false);
 		setWinnerData(null);
 		setPositions({});
@@ -406,15 +383,12 @@ function GameContent() {
 
 	const handleExitWaiting = () => {
 		if (socketRef.current) {
-			// Notify server to clean up session and notifications
 			socketRef.current.emit("exit_waiting");
-			// Give server time to process before disconnecting
 			setTimeout(() => {
 				if (socketRef.current) {
 					socketRef.current.disconnect();
 					socketRef.current = null;
 				}
-				// If it's a private game (has oppid), go back to chat, otherwise go to games
 				if (oppid && oppid !== 0) {
 					router.push("/chat");
 				} else {
@@ -422,7 +396,6 @@ function GameContent() {
 				}
 			}, 100);
 		} else {
-			// If it's a private game (has oppid), go back to chat, otherwise go to games
 			if (oppid && oppid !== 0) {
 				router.push("/chat");
 			} else {
@@ -430,8 +403,6 @@ function GameContent() {
 			}
 		}
 	};
-
-	// Show session not found message
 	if (sessionNotFound) {
 		return (
 			<div className="bg-gray-400/30 backdrop-blur-sm flex flex-col justify-center items-center z-50 absolute top-0 bottom-0 left-0 right-0">
@@ -457,8 +428,6 @@ function GameContent() {
 			</div>
 		);
 	}
-
-	// Show already in game message
 	if (alreadyInGame) {
 		return (
 			<div className="bg-gray-400/30 backdrop-blur-sm flex flex-col justify-center items-center z-50 absolute top-0 bottom-0 left-0 right-0">
@@ -511,17 +480,6 @@ function GameContent() {
 
 	if (Positions.win != 0) {
 		if (tournamentplayers.p1_id != 0 && tournamentplayers.winer == 0) {
-			// Tournament game ended - no animation for individual matches
-			if (
-				tournamentplayers.p1 != playersdata.p1_name ||
-				tournamentplayers.p2 != playersdata.p2_name
-			) {
-				setgametype("local");
-				setPositions({});
-				return;
-			}
-
-			// Schedule tournament state change immediately (no animation delay)
 			if (!tournamentTransitionScheduled.current) {
 				tournamentTransitionScheduled.current = true;
 				isTournamentTransitioning.current = true;
@@ -529,11 +487,8 @@ function GameContent() {
 					tournamentstates();
 					tournamentTransitionScheduled.current = false;
 					isTournamentTransitioning.current = false;
-				}, 100); // Quick transition back to tournament screen
+				}, 100);
 			}
-
-			// Don't show animation for individual tournament matches
-			// Animation only shown when entire tournament is won
 			return (
 				<div className="bg-gray-400/30 backdrop-blur-sm flex flex-col justify-center items-center z-50 absolute top-0 bottom-0 left-0 right-0">
 					<Loading />
@@ -558,7 +513,6 @@ function GameContent() {
 					  };
 
 			if (gametype === "local") {
-				// Local game - just show the winner
 				return (
 					<LocalGameWinAnimation
 						winnerName={winner.name}
@@ -569,10 +523,8 @@ function GameContent() {
 				const isPlayer1Winner = winner.id === user!.id;
 				
 				if (!isPlayer1Winner) {
-					// Player 1 lost - show lose animation
 					return <LoseAnimation />;
 				} else {
-					// Player 1 won - show victory animation
 					return (
 						<WinAnimation
 							winnerName={winner.name}
@@ -581,14 +533,11 @@ function GameContent() {
 					);
 				}
 			 } else {
-				// Online game - show win or lose based on player 1 result
 				const isPlayer1Lose = Positions.win === 2;
 
 				if (isPlayer1Lose) {
-					// Player 1 lost - show lose animation
 					return <LoseAnimation />;
 				} else {
-					// Player 1 won - show victory animation
 					return (
 						<WinAnimation
 							winnerName={winner.name}
@@ -600,14 +549,12 @@ function GameContent() {
 		}
 	}
 
-	// Show win animation overlay if active (triggered by socket event)
 	if (showWinAnimation && winnerData) {
 		setTimeout(() => {
 			router.push("/games");
 		}, 4000);
 
 		if (gametype === "local") {
-			// Local game - just show the winner
 			return (
 				<LocalGameWinAnimation
 					winnerName={winnerData.name}
@@ -617,10 +564,8 @@ function GameContent() {
 		}else if(gametype === "online"){
 			const isPlayer1Winner = winnerData.id === user!.id;
 			if (!isPlayer1Winner) {
-				// Player 1 lost - show lose animation
 				return <LoseAnimation />;
 			} else {
-				// Player 1 won - show victory animation
 				return (
 					<WinAnimation
 						winnerName={winnerData.name}
@@ -629,14 +574,11 @@ function GameContent() {
 				);
 			}
 			 }  else {
-			// Online game - check if current player (player 1) is the winner
 			const isPlayer1Winner = winnerData.name === playersdata.p1_name;
 
 			if (!isPlayer1Winner) {
-				// Player 1 lost - show lose animation
 				return <LoseAnimation />;
 			} else {
-				// Player 1 won - show victory animation
 				return (
 					<WinAnimation
 						winnerName={winnerData.name}
@@ -647,7 +589,6 @@ function GameContent() {
 		}
 	}
 
-	// Button control handlers
 	const handleButtonPress = (key: string) => {
 		const emitKey = window.emitKey;
 		if (emitKey) {
@@ -669,17 +610,7 @@ function GameContent() {
 				<div className="flex items-center justify-between px-2 md:px-5 mb-4">
 					<div className="flex items-center gap-2 md:gap-5">
 						<div className="rounded-full w-10 h-10 md:w-14 md:h-14 overflow-hidden border">
-							{/* <img
-								className="w-full h-full object-cover object-center"
-								src={
-									"/" +
-									(Positions.Curentplayer == 1
-										? playersdata.p1_img
-										: playersdata.p2_img)
-								}
-								width={60}
-								height={60}
-								alt="profile"></Image> */}
+							
 							<img
 								src={
 									Positions.Curentplayer == 1
@@ -710,17 +641,7 @@ function GameContent() {
 								: playersdata.p1_name}
 						</p>
 						<div className="rounded-full w-10 h-10 md:w-14 md:h-14 overflow-hidden border">
-							{/* <img
-								className="w-full h-full object-cover object-center"
-								src={
-									"/" +
-									(Positions.Curentplayer == 1
-										? playersdata.p2_img
-										: playersdata.p1_img)
-								}
-								width={60}
-								height={60}
-								alt="profile"></Image> */}
+							
 							<img
 								src={
 									Positions.Curentplayer == 1
@@ -731,10 +652,7 @@ function GameContent() {
 						</div>
 					</div>
 				</div>
-
-				{/* Rotated game area and buttons container */}
 				<div className="flex max-md:-rotate-90 flex-1 min-h-0 items-center justify-center w-full  gap-5">
-					{/* Player 1 Controls (left on desktop, bottom on mobile after rotation) */}
 					<div className="flex flex-col justify-center items-center gap-3">
 						<button
 							onTouchStart={() => handleButtonPress("w")}

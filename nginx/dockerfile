@@ -9,6 +9,8 @@ RUN mkdir -p /etc/nginx/ssl && \
     -subj "/C=MO/ST=KH/L=KH/O=1337/OU=1337/CN=localhost/UID=trans"
 
 COPY ./nginx/conf/nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./nginx/wait-for-upstreams.sh /usr/local/bin/wait-for-upstreams.sh
+RUN chmod +x /usr/local/bin/wait-for-upstreams.sh
 
 EXPOSE 80 443
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/usr/local/bin/wait-for-upstreams.sh"]
