@@ -240,11 +240,6 @@ export default function Topheader() {
                   </div>
                 )}
               </div>
-              {notifications.length > 0 && (
-                <Link href="/notifications" className="block text-center py-3 border-t border-gray-700 text-sm text-blue-400 hover:text-blue-300 hover:bg-[#1e1e3e] transition-colors" onClick={() => setShowNotifications(false)}>
-                  See all notifications
-                </Link>
-              )}
             </div>
           )}
 
